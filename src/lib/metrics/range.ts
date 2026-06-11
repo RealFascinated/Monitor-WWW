@@ -2,6 +2,10 @@ import type { MetricTimeRange } from "@/lib/api/user/metrics"
 
 /** Lookback durations in seconds — must match API MetricTimeRange. */
 export const METRIC_RANGE_LOOKBACK_SECONDS: Record<MetricTimeRange, number> = {
+  "1h": 3_600,
+  "3h": 10_800,
+  "6h": 21_600,
+  "12h": 43_200,
   "24h": 86_400,
   "3d": 259_200,
   "7d": 604_800,
@@ -13,6 +17,10 @@ export const METRIC_RANGE_LOOKBACK_SECONDS: Record<MetricTimeRange, number> = {
 }
 
 const METRIC_RANGES: MetricTimeRange[] = [
+  "1h",
+  "3h",
+  "6h",
+  "12h",
   "24h",
   "3d",
   "7d",
@@ -23,19 +31,58 @@ const METRIC_RANGES: MetricTimeRange[] = [
   "2y",
 ]
 
-export const METRIC_RANGE_OPTIONS: {
+export type MetricRangeGroup = "hours" | "days" | "weeks" | "months" | "years"
+
+export type MetricRangeOption = {
   value: MetricTimeRange
   label: string
+  shortLabel: string
+  group: MetricRangeGroup
+}
+
+export const METRIC_RANGE_GROUPS: {
+  id: MetricRangeGroup
+  label: string
 }[] = [
-  { value: "24h", label: "24h" },
-  { value: "3d", label: "3d" },
-  { value: "7d", label: "7d" },
-  { value: "2w", label: "2w" },
-  { value: "1mo", label: "1mo" },
-  { value: "3mo", label: "3mo" },
-  { value: "1y", label: "1y" },
-  { value: "2y", label: "2y" },
+  { id: "hours", label: "Hours" },
+  { id: "days", label: "Days" },
+  { id: "weeks", label: "Weeks" },
+  { id: "months", label: "Months" },
+  { id: "years", label: "Years" },
 ]
+
+export const METRIC_RANGE_OPTIONS: MetricRangeOption[] = [
+  { value: "1h", label: "Last hour", shortLabel: "1h", group: "hours" },
+  { value: "3h", label: "Last 3 hours", shortLabel: "3h", group: "hours" },
+  { value: "6h", label: "Last 6 hours", shortLabel: "6h", group: "hours" },
+  { value: "12h", label: "Last 12 hours", shortLabel: "12h", group: "hours" },
+  { value: "24h", label: "Last 24 hours", shortLabel: "24h", group: "hours" },
+  { value: "3d", label: "Last 3 days", shortLabel: "3d", group: "days" },
+  { value: "7d", label: "Last 7 days", shortLabel: "7d", group: "days" },
+  { value: "2w", label: "Last 2 weeks", shortLabel: "2w", group: "weeks" },
+  { value: "1mo", label: "Last 30 days", shortLabel: "30d", group: "months" },
+  { value: "3mo", label: "Last 3 months", shortLabel: "3mo", group: "months" },
+  { value: "1y", label: "Last year", shortLabel: "1y", group: "years" },
+  { value: "2y", label: "Last 2 years", shortLabel: "2y", group: "years" },
+]
+
+/** Common ranges surfaced as one-click shortcuts in the metrics header. */
+export const METRIC_RANGE_QUICK_PICKS: MetricTimeRange[] = [
+  "1h",
+  "24h",
+  "7d",
+  "1mo",
+]
+
+const METRIC_RANGE_BY_VALUE = Object.fromEntries(
+  METRIC_RANGE_OPTIONS.map((option) => [option.value, option])
+) as Record<MetricTimeRange, MetricRangeOption>
+
+export function getMetricRangeOption(
+  value: MetricTimeRange
+): MetricRangeOption {
+  return METRIC_RANGE_BY_VALUE[value]
+}
 
 export function parseMetricRange(value: unknown): MetricTimeRange {
   if (

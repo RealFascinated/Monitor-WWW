@@ -3,17 +3,10 @@ import { Settings } from "lucide-react"
 
 import { Breadcrumb } from "@/components/breadcrumb"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
+import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
-import { METRIC_RANGE_OPTIONS } from "@/lib/metrics/range"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
 
 type ServerMetricsHeaderProps = {
@@ -63,32 +56,17 @@ function ServerMetricsHeader({
             </Link>
           </Button>
 
-          <Select
+          <MetricRangeSelector
             value={range}
-            onValueChange={(value) => {
+            onChange={(nextRange) => {
               navigate({
                 to: "/servers/$serverId",
                 params: { serverId: String(serverId) },
-                search: { range: value as MetricTimeRange },
+                search: { range: nextRange },
                 resetScroll: false,
               })
             }}
-          >
-            <SelectTrigger
-              size="sm"
-              className="min-w-[6.5rem] border-neutral-200 bg-white dark:border-monitor-gray-300 dark:bg-monitor-gray-100"
-              aria-label="Timeframe"
-            >
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {METRIC_RANGE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
       </div>
     </div>

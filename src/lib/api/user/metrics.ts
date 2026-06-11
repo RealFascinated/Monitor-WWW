@@ -1,6 +1,10 @@
 import { apiFetch } from "@/lib/auth/api"
 
 export type MetricTimeRange =
+  | "1h"
+  | "3h"
+  | "6h"
+  | "12h"
   | "24h"
   | "3d"
   | "7d"

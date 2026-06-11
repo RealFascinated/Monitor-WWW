@@ -13,7 +13,20 @@ import { ApiClientError } from "@/lib/auth/api"
 
 const serverMetricsSearchSchema = z.object({
   range: z
-    .enum(["24h", "3d", "7d", "2w", "1mo", "3mo", "1y", "2y"])
+    .enum([
+      "1h",
+      "3h",
+      "6h",
+      "12h",
+      "24h",
+      "3d",
+      "7d",
+      "2w",
+      "1mo",
+      "3mo",
+      "1y",
+      "2y",
+    ])
     .default("7d"),
 })
 
