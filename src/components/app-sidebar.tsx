@@ -9,11 +9,7 @@ import {
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
 
-import {
-  CpuPercent,
-  DiskPercent,
-  MemoryPercent,
-} from "@/components/server/usage-percent"
+import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
 import { MonitorLogo } from "@/components/monitor-logo"
 import { Spinner } from "@/components/spinner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
@@ -154,12 +150,6 @@ function SidebarServerList({
                     <MemoryPercent
                       usage={server.memUsage}
                       max={server.memMax}
-                      className="font-medium"
-                    />{" "}
-                    · Root disk{" "}
-                    <DiskPercent
-                      usage={server.diskUsage}
-                      max={server.diskMax}
                       className="font-medium"
                     />
                   </span>
