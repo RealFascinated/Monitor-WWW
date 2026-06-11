@@ -698,7 +698,7 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
 
   return (
     <div className="flex gap-6 xl:gap-10">
-      <div className="flex min-w-0 flex-1 flex-col gap-8">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         {sections.map((section) => (
           <MetricSection
             key={section.id}
