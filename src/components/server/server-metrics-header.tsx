@@ -15,7 +15,6 @@ import type { ServerResponse } from "@/lib/api/user/servers"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
 import { METRIC_RANGE_OPTIONS } from "@/lib/metrics/range"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
-import { cn } from "@/lib/utils"
 
 type ServerMetricsHeaderProps = {
   server: ServerResponse | undefined
@@ -31,11 +30,7 @@ function ServerMetricsHeader({
   const navigate = useNavigate()
 
   return (
-    <div
-      className={cn(
-        "z-30 -mx-4 -mt-4 mb-8 flex flex-col gap-4 border-b border-sidebar-border bg-background/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:-mx-8 lg:-mt-6 lg:min-h-[var(--metrics-header-offset)] lg:px-8"
-      )}
-    >
+    <div className="z-30 mb-6 flex flex-col gap-2.5 border-b border-sidebar-border bg-background/95 py-3 backdrop-blur-sm lg:sticky lg:top-0">
       <Breadcrumb
         items={[
           { label: "Dashboard", to: "/" },
@@ -46,10 +41,12 @@ function ServerMetricsHeader({
         ]}
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1>{server?.serverName ?? `Server ${serverId}`}</h1>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl">
+              {server?.serverName ?? `Server ${serverId}`}
+            </h1>
             {server ? <ServerStatusBadge status={server.status} /> : null}
           </div>
           {server ? <ServerMetaSubtitle server={server} /> : null}

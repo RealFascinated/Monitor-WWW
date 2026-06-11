@@ -74,12 +74,21 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
                 })
               }}
               className={cn(
-                "relative -ml-px rounded-r-sm py-1 pl-2.5 text-left text-xs leading-snug transition-colors",
+                "relative rounded-r-sm py-1 pl-2.5 text-left text-xs font-medium leading-snug transition-colors",
                 isActive
-                  ? "border-l-2 border-monitor font-semibold text-foreground dark:border-warning"
-                  : "border-l-2 border-transparent font-medium text-muted-foreground hover:text-foreground"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute top-1 bottom-1 left-0 w-0.5 rounded-full",
+                  isActive
+                    ? "bg-monitor dark:bg-warning"
+                    : "bg-transparent"
+                )}
+              />
               {section.title}
             </button>
           )

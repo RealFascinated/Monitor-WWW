@@ -4,7 +4,6 @@ import { Breadcrumb } from "@/components/breadcrumb"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
-import { cn } from "@/lib/utils"
 
 type ServerSettingsHeaderProps = {
   server: ServerResponse | undefined
@@ -13,11 +12,7 @@ type ServerSettingsHeaderProps = {
 
 function ServerSettingsHeader({ server, serverId }: ServerSettingsHeaderProps) {
   return (
-    <div
-      className={cn(
-        "z-30 -mx-4 -mt-4 mb-8 flex flex-col gap-4 border-b border-sidebar-border bg-background/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:-mx-8 lg:-mt-6 lg:px-8"
-      )}
-    >
+    <div className="z-30 mb-6 flex flex-col gap-2.5 border-b border-sidebar-border bg-background/95 py-3 backdrop-blur-sm lg:sticky lg:top-0">
       <Breadcrumb
         items={[
           { label: "Dashboard", to: "/" },
@@ -31,12 +26,12 @@ function ServerSettingsHeader({ server, serverId }: ServerSettingsHeaderProps) {
         ]}
       />
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <Settings className="size-5 text-monitor dark:text-warning" />
-          <h1>Settings</h1>
+          <Settings className="size-4 text-monitor dark:text-warning" />
+          <h1 className="text-xl">Settings</h1>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-foreground">
             {server?.serverName ?? `Server ${serverId}`}
           </span>
