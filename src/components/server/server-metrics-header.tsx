@@ -33,7 +33,7 @@ function ServerMetricsHeader({
   return (
     <div
       className={cn(
-        "sticky top-14 z-30 -mx-4 mb-8 flex flex-col gap-4 border-b border-sidebar-border bg-background/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:top-0 lg:-mx-8 lg:px-8"
+        "z-30 -mx-4 mb-8 flex flex-col gap-4 border-b border-sidebar-border bg-background/95 px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:-mx-8 lg:px-8"
       )}
     >
       <Breadcrumb

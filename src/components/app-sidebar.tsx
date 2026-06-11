@@ -89,9 +89,9 @@ function SidebarServerList({
   }
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       {!compact ? (
-        <div className="mt-3 mb-1 flex items-center justify-between gap-2 px-2">
+        <div className="mt-3 mb-1 flex shrink-0 items-center justify-between gap-2 px-2">
           <p className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
             Servers
           </p>
@@ -101,9 +101,9 @@ function SidebarServerList({
           </div>
         </div>
       ) : (
-        <div className="my-2 border-t border-sidebar-border" />
+        <div className="my-2 shrink-0 border-t border-sidebar-border" />
       )}
-      <div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
         {servers.map((server) => (
           <Link
             key={server.serverId}
@@ -113,18 +113,16 @@ function SidebarServerList({
             onClick={onNavigate}
             title={compact ? server.serverName : undefined}
             className={cn(
-              "flex min-h-7 w-full gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
+              "flex w-full shrink-0 rounded-sm px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
               "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
-              compact ? "items-center justify-center px-0" : "items-center",
-              detailed && !compact && "items-start py-1.5"
+              compact
+                ? "min-h-7 items-center justify-center gap-3 px-0 py-1"
+                : detailed
+                  ? "items-center gap-2 py-1"
+                  : "min-h-7 items-center gap-3 py-1"
             )}
           >
-            <span
-              className={cn(
-                "relative shrink-0",
-                detailed && !compact && "mt-0.5"
-              )}
-            >
+            <span className="relative shrink-0">
               <Server className="size-4" />
               <span
                 className={cn(
@@ -134,10 +132,15 @@ function SidebarServerList({
               />
             </span>
             {!compact ? (
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate">{server.serverName}</span>
+              <span
+                className={cn(
+                  "flex min-w-0 flex-1 flex-col",
+                  detailed ? "gap-0 leading-tight" : "gap-0.5"
+                )}
+              >
+                <span className="truncate leading-tight">{server.serverName}</span>
                 {detailed ? (
-                  <span className="text-xs text-neutral-400">
+                  <span className="truncate text-[11px] leading-tight text-neutral-400">
                     CPU{" "}
                     <CpuPercent
                       value={server.cpuPercent}
@@ -156,7 +159,7 @@ function SidebarServerList({
           </Link>
         ))}
       </div>
-    </>
+    </div>
   )
 }
 
