@@ -1,7 +1,7 @@
-import {
-  isMetricsSectionGroup,
-  type MetricsSectionLeaf,
-  type MetricsSectionNode,
+import { isMetricsSectionGroup } from "@/lib/metrics/sections/types"
+import type {
+  MetricsSectionLeaf,
+  MetricsSectionNode,
 } from "@/lib/metrics/sections/types"
 
 function flattenMetricSectionLeaves(

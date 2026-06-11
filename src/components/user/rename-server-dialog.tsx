@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
 import { useState } from "react"
 
@@ -17,11 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
-import {
-  userServerQueryOptions,
-  userServersQueryOptions,
-} from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { useServersStore } from "@/stores/servers-store"
 import {
   MAX_SERVER_NAME_LENGTH,
   validateServerName,
@@ -33,7 +30,6 @@ type RenameServerDialogProps = {
 }
 
 function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) {
-  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)
@@ -44,14 +40,7 @@ function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) 
     mutationFn: (nextName: string) =>
       renameServer(serverId, { name: nextName }),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: userServersQueryOptions.queryKey,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: userServerQueryOptions(serverId).queryKey,
-        }),
-      ])
+      await useServersStore.getState().ensureServer(serverId)
       setOpen(false)
       resetForm()
     },

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 
 import { Callout } from "@/components/callout"
@@ -7,11 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
-import {
-  userServerQueryOptions,
-  userServersQueryOptions,
-} from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { useServersStore } from "@/stores/servers-store"
 import {
   MAX_SERVER_NAME_LENGTH,
   validateServerName,
@@ -23,7 +20,6 @@ type RenameServerFormProps = {
 }
 
 function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
-  const queryClient = useQueryClient()
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
@@ -39,14 +35,7 @@ function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
     mutationFn: (nextName: string) =>
       renameServer(serverId, { name: nextName }),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: userServersQueryOptions.queryKey,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: userServerQueryOptions(serverId).queryKey,
-        }),
-      ])
+      await useServersStore.getState().ensureServer(serverId)
       setFieldError(null)
       setApiError(null)
     },

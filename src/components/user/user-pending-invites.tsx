@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query"
-
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import {
@@ -10,8 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { userPendingInvitesQueryOptions } from "@/lib/api/user/invites.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { useUserInvites } from "@/hooks/use-user-invites"
 import { formatDate } from "@/lib/formatter"
 
 function formatRole(role: string): string {
@@ -19,18 +16,9 @@ function formatRole(role: string): string {
 }
 
 function UserPendingInvites() {
-  const {
-    data: invites,
-    isPending,
-    error,
-  } = useQuery(userPendingInvitesQueryOptions)
+  const { data: invites, isPending, error } = useUserInvites()
 
-  const errorMessage =
-    error instanceof ApiClientError
-      ? error.message
-      : error
-        ? "Failed to load invites"
-        : null
+  const errorMessage = error ?? null
 
   return (
     <div className="flex flex-col gap-3">

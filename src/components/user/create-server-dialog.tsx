@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
 import { useState } from "react"
@@ -18,19 +18,16 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  createServer,
-  type CreatedServerResponse,
-} from "@/lib/api/user/servers"
-import { userServersQueryOptions } from "@/lib/api/user/servers.queries"
+import { createServer } from "@/lib/api/user/servers"
+import type { CreatedServerResponse } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
+import { useServersStore } from "@/stores/servers-store"
 import {
   MAX_SERVER_NAME_LENGTH,
   validateServerName,
 } from "@/lib/server-name"
 
 function CreateServerDialog() {
-  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [fieldError, setFieldError] = useState<string | null>(null)
@@ -41,9 +38,7 @@ function CreateServerDialog() {
   const mutation = useMutation({
     mutationFn: createServer,
     onSuccess: async (server) => {
-      await queryClient.invalidateQueries({
-        queryKey: userServersQueryOptions.queryKey,
-      })
+      await useServersStore.getState().fetchServers()
       setCreatedServer(server)
       setApiError(null)
     },

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -18,8 +18,8 @@ import {
   revokeServerInvite,
 } from "@/lib/api/user/access"
 import type { ServerAccessListResponse } from "@/lib/api/user/access"
-import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { useAccessStore } from "@/stores/access-store"
 import { formatDate } from "@/lib/formatter"
 
 type ServerAccessViewProps = {
@@ -49,15 +49,12 @@ function RemoveMemberButton({
   memberUserId: number
   memberEmail: string
 }) {
-  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: () => removeServerMember(serverId, memberUserId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: serverAccessQueryOptions(serverId).queryKey,
-      })
+      await useAccessStore.getState().fetchAccess(serverId)
     },
     onError: (mutationError) => {
       setError(
@@ -114,15 +111,12 @@ function RevokeInviteButton({
   inviteId: number
   inviteEmail: string
 }) {
-  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: () => revokeServerInvite(serverId, inviteId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: serverAccessQueryOptions(serverId).queryKey,
-      })
+      useAccessStore.getState().removePendingInvite(serverId, inviteId)
     },
     onError: (mutationError) => {
       setError(

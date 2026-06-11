@@ -5,15 +5,20 @@ import {
   useRouterState,
 } from "@tanstack/react-router"
 import { Menu } from "lucide-react"
-import { useEffect, useState, type CSSProperties } from "react"
+import { useEffect, useState } from "react"
+import type { CSSProperties } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { MonitorLogo } from "@/components/monitor-logo"
 import { useSidebarWidth } from "@/hooks/use-sidebar-width"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
+import { useMonitorWebSocket } from "@/hooks/use-monitor-websocket"
 import { logout, useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
+import { useAccessStore } from "@/stores/access-store"
+import { useInvitesStore } from "@/stores/invites-store"
+import { useServersStore } from "@/stores/servers-store"
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -39,6 +44,16 @@ function AuthenticatedLayout() {
       void navigate({ to: "/login" })
     }
   }, [isLoading, user, navigate])
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+    void useServersStore.getState().fetchServers()
+    void useInvitesStore.getState().fetchInvites()
+  }, [user])
+
+  useMonitorWebSocket(Boolean(user))
 
   useEffect(() => {
     setMobileSidebarOpen(false)
@@ -68,6 +83,9 @@ function AuthenticatedLayout() {
     setIsLoggingOut(true)
     try {
       await logout()
+      useServersStore.getState().reset()
+      useAccessStore.getState().reset()
+      useInvitesStore.getState().reset()
       setUser(null)
       await navigate({ to: "/login" })
     } finally {

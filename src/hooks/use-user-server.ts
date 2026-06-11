@@ -1,7 +1,12 @@
-import { useQuery } from "@tanstack/react-query"
-
-import { userServerQueryOptions } from "@/lib/api/user/servers.queries"
+import { useServersStore } from "@/stores/servers-store"
 
 export function useUserServer(serverId: number) {
-  return useQuery(userServerQueryOptions(serverId))
+  const server = useServersStore((state) => state.servers[serverId])
+  const isLoading = useServersStore((state) => state.isLoading)
+
+  return {
+    data: server,
+    isLoading,
+    isPending: isLoading && !server,
+  }
 }

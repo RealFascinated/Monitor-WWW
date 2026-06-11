@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 
@@ -6,9 +6,9 @@ import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { acceptServerInvite } from "@/lib/api/user/invites"
-import { userPendingInvitesQueryOptions } from "@/lib/api/user/invites.queries"
-import { userServersQueryOptions } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { useInvitesStore } from "@/stores/invites-store"
+import { useServersStore } from "@/stores/servers-store"
 
 type AcceptInviteViewProps = {
   token: string
@@ -17,20 +17,13 @@ type AcceptInviteViewProps = {
 
 function AcceptInviteView({ token, email }: AcceptInviteViewProps) {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
 
   const acceptMutation = useMutation({
     mutationFn: () => acceptServerInvite({ token }),
     onSuccess: async (member) => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: userPendingInvitesQueryOptions.queryKey,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: userServersQueryOptions.queryKey,
-        }),
-      ])
+      await useServersStore.getState().fetchServers()
+      await useInvitesStore.getState().fetchInvites()
       await navigate({
         to: "/servers/$serverId",
         params: { serverId: String(member.serverId) },

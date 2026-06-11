@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ApiClientError } from "@/lib/auth/api"
 import { useUserServers } from "@/hooks/use-user-servers"
 import {
   formatDate,
@@ -46,12 +45,7 @@ function ServersTable() {
       )
     }) ?? []
 
-  const errorMessage =
-    error instanceof ApiClientError
-      ? error.message
-      : error
-        ? "Failed to load servers"
-        : null
+  const errorMessage = error ?? null
 
   const hasOwnedServers = filteredServers.some(
     (server) => server.role === "OWNER"

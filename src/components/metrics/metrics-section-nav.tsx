@@ -8,8 +8,10 @@ import {
 import {
   isMetricsSectionGroup,
   metricsSectionNavLabel,
-  type MetricsSectionLeaf,
-  type MetricsSectionNode,
+} from "@/lib/metrics/sections/types"
+import type {
+  MetricsSectionLeaf,
+  MetricsSectionNode,
 } from "@/lib/metrics/sections/types"
 
 type MetricsSectionNavProps = {

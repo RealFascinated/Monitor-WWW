@@ -1,22 +1,23 @@
-import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { ServerSettingsHeader } from "@/components/server/server-settings-header"
 import { ServerSettingsView } from "@/components/server/server-settings-view"
+import { useServerAccess } from "@/hooks/use-server-access"
 import { useUserServer } from "@/hooks/use-user-server"
-import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import type { ServerResponse } from "@/lib/api/user/servers"
-import { ApiClientError } from "@/lib/auth/api"
 import { serverPageTitle } from "@/lib/page-title"
+import { useAccessStore } from "@/stores/access-store"
 
 export const Route = createFileRoute(
   "/_authenticated/servers/$serverId/settings"
 )({
-  loader: ({ context: { queryClient }, params }) => {
+  loader: async ({ params }) => {
     const serverId = Number(params.serverId)
-    return queryClient.ensureQueryData(serverAccessQueryOptions(serverId))
+    await useAccessStore.getState().fetchAccess(serverId)
+    return useAccessStore.getState().accessByServerId[serverId]
   },
   head: ({ matches }) => {
     const servers = matches.find(
@@ -39,16 +40,17 @@ function ServerSettingsPage() {
     data: access,
     isPending,
     error,
-  } = useQuery(serverAccessQueryOptions(numericServerId))
+  } = useServerAccess(numericServerId)
 
   const { data: server } = useUserServer(numericServerId)
 
-  const errorMessage =
-    error instanceof ApiClientError
-      ? error.message
-      : error
-        ? "Failed to load server settings"
-        : null
+  useEffect(() => {
+    if (!access && !isPending && !error) {
+      void useAccessStore.getState().fetchAccess(numericServerId)
+    }
+  }, [access, isPending, error, numericServerId])
+
+  const errorMessage = error
 
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">

@@ -5,11 +5,11 @@ import { Callout } from "@/components/callout"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
-  type AgentInstallMethod,
   getAgentInstallContent,
   getUnraidInstallSteps,
   isCommandInstallMethod,
 } from "@/lib/agent/install"
+import type { AgentInstallMethod } from "@/lib/agent/install"
 import { cn } from "@/lib/utils"
 
 const INSTALL_METHODS: {

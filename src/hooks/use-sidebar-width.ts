@@ -1,10 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-} from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { PointerEvent as ReactPointerEvent } from "react"
 
 const SIDEBAR_WIDTH_STORAGE_KEY = "sidebar-width"
 const LEGACY_COLLAPSED_STORAGE_KEY = "sidebar-collapsed"
