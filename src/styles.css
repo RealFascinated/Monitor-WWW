@@ -316,6 +316,12 @@
     border: 1px solid color-mix(in srgb, var(--color-monitor) 45%, transparent);
 }
 
+/* uPlot doesn't dimension the select overlay until the first drag; hide the stray marker */
+.uplot .u-select:not([style*="width"]),
+.uplot .u-select[style*="width: 0"] {
+    display: none;
+}
+
 .dark .uplot .u-select {
     background: color-mix(in srgb, var(--color-warning) 22%, transparent);
     border: 1px solid color-mix(in srgb, var(--color-warning) 50%, transparent);
