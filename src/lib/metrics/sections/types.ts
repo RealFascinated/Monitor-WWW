@@ -8,7 +8,8 @@ type MetricsSectionLeaf = {
   navLabel?: string
   icon: LucideIcon
   description?: string
-  content: ReactNode
+  contentMinHeight: number
+  render: () => ReactNode
 }
 
 type MetricsSectionGroup = {

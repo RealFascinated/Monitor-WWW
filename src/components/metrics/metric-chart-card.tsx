@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { memo, useMemo } from "react"
 
 import {
   Card,
@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { MetricChart } from "@/components/metrics/metric-chart"
+import { useChartHydration } from "@/hooks/use-chart-hydration"
 import { getChartColor } from "@/lib/metrics/chart-colors"
 import {
   buildMultiSeriesData,
@@ -20,17 +21,6 @@ import type { MetricChartMode } from "@/components/metrics/metric-chart"
 import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
 import type { ChartYRange } from "@/lib/metrics/uplot-theme"
 import { useTheme } from "@/lib/theme"
-
-function seriesCacheKey(timeGrid: MetricsTimeGrid, series: ChartSeries[]): string {
-  return [
-    timeGrid.gridTimestamps.join(","),
-    timeGrid.sourceTimestamps?.join(",") ?? "",
-    ...series.map((entry) => {
-      const values = entry.values?.join(",") ?? ""
-      return `${entry.label}|${values}`
-    }),
-  ].join(";")
-}
 
 type MetricChartCardProps = {
   timeGrid: MetricsTimeGrid
@@ -57,22 +47,23 @@ function MetricChartCard({
   showCurrentValues,
   mode,
 }: MetricChartCardProps) {
-  const cacheKey = seriesCacheKey(timeGrid, series)
-  const built = useMemo(
-    () =>
-      hasSeriesData(series)
-        ? buildMultiSeriesData(
-            timeGrid.gridTimestamps,
-            timeGrid.sourceTimestamps,
-            series
-          )
-        : null,
-    [cacheKey, timeGrid, series]
-  )
+  const chartHeight = height ?? 200
+  const isHydrated = useChartHydration()
+  const built = useMemo(() => {
+    if (!isHydrated || !hasSeriesData(series)) {
+      return null
+    }
+
+    return buildMultiSeriesData(
+      timeGrid.gridTimestamps,
+      timeGrid.sourceTimestamps,
+      series
+    )
+  }, [isHydrated, timeGrid, series])
   const { resolvedTheme } = useTheme()
   const shouldShowCurrentValues = showCurrentValues ?? series.length <= 4
 
-  if (!built) {
+  if (!hasSeriesData(series)) {
     return null
   }
 
@@ -128,18 +119,24 @@ function MetricChartCard({
         </div>
       </CardHeader>
       <CardContent className="px-3 pt-2 pb-3">
-        <MetricChart
-          data={built.data}
-          labels={built.labels}
-          height={height}
-          valueFormatter={valueFormatter}
-          yRange={yRange}
-          thresholds={thresholds}
-          mode={mode}
-        />
+        <div className="w-full" style={{ minHeight: chartHeight }}>
+          {built ? (
+            <MetricChart
+              data={built.data}
+              labels={built.labels}
+              height={chartHeight}
+              valueFormatter={valueFormatter}
+              yRange={yRange}
+              thresholds={thresholds}
+              mode={mode}
+            />
+          ) : null}
+        </div>
       </CardContent>
     </Card>
   )
 }
 
-export { MetricChartCard }
+const MemoizedMetricChartCard = memo(MetricChartCard)
+
+export { MemoizedMetricChartCard as MetricChartCard }

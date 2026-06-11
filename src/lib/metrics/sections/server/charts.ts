@@ -10,7 +10,11 @@ import {
   TEMPERATURE_THRESHOLDS,
 } from "@/lib/metrics/chart-thresholds"
 import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
-import { chartSeries, hasSeriesData } from "@/lib/metrics/series"
+import {
+  chartSeries,
+  hasAnyValues,
+  hasSeriesData,
+} from "@/lib/metrics/series"
 import type { ChartSeries } from "@/lib/metrics/series"
 import type { ChartYRange } from "@/lib/metrics/uplot-theme"
 import {
@@ -40,8 +44,70 @@ type MetricChartConfig = {
   mode?: "line" | "stack"
 }
 
+function diskHasData(disk: DiskMetrics): boolean {
+  return hasAnyValues(
+    disk.usagePercent,
+    disk.usedBytes,
+    disk.totalBytes,
+    disk.etaUntilFull,
+    disk.ioReadBps,
+    disk.ioWriteBps,
+    disk.ioUsagePct,
+    disk.ioWaitMs,
+    disk.inodeUsed,
+    disk.inodeTotal,
+    disk.readIops,
+    disk.writeIops,
+    disk.readLatencyMs,
+    disk.writeLatencyMs
+  )
+}
+
+function networkHasData(network: NetworkMetrics): boolean {
+  return hasAnyValues(
+    network.rxBps,
+    network.txBps,
+    network.rxPacketsPerSecond,
+    network.txPacketsPerSecond,
+    network.rxErrorsPerSecond,
+    network.txErrorsPerSecond
+  )
+}
+
+function gpuHasData(gpu: GpuMetrics): boolean {
+  return hasAnyValues(
+    gpu.usagePercent,
+    gpu.memoryUsedBytes,
+    gpu.memoryTotalBytes,
+    gpu.temperatureCelsius,
+    gpu.powerWatts
+  )
+}
+
+function zfsPoolHasData(pool: ZfsPoolMetrics): boolean {
+  return hasAnyValues(
+    pool.capacityPercent,
+    pool.allocatedBytes,
+    pool.freeBytes,
+    pool.totalBytes,
+    pool.fragmentationPercent,
+    pool.scanPercent,
+    pool.readBps,
+    pool.writeBps,
+    pool.readIops,
+    pool.writeIops,
+    pool.checksumErrors
+  )
+}
+
 function chartsHaveData(charts: MetricChartConfig[]): boolean {
-  return charts.some((chart) => hasSeriesData(chart.series))
+  for (const chart of charts) {
+    if (hasSeriesData(chart.series)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
@@ -345,10 +411,14 @@ export {
   chartsHaveData,
   containerCharts,
   diskCharts,
+  diskHasData,
   gpuCharts,
+  gpuHasData,
   hostCpuCharts,
   hostMemoryCharts,
   hostProcessCharts,
   networkCharts,
+  networkHasData,
   zfsPoolCharts,
+  zfsPoolHasData,
 }

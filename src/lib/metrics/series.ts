@@ -11,11 +11,31 @@ export function chartSeries(label: string, values: MetricValues): ChartSeries {
   return { label, values: values ?? null }
 }
 
+export function hasAnyValues(
+  ...fields: (MetricValues | undefined)[]
+): boolean {
+  for (const field of fields) {
+    if (hasValues(field)) {
+      return true
+    }
+  }
+
+  return false
+}
+
 export function hasValues(values: MetricValues): boolean {
-  return (
-    values != null &&
-    values.some((value) => value != null && Number.isFinite(value))
-  )
+  if (!values || values.length === 0) {
+    return false
+  }
+
+  for (let index = values.length - 1; index >= 0; index--) {
+    const value = values[index]
+    if (value != null && Number.isFinite(value)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 export function hasSeriesData(series: ChartSeries[]): boolean {

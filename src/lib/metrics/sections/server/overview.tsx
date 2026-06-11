@@ -1,5 +1,7 @@
 import { MetricStatCard } from "@/components/metrics/metric-stat-card"
-import type { DiskMetrics, HostMetrics } from "@/lib/api/user/metrics"
+import { useUserServer } from "@/hooks/use-user-server"
+import type { DiskMetrics } from "@/lib/api/user/metrics"
+import type { ServerResponse } from "@/lib/api/user/servers"
 import {
   formatMemoryBytes,
   formatMemoryUsage,
@@ -14,28 +16,29 @@ function findRootDisk(disks: DiskMetrics[] | undefined): DiskMetrics | undefined
 }
 
 function overviewHasData(
-  host: HostMetrics,
+  server: Pick<ServerResponse, "cpuPercent" | "memUsage"> | undefined,
   disks: DiskMetrics[] | undefined
 ): boolean {
   const rootDisk = findRootDisk(disks)
 
   return (
-    hasValues(host.cpuUsage) ||
-    hasValues(host.memUsage) ||
+    server?.cpuPercent != null ||
+    server?.memUsage != null ||
     hasValues(rootDisk?.usagePercent)
   )
 }
 
 function OverviewStats({
-  host,
+  serverId,
   disks,
 }: {
-  host: HostMetrics
+  serverId: number
   disks?: DiskMetrics[]
 }) {
-  const cpuUsage = getLatestValue(host.cpuUsage)
-  const memUsage = getLatestValue(host.memUsage)
-  const memTotal = getLatestValue(host.memTotal)
+  const { data: server } = useUserServer(serverId)
+  const cpuUsage = server.cpuPercent ?? null
+  const memUsage = server.memUsage ?? null
+  const memTotal = server.memMax ?? null
   const memPercent = memoryUsagePercent(memUsage, memTotal)
 
   const rootDisk = findRootDisk(disks)

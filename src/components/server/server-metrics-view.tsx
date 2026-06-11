@@ -1,4 +1,7 @@
+import { useMemo } from "react"
+
 import { MetricsView } from "@/components/metrics/metrics-view"
+import { useUserServer } from "@/hooks/use-user-server"
 import type { ServerMetricsResponse } from "@/lib/api/user/metrics"
 import { buildServerMetricSections } from "@/lib/metrics/sections/server/build"
 import { buildMetricsTimeGrid } from "@/lib/metrics/timestamps"
@@ -8,8 +11,12 @@ type ServerMetricsViewProps = {
 }
 
 function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
-  const timeGrid = buildMetricsTimeGrid(metrics)
-  const sections = buildServerMetricSections(metrics, timeGrid)
+  const { data: server } = useUserServer(metrics.id)
+  const timeGrid = useMemo(() => buildMetricsTimeGrid(metrics), [metrics])
+  const sections = useMemo(
+    () => buildServerMetricSections(metrics, timeGrid, server),
+    [metrics, timeGrid, server]
+  )
 
   return <MetricsView sections={sections} />
 }

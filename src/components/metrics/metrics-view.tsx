@@ -20,9 +20,9 @@ function MetricsView({ sections }: MetricsViewProps) {
             title={section.title}
             icon={section.icon}
             description={section.description}
-          >
-            {section.content}
-          </MetricSection>
+            contentMinHeight={section.contentMinHeight}
+            render={section.render}
+          />
         ))}
       </div>
 

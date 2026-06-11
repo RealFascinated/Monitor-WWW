@@ -15,20 +15,34 @@ import {
 
 import { MetricChartGrid } from "@/components/metrics/metric-chart-grid"
 import type { ServerMetricsResponse } from "@/lib/api/user/metrics"
+import type { ServerResponse } from "@/lib/api/user/servers"
 import { TEMPERATURE_THRESHOLDS } from "@/lib/metrics/chart-thresholds"
 import { createMetricsSectionBuilder } from "@/lib/metrics/sections/builder"
+import {
+  countChartsWithData,
+  DISK_SECTION_CHART_COUNT,
+  estimateChartsGridHeight,
+  GPU_SECTION_CHART_COUNT,
+  NETWORK_SECTION_CHART_COUNT,
+  OVERVIEW_SECTION_MIN_HEIGHT,
+  ZFS_POOL_SECTION_CHART_COUNT,
+} from "@/lib/metrics/grid-height"
 import { metricSectionId } from "@/lib/metrics/sections/id"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
   chartsHaveData,
   containerCharts,
   diskCharts,
+  diskHasData,
   gpuCharts,
+  gpuHasData,
   hostCpuCharts,
   hostMemoryCharts,
   hostProcessCharts,
   networkCharts,
+  networkHasData,
   zfsPoolCharts,
+  zfsPoolHasData,
 } from "@/lib/metrics/sections/server/charts"
 import { OverviewStats, overviewHasData } from "@/lib/metrics/sections/server/overview"
 import { chartSeries } from "@/lib/metrics/series"
@@ -37,17 +51,19 @@ import { formatCelsius, formatCount, formatMemoryBytes, formatNumber } from "@/l
 
 function buildServerMetricSections(
   metrics: ServerMetricsResponse,
-  timeGrid: MetricsTimeGrid
+  timeGrid: MetricsTimeGrid,
+  server?: ServerResponse
 ): MetricsSectionNode[] {
   const host = metrics.host ?? {}
   const builder = createMetricsSectionBuilder()
 
-  if (overviewHasData(host, metrics.disks ?? undefined)) {
+  if (overviewHasData(server, metrics.disks ?? undefined)) {
     builder.leaf({
       title: "Overview",
       icon: LayoutDashboard,
-      content: (
-        <OverviewStats host={host} disks={metrics.disks ?? undefined} />
+      contentMinHeight: OVERVIEW_SECTION_MIN_HEIGHT,
+      render: () => (
+        <OverviewStats serverId={metrics.id} disks={metrics.disks ?? undefined} />
       ),
     })
   }
@@ -57,7 +73,8 @@ function buildServerMetricSections(
     builder.leaf({
       title: "CPU",
       icon: Cpu,
-      content: <MetricChartGrid timeGrid={timeGrid} charts={cpuCharts} />,
+      contentMinHeight: estimateChartsGridHeight(countChartsWithData(cpuCharts)),
+      render: () => <MetricChartGrid timeGrid={timeGrid} charts={cpuCharts} />,
     })
   }
 
@@ -66,7 +83,12 @@ function buildServerMetricSections(
     builder.leaf({
       title: "Memory",
       icon: MemoryStick,
-      content: <MetricChartGrid timeGrid={timeGrid} charts={memoryCharts} />,
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(memoryCharts)
+      ),
+      render: () => (
+        <MetricChartGrid timeGrid={timeGrid} charts={memoryCharts} />
+      ),
     })
   }
 
@@ -75,14 +97,18 @@ function buildServerMetricSections(
     builder.leaf({
       title: "Processes",
       icon: Cog,
-      content: <MetricChartGrid timeGrid={timeGrid} charts={processCharts} />,
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(processCharts)
+      ),
+      render: () => (
+        <MetricChartGrid timeGrid={timeGrid} charts={processCharts} />
+      ),
     })
   }
 
   builder.group({ id: "disks", title: "Disk", icon: HardDrive }, (group) => {
     for (const disk of metrics.disks ?? []) {
-      const charts = diskCharts(disk)
-      if (!chartsHaveData(charts)) {
+      if (!diskHasData(disk)) {
         continue
       }
 
@@ -91,15 +117,17 @@ function buildServerMetricSections(
         title: `Disk ${disk.disk}`,
         navLabel: disk.disk,
         icon: HardDrive,
-        content: <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
+        contentMinHeight: estimateChartsGridHeight(DISK_SECTION_CHART_COUNT),
+        render: () => (
+          <MetricChartGrid timeGrid={timeGrid} charts={diskCharts(disk)} />
+        ),
       })
     }
   })
 
   builder.group({ id: "networks", title: "Network", icon: Network }, (group) => {
     for (const network of metrics.networks ?? []) {
-      const charts = networkCharts(network)
-      if (!chartsHaveData(charts)) {
+      if (!networkHasData(network)) {
         continue
       }
 
@@ -108,15 +136,17 @@ function buildServerMetricSections(
         title: `Network ${network.interface}`,
         navLabel: network.interface,
         icon: Network,
-        content: <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
+        contentMinHeight: estimateChartsGridHeight(NETWORK_SECTION_CHART_COUNT),
+        render: () => (
+          <MetricChartGrid timeGrid={timeGrid} charts={networkCharts(network)} />
+        ),
       })
     }
   })
 
   builder.group({ id: "gpus", title: "GPU", icon: Gpu }, (group) => {
     for (const gpu of metrics.gpus ?? []) {
-      const charts = gpuCharts(gpu)
-      if (!chartsHaveData(charts)) {
+      if (!gpuHasData(gpu)) {
         continue
       }
 
@@ -126,92 +156,99 @@ function buildServerMetricSections(
         navLabel: gpu.gpu,
         icon: Gpu,
         description: `${gpu.vendor} · ${gpu.deviceId}`,
-        content: <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
+        contentMinHeight: estimateChartsGridHeight(GPU_SECTION_CHART_COUNT),
+        render: () => (
+          <MetricChartGrid timeGrid={timeGrid} charts={gpuCharts(gpu)} />
+        ),
       })
     }
   })
 
-  if ((metrics.containers ?? []).length > 0) {
+  const containerChartConfigs = containerCharts(metrics.containers)
+  if (chartsHaveData(containerChartConfigs)) {
     builder.leaf({
       title: "Docker",
       icon: Container,
-      content: (
-        <MetricChartGrid
-          timeGrid={timeGrid}
-          charts={containerCharts(metrics.containers)}
-        />
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(containerChartConfigs)
+      ),
+      render: () => (
+        <MetricChartGrid timeGrid={timeGrid} charts={containerChartConfigs} />
       ),
     })
   }
 
   if ((metrics.temperatures ?? []).length > 0) {
+    const temperatureCharts = [
+      {
+        title: "Sensors",
+        series: (metrics.temperatures ?? []).map((sensor) =>
+          chartSeries(sensor.sensor, sensor.temperatureCelsius)
+        ),
+        valueFormatter: formatCelsius,
+        thresholds: TEMPERATURE_THRESHOLDS,
+        showCurrentValues: false,
+      },
+    ]
+
     builder.leaf({
       title: "Temperature",
       icon: Thermometer,
-      content: (
-        <MetricChartGrid
-          timeGrid={timeGrid}
-          charts={[
-            {
-              title: "Sensors",
-              series: (metrics.temperatures ?? []).map((sensor) =>
-                chartSeries(sensor.sensor, sensor.temperatureCelsius)
-              ),
-              valueFormatter: formatCelsius,
-              thresholds: TEMPERATURE_THRESHOLDS,
-              showCurrentValues: false,
-            },
-          ]}
-        />
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(temperatureCharts)
+      ),
+      render: () => (
+        <MetricChartGrid timeGrid={timeGrid} charts={temperatureCharts} />
       ),
     })
   }
 
   if (metrics.zfsArc) {
+    const zfsArcCharts = [
+      {
+        title: "ARC size",
+        series: [
+          chartSeries("Size", metrics.zfsArc.sizeBytes),
+          chartSeries("Target", metrics.zfsArc.targetBytes),
+          chartSeries("Max", metrics.zfsArc.maxBytes),
+          chartSeries("Min", metrics.zfsArc.minBytes),
+        ],
+        valueFormatter: formatMemoryBytes,
+      },
+      {
+        title: "ARC composition",
+        series: [
+          chartSeries("Data", metrics.zfsArc.dataBytes),
+          chartSeries("Metadata", metrics.zfsArc.metadataBytes),
+          chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
+        ],
+        valueFormatter: formatMemoryBytes,
+      },
+      {
+        title: "ARC efficiency",
+        series: [
+          chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
+          chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
+        ],
+        valueFormatter: formatNumber,
+      },
+    ]
+
     builder.leaf({
       title: "ZFS ARC",
       icon: Disc,
-      content: (
-        <MetricChartGrid
-          timeGrid={timeGrid}
-          charts={[
-            {
-              title: "ARC size",
-              series: [
-                chartSeries("Size", metrics.zfsArc.sizeBytes),
-                chartSeries("Target", metrics.zfsArc.targetBytes),
-                chartSeries("Max", metrics.zfsArc.maxBytes),
-                chartSeries("Min", metrics.zfsArc.minBytes),
-              ],
-              valueFormatter: formatMemoryBytes,
-            },
-            {
-              title: "ARC composition",
-              series: [
-                chartSeries("Data", metrics.zfsArc.dataBytes),
-                chartSeries("Metadata", metrics.zfsArc.metadataBytes),
-                chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
-              ],
-              valueFormatter: formatMemoryBytes,
-            },
-            {
-              title: "ARC efficiency",
-              series: [
-                chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
-                chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
-              ],
-              valueFormatter: formatNumber,
-            },
-          ]}
-        />
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(zfsArcCharts)
+      ),
+      render: () => (
+        <MetricChartGrid timeGrid={timeGrid} charts={zfsArcCharts} />
       ),
     })
   }
 
   builder.group({ id: "zfs-pools", title: "ZFS pool", icon: Database }, (group) => {
     for (const pool of metrics.zfsPools ?? []) {
-      const charts = zfsPoolCharts(pool)
-      if (!chartsHaveData(charts)) {
+      if (!zfsPoolHasData(pool)) {
         continue
       }
 
@@ -221,30 +258,31 @@ function buildServerMetricSections(
         navLabel: pool.pool,
         icon: Database,
         description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
-        content: <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
+        contentMinHeight: estimateChartsGridHeight(ZFS_POOL_SECTION_CHART_COUNT),
+        render: () => (
+          <MetricChartGrid timeGrid={timeGrid} charts={zfsPoolCharts(pool)} />
+        ),
       })
     }
   })
 
   if ((metrics.tcpConnections ?? []).length > 0) {
+    const tcpCharts = [
+      {
+        title: "Connections by state",
+        series: (metrics.tcpConnections ?? []).map((tcp) =>
+          chartSeries(tcp.state, tcp.connections)
+        ),
+        valueFormatter: formatCount,
+        showCurrentValues: false,
+      },
+    ]
+
     builder.leaf({
       title: "TCP",
       icon: Cable,
-      content: (
-        <MetricChartGrid
-          timeGrid={timeGrid}
-          charts={[
-            {
-              title: "Connections by state",
-              series: (metrics.tcpConnections ?? []).map((tcp) =>
-                chartSeries(tcp.state, tcp.connections)
-              ),
-              valueFormatter: formatCount,
-              showCurrentValues: false,
-            },
-          ]}
-        />
-      ),
+      contentMinHeight: estimateChartsGridHeight(countChartsWithData(tcpCharts)),
+      render: () => <MetricChartGrid timeGrid={timeGrid} charts={tcpCharts} />,
     })
   }
 

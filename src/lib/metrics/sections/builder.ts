@@ -13,7 +13,8 @@ type LeafInput = {
   navLabel?: string
   icon: LucideIcon
   description?: string
-  content: ReactNode
+  contentMinHeight: number
+  render: () => ReactNode
 }
 
 type GroupInput = {
@@ -33,7 +34,8 @@ class MetricsSectionGroupBuilder {
       navLabel: input.navLabel,
       icon: input.icon,
       description: input.description,
-      content: input.content,
+      contentMinHeight: input.contentMinHeight,
+      render: input.render,
     })
   }
 
@@ -53,7 +55,8 @@ class MetricsSectionBuilder {
       navLabel: input.navLabel,
       icon: input.icon,
       description: input.description,
-      content: input.content,
+      contentMinHeight: input.contentMinHeight,
+      render: input.render,
     })
   }
 

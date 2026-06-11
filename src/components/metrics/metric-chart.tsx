@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react"
 import uPlot from "uplot"
 import "uplot/dist/uPlot.min.css"
 
@@ -67,68 +67,86 @@ function MetricChart({
   valueFormatterRef.current = valueFormatter
   dataRef.current = data
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const container = containerRef.current
     if (!container) {
       return
     }
 
-    const tooltip = createChartTooltipElement(resolvedTheme)
+    let disposed = false
+    let chart: uPlot | null = null
+    let resizeObserver: ResizeObserver | null = null
+    let unbindInteractionDismiss: (() => void) | null = null
+    let tooltip: HTMLDivElement | null = null
 
-    const options = buildUPlotOptions({
-      theme: resolvedTheme,
-      labels,
-      height,
-      valueFormatter: (value) =>
-        valueFormatterRef.current?.(value) ?? String(value),
-      yRange,
-      stacked,
-      bands: prepared.bands,
-    })
-
-    const colors = getChartColors(resolvedTheme)
-    const formatValue = (value: number) =>
-      valueFormatterRef.current?.(value) ?? String(value)
-    const hooks: uPlot.Hooks.Arrays = {
-      setCursor: [
-        createCursorTooltipHandler({
-          tooltip,
-          labels,
-          colors,
-          getData: () => dataRef.current,
-          formatValue,
-          theme: resolvedTheme,
-        }),
-      ],
-    }
-
-    if (thresholds && thresholds.length > 0) {
-      hooks.drawAxes = [createThresholdDrawHook(thresholds, resolvedTheme)]
-    }
-
-    options.hooks = hooks
-
-    const chart = new uPlot(
-      { ...options, width: Math.max(container.clientWidth, 1) },
-      prepared.data,
-      container
-    )
-    chartRef.current = chart
-
-    const resizeObserver = new ResizeObserver(() => {
-      const width = container.clientWidth
-      if (width > 0) {
-        chart.setSize({ width, height })
+    const frame = requestAnimationFrame(() => {
+      if (disposed) {
+        return
       }
+
+      tooltip = createChartTooltipElement(resolvedTheme)
+
+      const options = buildUPlotOptions({
+        theme: resolvedTheme,
+        labels,
+        height,
+        valueFormatter: (value) =>
+          valueFormatterRef.current?.(value) ?? String(value),
+        yRange,
+        stacked,
+        bands: prepared.bands,
+      })
+
+      const colors = getChartColors(resolvedTheme)
+      const formatValue = (value: number) =>
+        valueFormatterRef.current?.(value) ?? String(value)
+      const hooks: uPlot.Hooks.Arrays = {
+        setCursor: [
+          createCursorTooltipHandler({
+            tooltip,
+            labels,
+            colors,
+            getData: () => dataRef.current,
+            formatValue,
+            theme: resolvedTheme,
+          }),
+        ],
+      }
+
+      if (thresholds && thresholds.length > 0) {
+        hooks.drawAxes = [createThresholdDrawHook(thresholds, resolvedTheme)]
+      }
+
+      options.hooks = hooks
+
+      chart = new uPlot(
+        { ...options, width: Math.max(container.clientWidth, 1) },
+        prepared.data,
+        container
+      )
+      chartRef.current = chart
+
+      resizeObserver = new ResizeObserver(() => {
+        const width = container.clientWidth
+        if (width > 0) {
+          chart?.setSize({ width, height })
+        }
+      })
+      resizeObserver.observe(container)
+      unbindInteractionDismiss = bindChartInteractionDismiss(chart, tooltip)
     })
-    resizeObserver.observe(container)
-    const unbindInteractionDismiss = bindChartInteractionDismiss(chart, tooltip)
 
     return () => {
-      unbindInteractionDismiss()
-      resizeObserver.disconnect()
-      destroyChartTooltipElement(tooltip)
-      destroyChart(chart)
+      disposed = true
+      cancelAnimationFrame(frame)
+      unbindInteractionDismiss?.()
+      resizeObserver?.disconnect()
+      if (tooltip) {
+        destroyChartTooltipElement(tooltip)
+      }
+      if (chart) {
+        destroyChart(chart)
+      }
       chartRef.current = null
     }
   }, [
