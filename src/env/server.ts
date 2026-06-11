@@ -3,7 +3,7 @@ import { z } from "zod"
 
 export const env = createEnv({
   server: {
-    API_URL: z.url().default("http://localhost"),
+    API_URL: z.url(),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
