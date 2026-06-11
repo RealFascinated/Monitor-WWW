@@ -29,6 +29,10 @@ export function getUserServers(): Promise<ServerResponse[]> {
   return apiFetch<ServerResponse[]>("/v1/user/servers")
 }
 
+export function getUserServer(serverId: number): Promise<ServerResponse> {
+  return apiFetch<ServerResponse>(`/v1/servers/${serverId}`)
+}
+
 export function createServer(request: ServerCreateRequest): Promise<void> {
   return apiFetch<void>("/v1/servers/create", {
     method: "POST",

@@ -6,7 +6,7 @@ import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { ServerMetricsHeader } from "@/components/server/server-metrics-header"
 import { ServerMetricsView } from "@/components/server/server-metrics-view"
-import { useUserServers } from "@/hooks/use-user-servers"
+import { useUserServer } from "@/hooks/use-user-server"
 import { userServerMetricsQueryOptions } from "@/lib/api/user/metrics.queries"
 import { ApiClientError } from "@/lib/auth/api"
 
@@ -43,8 +43,7 @@ function ServerMetricsPage() {
     error,
   } = useQuery(userServerMetricsQueryOptions(numericServerId, range))
 
-  const { data: servers } = useUserServers()
-  const server = servers?.find((entry) => entry.serverId === numericServerId)
+  const { data: server } = useUserServer(numericServerId)
 
   const errorMessage =
     error instanceof ApiClientError

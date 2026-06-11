@@ -5,7 +5,7 @@ import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { ServerAccessHeader } from "@/components/server/server-access-header"
 import { ServerAccessView } from "@/components/server/server-access-view"
-import { useUserServers } from "@/hooks/use-user-servers"
+import { useUserServer } from "@/hooks/use-user-server"
 import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
@@ -22,14 +22,14 @@ export const Route = createFileRoute(
     const serverId = Number(params.serverId)
     return queryClient.ensureQueryData(serverAccessQueryOptions(serverId))
   },
-  head: ({ matches, params }) => {
+  head: ({ matches }) => {
     const servers = matches.find(
       (match) =>
         (match.routeId as string) === "/_authenticated/servers/$serverId"
-    )?.loaderData as ServerResponse[] | undefined
+    )?.loaderData as ServerResponse | undefined
 
     return {
-      meta: [{ title: serverPageTitle(servers, params.serverId, "Access") }],
+      meta: [{ title: serverPageTitle(servers, "Access") }],
     }
   },
   component: ServerAccessPage,
@@ -45,8 +45,7 @@ function ServerAccessPage() {
     error,
   } = useQuery(serverAccessQueryOptions(numericServerId))
 
-  const { data: servers } = useUserServers()
-  const server = servers?.find((entry) => entry.serverId === numericServerId)
+  const { data: server } = useUserServer(numericServerId)
 
   const errorMessage =
     error instanceof ApiClientError

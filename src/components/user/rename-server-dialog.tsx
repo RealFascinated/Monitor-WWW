@@ -17,7 +17,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
-import { userServersQueryOptions } from "@/lib/api/user/servers.queries"
+import {
+  userServerQueryOptions,
+  userServersQueryOptions,
+} from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
 
 const MAX_NAME_LENGTH = 20
@@ -53,9 +56,14 @@ function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) 
     mutationFn: (nextName: string) =>
       renameServer(serverId, { name: nextName }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: userServersQueryOptions.queryKey,
-      })
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: userServersQueryOptions.queryKey,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: userServerQueryOptions(serverId).queryKey,
+        }),
+      ])
       setOpen(false)
       resetForm()
     },
