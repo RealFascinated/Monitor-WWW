@@ -1,5 +1,6 @@
+import { MetricSection } from "@/components/metrics/metric-section"
 import { MetricChartCard } from "@/components/metrics/metric-chart-card"
-import { LazySection } from "@/components/metrics/lazy-section"
+import { MetricsSectionNav } from "@/components/metrics/metrics-section-nav"
 import type {
   DiskMetrics,
   GpuMetrics,
@@ -18,7 +19,7 @@ import { buildMetricsTimeGrid } from "@/lib/metrics/timestamps"
 import type { MetricsTimeGrid } from "@/lib/metrics/timestamps"
 import type { ChartSeries } from "@/lib/metrics/series"
 import {
-  formatBytes,
+  formatMemoryBytes,
   formatCelsius,
   formatCount,
   formatDurationSeconds,
@@ -78,26 +79,18 @@ function ChartGrid({
   )
 }
 
-function EntitySection({
-  timeGrid,
-  title,
-  description,
-  charts,
-}: {
-  timeGrid: MetricsTimeGrid
+type MetricSection = {
+  id: string
   title: string
   description?: string
-  charts: ChartConfig[]
-}) {
-  if (!charts.some((chart) => hasSeriesData(chart.series))) {
-    return null
-  }
+  content: React.ReactNode
+}
 
-  return (
-    <LazySection title={title} description={description}>
-      <ChartGrid timeGrid={timeGrid} charts={charts} />
-    </LazySection>
-  )
+function metricSectionId(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
 }
 
 function diskCharts(disk: DiskMetrics): ChartConfig[] {
@@ -115,7 +108,7 @@ function diskCharts(disk: DiskMetrics): ChartConfig[] {
         chartSeries("Used", disk.usedBytes),
         chartSeries("Total", disk.totalBytes),
       ],
-      valueFormatter: formatBytes,
+      valueFormatter: formatMemoryBytes,
     },
     {
       title: "ETA until full",
@@ -210,7 +203,7 @@ function gpuCharts(gpu: GpuMetrics): ChartConfig[] {
         chartSeries("Used", gpu.memoryUsedBytes),
         chartSeries("Total", gpu.memoryTotalBytes),
       ],
-      valueFormatter: formatBytes,
+      valueFormatter: formatMemoryBytes,
     },
     {
       title: "Temperature",
@@ -249,7 +242,7 @@ function containerCharts(
       series: items.map((container) =>
         chartSeries(container.container, container.memoryUsage)
       ),
-      valueFormatter: formatBytes,
+      valueFormatter: formatMemoryBytes,
       showCurrentValues: false,
     },
   ]
@@ -275,7 +268,7 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): ChartConfig[] {
         chartSeries("Free", pool.freeBytes),
         chartSeries("Total", pool.totalBytes),
       ],
-      valueFormatter: formatBytes,
+      valueFormatter: formatMemoryBytes,
     },
     {
       title: "I/O",
@@ -309,9 +302,34 @@ function sectionHasCharts(charts: ChartConfig[]): boolean {
   return charts.some((chart) => hasSeriesData(chart.series))
 }
 
-function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
-  const timeGrid = buildMetricsTimeGrid(metrics)
+function pushSection(
+  sections: MetricSection[],
+  {
+    id,
+    title,
+    description,
+    content,
+  }: {
+    id?: string
+    title: string
+    description?: string
+    content: React.ReactNode
+  }
+) {
+  sections.push({
+    id: id ?? metricSectionId(title),
+    title,
+    description,
+    content,
+  })
+}
+
+function buildMetricSections(
+  metrics: ServerMetricsResponse,
+  timeGrid: MetricsTimeGrid
+): MetricSection[] {
   const host: HostMetrics = metrics.host ?? {}
+  const sections: MetricSection[] = []
 
   const overviewCharts: ChartConfig[] = [
     {
@@ -324,7 +342,7 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
     {
       title: "Memory used",
       series: [chartSeries("Used", host.memUsage)],
-      valueFormatter: formatBytes,
+      valueFormatter: formatMemoryBytes,
     },
     {
       title: "Load average",
@@ -337,314 +355,300 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
     },
   ]
 
-  const hasOverview = overviewCharts.some((chart) =>
-    hasSeriesData(chart.series)
-  )
+  if (overviewCharts.some((chart) => hasSeriesData(chart.series))) {
+    pushSection(sections, {
+      title: "Overview",
+      content: <ChartGrid timeGrid={timeGrid} charts={overviewCharts} />,
+    })
+  }
 
-  return (
-    <div className="flex flex-col gap-8">
-      {hasOverview ? (
-        <LazySection title="Overview">
-          <ChartGrid timeGrid={timeGrid} charts={overviewCharts} />
-        </LazySection>
-      ) : null}
+  const cpuCharts: ChartConfig[] = [
+    {
+      title: "CPU breakdown",
+      series: [
+        chartSeries("User", host.cpuUserPct),
+        chartSeries("System", host.cpuSystemPct),
+        chartSeries("IO wait", host.cpuIowaitPct),
+        chartSeries("Steal", host.cpuStealPct),
+      ],
+      valueFormatter: formatPercentValue,
+      yRange: PERCENT_Y_RANGE,
+      thresholds: PERCENT_THRESHOLDS,
+    },
+    {
+      title: "Per-core usage",
+      series: (metrics.cpuCores ?? []).map((core) =>
+        chartSeries(core.cpu, core.cpuCorePct)
+      ),
+      valueFormatter: formatPercentValue,
+      yRange: PERCENT_Y_RANGE,
+      thresholds: PERCENT_THRESHOLDS,
+      showCurrentValues: false,
+    },
+  ]
 
-      {sectionHasCharts([
-        {
-          title: "CPU breakdown",
-          series: [
-            chartSeries("User", host.cpuUserPct),
-            chartSeries("System", host.cpuSystemPct),
-            chartSeries("IO wait", host.cpuIowaitPct),
-            chartSeries("Steal", host.cpuStealPct),
-          ],
-        },
-        {
-          title: "Per-core usage",
-          series: (metrics.cpuCores ?? []).map((core) =>
-            chartSeries(core.cpu, core.cpuCorePct)
-          ),
-        },
-      ]) ? (
-        <LazySection title="CPU">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
+  if (sectionHasCharts(cpuCharts)) {
+    pushSection(sections, {
+      title: "CPU",
+      content: <ChartGrid timeGrid={timeGrid} charts={cpuCharts} />,
+    })
+  }
+
+  const memoryCharts: ChartConfig[] = [
+    {
+      title: "Memory bytes",
+      series: [
+        chartSeries("Used", host.memUsage),
+        chartSeries("Available", host.memAvailable),
+        chartSeries("Total", host.memTotal),
+      ],
+      valueFormatter: formatMemoryBytes,
+    },
+    {
+      title: "Memory cache",
+      series: [
+        chartSeries("Buffers", host.memBuffers),
+        chartSeries("Cached", host.memCached),
+      ],
+      valueFormatter: formatMemoryBytes,
+    },
+    {
+      title: "Swap",
+      series: [
+        chartSeries("Used", host.swapUsed),
+        chartSeries("Total", host.swapTotal),
+      ],
+      valueFormatter: formatMemoryBytes,
+    },
+  ]
+
+  if (sectionHasCharts(memoryCharts)) {
+    pushSection(sections, {
+      title: "Memory",
+      content: <ChartGrid timeGrid={timeGrid} charts={memoryCharts} />,
+    })
+  }
+
+  const processCharts: ChartConfig[] = [
+    {
+      title: "Processes",
+      series: [
+        chartSeries("Total", host.processCount),
+        chartSeries("Running", host.runningProcesses),
+      ],
+      valueFormatter: formatCount,
+    },
+    {
+      title: "Kernel activity",
+      series: [
+        chartSeries("Context switches/s", host.ctxSwitchesPerSecond),
+        chartSeries("Interrupts/s", host.interruptsPerSecond),
+      ],
+      valueFormatter: formatCount,
+    },
+  ]
+
+  if (sectionHasCharts(processCharts)) {
+    pushSection(sections, {
+      title: "Processes",
+      content: <ChartGrid timeGrid={timeGrid} charts={processCharts} />,
+    })
+  }
+
+  const powerCharts: ChartConfig[] = [
+    {
+      title: "CPU clock",
+      series: [chartSeries("MHz", host.cpuClockMhz)],
+      valueFormatter: formatMegahertz,
+    },
+    {
+      title: "CPU power",
+      series: [chartSeries("Watts", host.cpuPowerWatts)],
+      valueFormatter: formatWatts,
+    },
+  ]
+
+  if (sectionHasCharts(powerCharts)) {
+    pushSection(sections, {
+      title: "Power",
+      content: <ChartGrid timeGrid={timeGrid} charts={powerCharts} />,
+    })
+  }
+
+  for (const disk of metrics.disks ?? []) {
+    const charts = diskCharts(disk)
+    if (!sectionHasCharts(charts)) {
+      continue
+    }
+
+    const title = `Disk ${disk.disk}`
+    pushSection(sections, {
+      title,
+      content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
+    })
+  }
+
+  for (const network of metrics.networks ?? []) {
+    const charts = networkCharts(network)
+    if (!sectionHasCharts(charts)) {
+      continue
+    }
+
+    const title = `Network ${network.interface}`
+    pushSection(sections, {
+      title,
+      content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
+    })
+  }
+
+  for (const gpu of metrics.gpus ?? []) {
+    const charts = gpuCharts(gpu)
+    if (!sectionHasCharts(charts)) {
+      continue
+    }
+
+    pushSection(sections, {
+      id: metricSectionId(`${gpu.gpu}-${gpu.deviceId}`),
+      title: gpu.gpu,
+      description: `${gpu.vendor} · ${gpu.deviceId}`,
+      content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
+    })
+  }
+
+  if ((metrics.containers ?? []).length > 0) {
+    pushSection(sections, {
+      title: "Containers",
+      content: (
+        <ChartGrid
+          timeGrid={timeGrid}
+          charts={containerCharts(metrics.containers)}
+        />
+      ),
+    })
+  }
+
+  if ((metrics.temperatures ?? []).length > 0) {
+    pushSection(sections, {
+      title: "Temperature",
+      content: (
+        <ChartGrid
+          timeGrid={timeGrid}
+          charts={[
             {
-              title: "CPU breakdown",
-              series: [
-                chartSeries("User", host.cpuUserPct),
-                chartSeries("System", host.cpuSystemPct),
-                chartSeries("IO wait", host.cpuIowaitPct),
-                chartSeries("Steal", host.cpuStealPct),
-              ],
-              valueFormatter: formatPercentValue,
-              yRange: PERCENT_Y_RANGE,
-              thresholds: PERCENT_THRESHOLDS,
-            },
-            {
-              title: "Per-core usage",
-              series: (metrics.cpuCores ?? []).map((core) =>
-                chartSeries(core.cpu, core.cpuCorePct)
+              title: "Sensors",
+              series: (metrics.temperatures ?? []).map((sensor) =>
+                chartSeries(sensor.sensor, sensor.temperatureCelsius)
               ),
-              valueFormatter: formatPercentValue,
-              yRange: PERCENT_Y_RANGE,
-              thresholds: PERCENT_THRESHOLDS,
+              valueFormatter: formatCelsius,
+              thresholds: TEMPERATURE_THRESHOLDS,
               showCurrentValues: false,
             },
           ]}
-          />
-        </LazySection>
-      ) : null}
+        />
+      ),
+    })
+  }
 
-      {sectionHasCharts([
-        {
-          title: "Memory bytes",
-          series: [
-            chartSeries("Used", host.memUsage),
-            chartSeries("Available", host.memAvailable),
-            chartSeries("Total", host.memTotal),
-          ],
-        },
-        {
-          title: "Memory cache",
-          series: [
-            chartSeries("Buffers", host.memBuffers),
-            chartSeries("Cached", host.memCached),
-          ],
-        },
-        {
-          title: "Swap",
-          series: [
-            chartSeries("Used", host.swapUsed),
-            chartSeries("Total", host.swapTotal),
-          ],
-        },
-      ]) ? (
-        <LazySection title="Memory">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
+  if (metrics.zfsArc) {
+    pushSection(sections, {
+      title: "ZFS ARC",
+      content: (
+        <ChartGrid
+          timeGrid={timeGrid}
+          charts={[
             {
-              title: "Memory bytes",
+              title: "ARC size",
               series: [
-                chartSeries("Used", host.memUsage),
-                chartSeries("Available", host.memAvailable),
-                chartSeries("Total", host.memTotal),
+                chartSeries("Size", metrics.zfsArc.sizeBytes),
+                chartSeries("Target", metrics.zfsArc.targetBytes),
+                chartSeries("Max", metrics.zfsArc.maxBytes),
+                chartSeries("Min", metrics.zfsArc.minBytes),
               ],
-              valueFormatter: formatBytes,
+              valueFormatter: formatMemoryBytes,
             },
             {
-              title: "Memory cache",
+              title: "ARC composition",
               series: [
-                chartSeries("Buffers", host.memBuffers),
-                chartSeries("Cached", host.memCached),
+                chartSeries("Data", metrics.zfsArc.dataBytes),
+                chartSeries("Metadata", metrics.zfsArc.metadataBytes),
+                chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
               ],
-              valueFormatter: formatBytes,
+              valueFormatter: formatMemoryBytes,
             },
             {
-              title: "Swap",
+              title: "ARC efficiency",
               series: [
-                chartSeries("Used", host.swapUsed),
-                chartSeries("Total", host.swapTotal),
+                chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
+                chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
               ],
-              valueFormatter: formatBytes,
+              valueFormatter: formatNumber,
             },
           ]}
-          />
-        </LazySection>
-      ) : null}
+        />
+      ),
+    })
+  }
 
-      {sectionHasCharts([
-        {
-          title: "Processes",
-          series: [
-            chartSeries("Total", host.processCount),
-            chartSeries("Running", host.runningProcesses),
-          ],
-        },
-        {
-          title: "Kernel activity",
-          series: [
-            chartSeries("Context switches/s", host.ctxSwitchesPerSecond),
-            chartSeries("Interrupts/s", host.interruptsPerSecond),
-          ],
-        },
-      ]) ? (
-        <LazySection title="Processes">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
+  for (const pool of metrics.zfsPools ?? []) {
+    const charts = zfsPoolCharts(pool)
+    if (!sectionHasCharts(charts)) {
+      continue
+    }
+
+    const title = `ZFS pool ${pool.pool}`
+    pushSection(sections, {
+      title,
+      description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
+      content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
+    })
+  }
+
+  if ((metrics.tcpConnections ?? []).length > 0) {
+    pushSection(sections, {
+      title: "TCP",
+      content: (
+        <ChartGrid
+          timeGrid={timeGrid}
+          charts={[
             {
-              title: "Processes",
-              series: [
-                chartSeries("Total", host.processCount),
-                chartSeries("Running", host.runningProcesses),
-              ],
+              title: "Connections by state",
+              series: (metrics.tcpConnections ?? []).map((tcp) =>
+                chartSeries(tcp.state, tcp.connections)
+              ),
               valueFormatter: formatCount,
-            },
-            {
-              title: "Kernel activity",
-              series: [
-                chartSeries("Context switches/s", host.ctxSwitchesPerSecond),
-                chartSeries("Interrupts/s", host.interruptsPerSecond),
-              ],
-              valueFormatter: formatCount,
+              showCurrentValues: false,
             },
           ]}
-          />
-        </LazySection>
-      ) : null}
-
-      {sectionHasCharts([
-        {
-          title: "CPU clock",
-          series: [chartSeries("MHz", host.cpuClockMhz)],
-        },
-        {
-          title: "CPU power",
-          series: [chartSeries("Watts", host.cpuPowerWatts)],
-        },
-      ]) ? (
-        <LazySection title="Power">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
-            {
-              title: "CPU clock",
-              series: [chartSeries("MHz", host.cpuClockMhz)],
-              valueFormatter: formatMegahertz,
-            },
-            {
-              title: "CPU power",
-              series: [chartSeries("Watts", host.cpuPowerWatts)],
-              valueFormatter: formatWatts,
-            },
-          ]}
-          />
-        </LazySection>
-      ) : null}
-
-      {(metrics.disks ?? []).map((disk) => (
-        <EntitySection
-          key={disk.disk}
-          timeGrid={timeGrid}
-          title={`Disk ${disk.disk}`}
-          charts={diskCharts(disk)}
         />
-      ))}
+      ),
+    })
+  }
 
-      {(metrics.networks ?? []).map((network) => (
-        <EntitySection
-          key={network.interface}
-          timeGrid={timeGrid}
-          title={`Network ${network.interface}`}
-          charts={networkCharts(network)}
-        />
-      ))}
+  return sections
+}
 
-      {(metrics.gpus ?? []).map((gpu) => (
-        <EntitySection
-          key={`${gpu.gpu}-${gpu.deviceId}`}
-          timeGrid={timeGrid}
-          title={gpu.gpu}
-          description={`${gpu.vendor} · ${gpu.deviceId}`}
-          charts={gpuCharts(gpu)}
-        />
-      ))}
+function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
+  const timeGrid = buildMetricsTimeGrid(metrics)
+  const sections = buildMetricSections(metrics, timeGrid)
 
-      {(metrics.containers ?? []).length > 0 ? (
-        <LazySection title="Containers">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={containerCharts(metrics.containers)}
-          />
-        </LazySection>
-      ) : null}
+  return (
+    <div className="flex gap-6 xl:gap-10">
+      <div className="flex min-w-0 flex-1 flex-col gap-8">
+        {sections.map((section) => (
+          <MetricSection
+            key={section.id}
+            id={section.id}
+            title={section.title}
+            description={section.description}
+          >
+            {section.content}
+          </MetricSection>
+        ))}
+      </div>
 
-      {(metrics.temperatures ?? []).length > 0 ? (
-        <LazySection title="Temperature">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
-              {
-                title: "Sensors",
-                series: (metrics.temperatures ?? []).map((sensor) =>
-                  chartSeries(sensor.sensor, sensor.temperatureCelsius)
-                ),
-                valueFormatter: formatCelsius,
-                thresholds: TEMPERATURE_THRESHOLDS,
-                showCurrentValues: false,
-              },
-            ]}
-          />
-        </LazySection>
-      ) : null}
-
-      {metrics.zfsArc ? (
-        <LazySection title="ZFS ARC">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
-              {
-                title: "ARC size",
-                series: [
-                  chartSeries("Size", metrics.zfsArc.sizeBytes),
-                  chartSeries("Target", metrics.zfsArc.targetBytes),
-                  chartSeries("Max", metrics.zfsArc.maxBytes),
-                  chartSeries("Min", metrics.zfsArc.minBytes),
-                ],
-                valueFormatter: formatBytes,
-              },
-              {
-                title: "ARC composition",
-                series: [
-                  chartSeries("Data", metrics.zfsArc.dataBytes),
-                  chartSeries("Metadata", metrics.zfsArc.metadataBytes),
-                  chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
-                ],
-                valueFormatter: formatBytes,
-              },
-              {
-                title: "ARC efficiency",
-                series: [
-                  chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
-                  chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
-                ],
-                valueFormatter: formatNumber,
-              },
-            ]}
-          />
-        </LazySection>
-      ) : null}
-
-      {(metrics.zfsPools ?? []).map((pool) => (
-        <EntitySection
-          key={pool.pool}
-          timeGrid={timeGrid}
-          title={`ZFS pool ${pool.pool}`}
-          description={`Health: ${pool.health} · Scan: ${pool.scanState}`}
-          charts={zfsPoolCharts(pool)}
-        />
-      ))}
-
-      {(metrics.tcpConnections ?? []).length > 0 ? (
-        <LazySection title="TCP">
-          <ChartGrid
-            timeGrid={timeGrid}
-            charts={[
-              {
-                title: "Connections by state",
-                series: (metrics.tcpConnections ?? []).map((tcp) =>
-                  chartSeries(tcp.state, tcp.connections)
-                ),
-                valueFormatter: formatCount,
-                showCurrentValues: false,
-              },
-            ]}
-          />
-        </LazySection>
-      ) : null}
+      <MetricsSectionNav
+        sections={sections.map(({ id, title }) => ({ id, title }))}
+      />
     </div>
   )
 }

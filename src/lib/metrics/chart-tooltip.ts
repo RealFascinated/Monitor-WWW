@@ -5,6 +5,7 @@ import type { ResolvedTheme } from "@/lib/theme/context"
 const TOOLTIP_OFFSET_X = 12
 const TOOLTIP_PADDING = 8
 const VIEWPORT_PADDING = 8
+const HIDDEN_CURSOR_POS = -10
 
 function formatCursorTime(timestamp: number): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -138,4 +139,61 @@ export function createChartTooltipElement(theme: ResolvedTheme): HTMLDivElement 
 export function destroyChartTooltipElement(tooltip: HTMLDivElement) {
   tooltip.style.display = "none"
   tooltip.remove()
+}
+
+export function dismissChartInteraction(
+  chart: uPlot,
+  tooltip: HTMLDivElement
+) {
+  tooltip.style.display = "none"
+  chart.setCursor(
+    { left: HIDDEN_CURSOR_POS, top: HIDDEN_CURSOR_POS },
+    true
+  )
+  chart.setSelect({ left: 0, top: 0, width: 0, height: 0 }, false)
+}
+
+function collectScrollTargets(element: HTMLElement): EventTarget[] {
+  const targets = new Set<EventTarget>([window, document])
+
+  let node: HTMLElement | null = element.parentElement
+  while (node) {
+    const style = getComputedStyle(node)
+    if (
+      /(auto|scroll|overlay)/.test(
+        `${style.overflow} ${style.overflowX} ${style.overflowY}`
+      )
+    ) {
+      targets.add(node)
+    }
+    node = node.parentElement
+  }
+
+  return [...targets]
+}
+
+export function bindChartInteractionDismiss(
+  chart: uPlot,
+  tooltip: HTMLDivElement
+): () => void {
+  const dismiss = () => dismissChartInteraction(chart, tooltip)
+  const scrollOptions: AddEventListenerOptions = {
+    passive: true,
+    capture: true,
+  }
+  const wheelOptions: AddEventListenerOptions = { passive: true }
+  const scrollTargets = collectScrollTargets(chart.root)
+
+  chart.over.addEventListener("wheel", dismiss, wheelOptions)
+
+  for (const target of scrollTargets) {
+    target.addEventListener("scroll", dismiss, scrollOptions)
+  }
+
+  return () => {
+    chart.over.removeEventListener("wheel", dismiss, wheelOptions)
+    for (const target of scrollTargets) {
+      target.removeEventListener("scroll", dismiss, scrollOptions)
+    }
+  }
 }

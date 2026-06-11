@@ -1,5 +1,5 @@
 import type { ResolvedTheme } from "@/lib/theme/context"
-import type uPlot from "uplot"
+import uPlot from "uplot"
 
 export type ChartThresholdLevel = "warning" | "critical"
 
@@ -32,21 +32,18 @@ export const TEMPERATURE_THRESHOLDS: ChartThreshold[] = [
   { value: 85, level: "critical" },
 ]
 
-function thresholdLabel(
-  threshold: ChartThreshold,
-  formatValue?: (value: number) => string
-): string {
-  if (formatValue) {
-    return formatValue(threshold.value)
-  }
+function thresholdStroke(pxRatio: number) {
+  const scale = (value: number) => value * pxRatio
 
-  return String(threshold.value)
+  return {
+    lineWidth: scale(1),
+    dash: [5, 4].map(scale),
+  }
 }
 
 export function createThresholdDrawHook(
   thresholds: ChartThreshold[],
-  theme: ResolvedTheme,
-  formatValue?: (value: number) => string
+  theme: ResolvedTheme
 ): (u: uPlot) => void {
   return (u) => {
     if (thresholds.length === 0) {
@@ -59,10 +56,9 @@ export function createThresholdDrawHook(
     const yTop = bbox.top
     const yBottom = bbox.top + bbox.height
 
+    const stroke = thresholdStroke(uPlot.pxRatio)
+
     ctx.save()
-    ctx.font =
-      '11px "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif'
-    ctx.textBaseline = "bottom"
 
     for (const threshold of thresholds) {
       const yPos = u.valToPos(threshold.value, "y", true)
@@ -73,18 +69,14 @@ export function createThresholdDrawHook(
       const color = THRESHOLD_COLORS[theme][threshold.level]
 
       ctx.beginPath()
-      ctx.setLineDash([5, 4])
+      ctx.setLineDash(stroke.dash)
       ctx.strokeStyle = color
-      ctx.lineWidth = 1
+      ctx.lineWidth = stroke.lineWidth
+      ctx.lineCap = "round"
       ctx.moveTo(xLeft, yPos)
       ctx.lineTo(xRight, yPos)
       ctx.stroke()
       ctx.setLineDash([])
-
-      const label = thresholdLabel(threshold, formatValue)
-      ctx.fillStyle = color
-      ctx.textAlign = "right"
-      ctx.fillText(label, xRight - 2, yPos - 3)
     }
 
     ctx.restore()

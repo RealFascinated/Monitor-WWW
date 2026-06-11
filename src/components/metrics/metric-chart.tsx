@@ -3,6 +3,7 @@ import uPlot from "uplot"
 import "uplot/dist/uPlot.min.css"
 
 import {
+  bindChartInteractionDismiss,
   createChartTooltipElement,
   createCursorTooltipHandler,
   destroyChartTooltipElement,
@@ -102,9 +103,7 @@ function MetricChart({
     }
 
     if (thresholds && thresholds.length > 0) {
-      hooks.drawAxes = [
-        createThresholdDrawHook(thresholds, resolvedTheme, formatValue),
-      ]
+      hooks.drawAxes = [createThresholdDrawHook(thresholds, resolvedTheme)]
     }
 
     options.hooks = hooks
@@ -123,8 +122,10 @@ function MetricChart({
       }
     })
     resizeObserver.observe(container)
+    const unbindInteractionDismiss = bindChartInteractionDismiss(chart, tooltip)
 
     return () => {
+      unbindInteractionDismiss()
       resizeObserver.disconnect()
       destroyChartTooltipElement(tooltip)
       destroyChart(chart)

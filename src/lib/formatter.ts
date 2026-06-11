@@ -45,7 +45,7 @@ export function formatPercentValue(value: number): string {
   return `${value.toFixed(1)}%`
 }
 
-export function formatBytes(value: number): string {
+export function formatBytes(value: number, fractionDigits?: number): string {
   const units = ["B", "KB", "MB", "GB", "TB"]
   let size = value
   let unitIndex = 0
@@ -55,8 +55,13 @@ export function formatBytes(value: number): string {
     unitIndex++
   }
 
-  const decimals = size >= 10 || unitIndex === 0 ? 0 : 1
+  const decimals =
+    fractionDigits ?? (size >= 10 || unitIndex === 0 ? 0 : 1)
   return `${size.toFixed(decimals)} ${units[unitIndex]}`
+}
+
+export function formatMemoryBytes(value: number): string {
+  return formatBytes(value, 2)
 }
 
 export function formatRate(value: number): string {
