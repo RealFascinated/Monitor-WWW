@@ -4,6 +4,16 @@ export type ServerStatus = "ONLINE" | "OFFLINE" | "PENDING"
 
 export type ServerRole = "OWNER" | "VIEWER"
 
+export type ServerInventory = {
+  ip: string | null
+  coreCount: number | null
+  threadCount: number | null
+  cpuModel: string | null
+  socketCount: number | null
+  osName: string | null
+  osVersion: string | null
+}
+
 export type ServerResponse = {
   serverId: number
   serverName: string
@@ -15,6 +25,7 @@ export type ServerResponse = {
   memUsage: number | null
   memMax: number | null
   role: ServerRole
+  inventory: ServerInventory | null
 }
 
 export type ServerCreateRequest = {
