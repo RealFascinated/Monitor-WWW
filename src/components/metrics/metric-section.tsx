@@ -1,13 +1,22 @@
+import type { LucideIcon } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
 type MetricSectionProps = {
   id: string
   title: string
+  icon: LucideIcon
   description?: string
   children: React.ReactNode
 }
 
-function MetricSection({ id, title, description, children }: MetricSectionProps) {
+function MetricSection({
+  id,
+  title,
+  icon: Icon,
+  description,
+  children,
+}: MetricSectionProps) {
   return (
     <section
       id={id}
@@ -22,7 +31,10 @@ function MetricSection({ id, title, description, children }: MetricSectionProps)
               "dark:bg-warning"
             )}
           />
-          <h2 className="text-lg font-bold text-foreground">{title}</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+            <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            {title}
+          </h2>
         </div>
         {description ? (
           <p className="ml-3 text-sm text-muted-foreground">

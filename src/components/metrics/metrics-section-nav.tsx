@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
+import type { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 type MetricsSectionNavItem = {
   id: string
   title: string
+  icon: LucideIcon
 }
 
 type MetricsSectionNavProps = {
@@ -62,6 +64,7 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
       <div className="sticky top-[calc(var(--metrics-header-offset)+1rem)] z-20 flex flex-col gap-0.5 border-l border-sidebar-border pl-3">
         {sections.map((section) => {
           const isActive = section.id === activeId
+          const Icon = section.icon
 
           return (
             <button
@@ -74,7 +77,7 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
                 })
               }}
               className={cn(
-                "relative rounded-r-sm py-1 pl-2.5 text-left text-xs font-medium leading-snug transition-colors",
+                "relative flex items-center gap-1.5 rounded-r-sm py-1 pl-2.5 text-left text-xs font-medium leading-snug transition-colors",
                 isActive
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -89,6 +92,7 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
                     : "bg-transparent"
                 )}
               />
+              <Icon className="size-3 shrink-0 opacity-70" aria-hidden />
               {section.title}
             </button>
           )

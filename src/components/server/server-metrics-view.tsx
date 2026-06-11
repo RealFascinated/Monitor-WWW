@@ -1,3 +1,20 @@
+import {
+  Battery,
+  Cable,
+  Container,
+  Cpu,
+  Database,
+  Disc,
+  Gpu,
+  HardDrive,
+  LayoutDashboard,
+  MemoryStick,
+  Network,
+  Thermometer,
+  Cog,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
 import { MetricSection } from "@/components/metrics/metric-section"
 import { MetricChartCard } from "@/components/metrics/metric-chart-card"
 import { MetricStatCard } from "@/components/metrics/metric-stat-card"
@@ -91,6 +108,7 @@ function ChartGrid({
 type MetricSection = {
   id: string
   title: string
+  icon: LucideIcon
   description?: string
   content: React.ReactNode
 }
@@ -316,11 +334,13 @@ function pushSection(
   {
     id,
     title,
+    icon,
     description,
     content,
   }: {
     id?: string
     title: string
+    icon: LucideIcon
     description?: string
     content: React.ReactNode
   }
@@ -328,6 +348,7 @@ function pushSection(
   sections.push({
     id: id ?? metricSectionId(title),
     title,
+    icon,
     description,
     content,
   })
@@ -423,6 +444,7 @@ function buildMetricSections(
   if (overviewHasData(host, metrics.disks ?? undefined)) {
     pushSection(sections, {
       title: "Overview",
+      icon: LayoutDashboard,
       content: <OverviewStats host={host} disks={metrics.disks ?? undefined} />,
     })
   }
@@ -455,6 +477,7 @@ function buildMetricSections(
   if (sectionHasCharts(cpuCharts)) {
     pushSection(sections, {
       title: "CPU",
+      icon: Cpu,
       content: <ChartGrid timeGrid={timeGrid} charts={cpuCharts} />,
     })
   }
@@ -490,6 +513,7 @@ function buildMetricSections(
   if (sectionHasCharts(memoryCharts)) {
     pushSection(sections, {
       title: "Memory",
+      icon: MemoryStick,
       content: <ChartGrid timeGrid={timeGrid} charts={memoryCharts} />,
     })
   }
@@ -516,6 +540,7 @@ function buildMetricSections(
   if (sectionHasCharts(processCharts)) {
     pushSection(sections, {
       title: "Processes",
+      icon: Cog,
       content: <ChartGrid timeGrid={timeGrid} charts={processCharts} />,
     })
   }
@@ -536,6 +561,7 @@ function buildMetricSections(
   if (sectionHasCharts(powerCharts)) {
     pushSection(sections, {
       title: "Power",
+      icon: Battery,
       content: <ChartGrid timeGrid={timeGrid} charts={powerCharts} />,
     })
   }
@@ -549,6 +575,7 @@ function buildMetricSections(
     const title = `Disk ${disk.disk}`
     pushSection(sections, {
       title,
+      icon: HardDrive,
       content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
     })
   }
@@ -562,6 +589,7 @@ function buildMetricSections(
     const title = `Network ${network.interface}`
     pushSection(sections, {
       title,
+      icon: Network,
       content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
     })
   }
@@ -575,6 +603,7 @@ function buildMetricSections(
     pushSection(sections, {
       id: metricSectionId(`${gpu.gpu}-${gpu.deviceId}`),
       title: gpu.gpu,
+      icon: Gpu,
       description: `${gpu.vendor} · ${gpu.deviceId}`,
       content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
     })
@@ -583,6 +612,7 @@ function buildMetricSections(
   if ((metrics.containers ?? []).length > 0) {
     pushSection(sections, {
       title: "Containers",
+      icon: Container,
       content: (
         <ChartGrid
           timeGrid={timeGrid}
@@ -595,6 +625,7 @@ function buildMetricSections(
   if ((metrics.temperatures ?? []).length > 0) {
     pushSection(sections, {
       title: "Temperature",
+      icon: Thermometer,
       content: (
         <ChartGrid
           timeGrid={timeGrid}
@@ -617,6 +648,7 @@ function buildMetricSections(
   if (metrics.zfsArc) {
     pushSection(sections, {
       title: "ZFS ARC",
+      icon: Disc,
       content: (
         <ChartGrid
           timeGrid={timeGrid}
@@ -663,6 +695,7 @@ function buildMetricSections(
     const title = `ZFS pool ${pool.pool}`
     pushSection(sections, {
       title,
+      icon: Database,
       description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
       content: <ChartGrid timeGrid={timeGrid} charts={charts} />,
     })
@@ -671,6 +704,7 @@ function buildMetricSections(
   if ((metrics.tcpConnections ?? []).length > 0) {
     pushSection(sections, {
       title: "TCP",
+      icon: Cable,
       content: (
         <ChartGrid
           timeGrid={timeGrid}
@@ -704,6 +738,7 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
             key={section.id}
             id={section.id}
             title={section.title}
+            icon={section.icon}
             description={section.description}
           >
             {section.content}
@@ -712,7 +747,7 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
       </div>
 
       <MetricsSectionNav
-        sections={sections.map(({ id, title }) => ({ id, title }))}
+        sections={sections.map(({ id, title, icon }) => ({ id, title, icon }))}
       />
     </div>
   )
