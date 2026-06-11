@@ -1,27 +1,126 @@
-import { useEffect, useState } from "react"
-import type { LucideIcon } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 
 import { cn } from "@/lib/utils"
-
-type MetricsSectionNavItem = {
-  id: string
-  title: string
-  icon: LucideIcon
-}
+import {
+  flattenMetricSectionLeaves,
+  metricsSectionIdsKey,
+} from "@/lib/metrics/sections/flatten"
+import {
+  isMetricsSectionGroup,
+  metricsSectionNavLabel,
+  type MetricsSectionLeaf,
+  type MetricsSectionNode,
+} from "@/lib/metrics/sections/types"
 
 type MetricsSectionNavProps = {
-  sections: MetricsSectionNavItem[]
+  sections: MetricsSectionNode[]
+}
+
+function scrollToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  })
+}
+
+function NavLeafButton({
+  section,
+  isActive,
+  nested = false,
+}: {
+  section: MetricsSectionLeaf
+  isActive: boolean
+  nested?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => scrollToSection(section.id)}
+      className={cn(
+        "relative w-full rounded-r-sm py-1 text-left text-xs font-medium leading-snug transition-colors",
+        nested ? "pl-5 pr-1" : "flex items-center gap-1.5 pl-2.5",
+        isActive
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "absolute top-1 bottom-1 left-0 w-0.5 rounded-full",
+          isActive ? "bg-monitor dark:bg-warning" : "bg-transparent"
+        )}
+      />
+      {nested ? (
+        metricsSectionNavLabel(section)
+      ) : (
+        <>
+          <section.icon className="size-3 shrink-0 opacity-70" aria-hidden />
+          {metricsSectionNavLabel(section)}
+        </>
+      )}
+    </button>
+  )
+}
+
+function NavGroup({
+  group,
+  activeId,
+}: {
+  group: Extract<MetricsSectionNode, { kind: "group" }>
+  activeId: string
+}) {
+  const GroupIcon = group.icon
+  const hasActiveChild = group.children.some((child) => child.id === activeId)
+
+  return (
+    <div className="flex flex-col">
+      <div
+        className={cn(
+          "relative flex w-full items-center gap-1.5 rounded-r-sm py-1 pl-2.5 text-xs font-medium leading-snug",
+          hasActiveChild ? "text-foreground" : "text-muted-foreground"
+        )}
+      >
+        <span
+          aria-hidden
+          className={cn(
+            "absolute top-1 bottom-1 left-0 w-0.5 rounded-full",
+            hasActiveChild ? "bg-monitor dark:bg-warning" : "bg-transparent"
+          )}
+        />
+        <GroupIcon className="size-3 shrink-0 opacity-70" aria-hidden />
+        {group.title}
+      </div>
+
+      <div className="flex flex-col gap-0.5">
+        {group.children.map((child) => (
+          <NavLeafButton
+            key={child.id}
+            section={child}
+            isActive={child.id === activeId}
+            nested
+          />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
-  const [activeId, setActiveId] = useState(sections[0]?.id ?? "")
+  const sectionIdsKey = metricsSectionIdsKey(sections)
+  const leaves = useMemo(
+    () => flattenMetricSectionLeaves(sections),
+    [sectionIdsKey]
+  )
+
+  const [activeId, setActiveId] = useState(leaves[0]?.id ?? "")
 
   useEffect(() => {
-    setActiveId(sections[0]?.id ?? "")
-  }, [sections])
+    setActiveId(leaves[0]?.id ?? "")
+  }, [sectionIdsKey, leaves])
 
   useEffect(() => {
-    const elements = sections
+    const elements = leaves
       .map((section) => document.getElementById(section.id))
       .filter((element): element is HTMLElement => element !== null)
 
@@ -29,18 +128,32 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
       return
     }
 
+    const visibility = new Map<string, boolean>()
+
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort(
-            (left, right) =>
-              left.boundingClientRect.top - right.boundingClientRect.top
-          )
-
-        if (visible.length > 0) {
-          setActiveId(visible[0].target.id)
+        for (const entry of entries) {
+          visibility.set(entry.target.id, entry.isIntersecting)
         }
+
+        const visibleLeaves = leaves.filter((leaf) => visibility.get(leaf.id))
+
+        if (visibleLeaves.length === 0) {
+          return
+        }
+
+        const topLeaf = visibleLeaves.reduce((current, candidate) => {
+          const currentTop =
+            document.getElementById(current.id)?.getBoundingClientRect().top ??
+            Number.POSITIVE_INFINITY
+          const candidateTop =
+            document.getElementById(candidate.id)?.getBoundingClientRect().top ??
+            Number.POSITIVE_INFINITY
+
+          return candidateTop < currentTop ? candidate : current
+        })
+
+        setActiveId(topLeaf.id)
       },
       { rootMargin: "-15% 0px -70% 0px", threshold: 0 }
     )
@@ -50,9 +163,9 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
     }
 
     return () => observer.disconnect()
-  }, [sections])
+  }, [sectionIdsKey, leaves])
 
-  if (sections.length <= 1) {
+  if (leaves.length <= 1) {
     return null
   }
 
@@ -62,39 +175,23 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
       aria-label="Metric sections"
     >
       <div className="sticky top-[calc(var(--metrics-header-offset)+1rem)] z-20 flex flex-col gap-0.5 border-l border-sidebar-border pl-3">
-        {sections.map((section) => {
-          const isActive = section.id === activeId
-          const Icon = section.icon
+        {sections.map((node) => {
+          if (isMetricsSectionGroup(node)) {
+            return (
+              <NavGroup
+                key={node.id}
+                group={node}
+                activeId={activeId}
+              />
+            )
+          }
 
           return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => {
-                document.getElementById(section.id)?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                })
-              }}
-              className={cn(
-                "relative flex items-center gap-1.5 rounded-r-sm py-1 pl-2.5 text-left text-xs font-medium leading-snug transition-colors",
-                isActive
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute top-1 bottom-1 left-0 w-0.5 rounded-full",
-                  isActive
-                    ? "bg-monitor dark:bg-warning"
-                    : "bg-transparent"
-                )}
-              />
-              <Icon className="size-3 shrink-0 opacity-70" aria-hidden />
-              {section.title}
-            </button>
+            <NavLeafButton
+              key={node.id}
+              section={node}
+              isActive={node.id === activeId}
+            />
           )
         })}
       </div>
@@ -103,4 +200,3 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
 }
 
 export { MetricsSectionNav }
-export type { MetricsSectionNavItem }
