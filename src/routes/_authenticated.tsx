@@ -58,7 +58,7 @@ function AuthenticatedLayout() {
 
   if (isLoading || !user) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-gray-50 dark:bg-base">
+      <div className="flex min-h-svh items-center justify-center bg-background">
         <Spinner />
       </div>
     )
@@ -76,7 +76,7 @@ function AuthenticatedLayout() {
   }
 
   return (
-    <div className="min-h-svh bg-gray-50 dark:bg-base">
+    <div className="min-h-svh bg-background">
       <AppSidebar
         user={user}
         width={sidebarWidth}
@@ -98,7 +98,7 @@ function AuthenticatedLayout() {
           !sidebarIsResizing && "transition-[padding] duration-200"
         )}
       >
-        <header className="sticky top-0 z-40 flex items-center gap-2 border-b border-neutral-300 bg-white/95 px-4 py-3 backdrop-blur-sm dark:border-monitor-gray-200 dark:bg-base/95 lg:hidden">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-sidebar-border bg-background/95 px-4 backdrop-blur-sm lg:hidden">
           <Button
             type="button"
             variant="ghost"

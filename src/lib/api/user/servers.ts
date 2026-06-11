@@ -2,7 +2,7 @@ import { apiFetch } from "@/lib/auth/api"
 
 export type ServerStatus = "ONLINE" | "OFFLINE" | "PENDING"
 
-export type ServerUserRole = "OWNER" | "VIEWER"
+export type ServerRole = "OWNER" | "VIEWER"
 
 export type ServerResponse = {
   serverId: number
@@ -14,7 +14,7 @@ export type ServerResponse = {
   cpuPercent: number | null
   memUsage: number | null
   memMax: number | null
-  role: ServerUserRole
+  role: ServerRole
 }
 
 export type ServerCreateRequest = {

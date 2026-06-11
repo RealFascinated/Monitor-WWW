@@ -101,7 +101,7 @@ function SidebarServerList({
           </div>
         </div>
       ) : (
-        <div className="my-2 border-t border-neutral-200 dark:border-monitor-gray-200" />
+        <div className="my-2 border-t border-sidebar-border" />
       )}
       <div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
         {servers.map((server) => (
@@ -113,7 +113,7 @@ function SidebarServerList({
             onClick={onNavigate}
             title={compact ? server.serverName : undefined}
             className={cn(
-              "flex w-full gap-3 rounded-sm px-2 py-1 text-sm text-neutral-500 transition-colors hover:bg-neutral-300 dark:text-neutral-400 dark:hover:bg-monitor-gray-100 dark:hover:text-white",
+              "flex min-h-7 w-full gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
               "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
               compact ? "items-center justify-center px-0" : "items-center",
               detailed && !compact && "items-start py-1.5"
@@ -215,7 +215,7 @@ export function AppSidebar({
           } as CSSProperties
         }
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[min(var(--mobile-sidebar-width),85vw)] flex-col border-r border-neutral-300 bg-white dark:border-monitor-gray-200 dark:bg-base lg:w-[length:var(--sidebar-inline-width)]",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(var(--mobile-sidebar-width),85vw)] flex-col border-r border-sidebar-border bg-sidebar lg:w-[length:var(--sidebar-inline-width)]",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0",
           !mobileOpen && "pointer-events-none lg:pointer-events-auto",
@@ -267,7 +267,7 @@ export function AppSidebar({
             title={compact ? label : undefined}
             activeOptions={{ exact }}
             className={cn(
-              "flex w-full items-center gap-3 rounded-sm px-2 py-1 text-sm text-neutral-500 transition-colors hover:bg-neutral-300 dark:text-neutral-400 dark:hover:bg-monitor-gray-100 dark:hover:text-white",
+              "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
               "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
               compact && "justify-center px-0"
             )}
@@ -289,7 +289,7 @@ export function AppSidebar({
 
       <div
         className={cn(
-          "flex flex-col gap-2 border-t border-neutral-200 p-4 dark:border-monitor-gray-200",
+          "flex flex-col gap-2 border-t border-sidebar-border p-4",
           compact && "items-center px-2"
         )}
       >

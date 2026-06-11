@@ -3,8 +3,8 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
-import { ServerAccessHeader } from "@/components/server/server-access-header"
-import { ServerAccessView } from "@/components/server/server-access-view"
+import { ServerSettingsHeader } from "@/components/server/server-settings-header"
+import { ServerSettingsView } from "@/components/server/server-settings-view"
 import { useUserServer } from "@/hooks/use-user-server"
 import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import type { ServerResponse } from "@/lib/api/user/servers"
@@ -12,7 +12,7 @@ import { ApiClientError } from "@/lib/auth/api"
 import { serverPageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute(
-  "/_authenticated/servers/$serverId/access"
+  "/_authenticated/servers/$serverId/settings"
 )({
   loader: ({ context: { queryClient }, params }) => {
     const serverId = Number(params.serverId)
@@ -25,13 +25,13 @@ export const Route = createFileRoute(
     )?.loaderData as ServerResponse | undefined
 
     return {
-      meta: [{ title: serverPageTitle(servers, "Access") }],
+      meta: [{ title: serverPageTitle(servers, "Settings") }],
     }
   },
-  component: ServerAccessPage,
+  component: ServerSettingsPage,
 })
 
-function ServerAccessPage() {
+function ServerSettingsPage() {
   const { serverId } = Route.useParams()
   const numericServerId = Number(serverId)
 
@@ -47,15 +47,15 @@ function ServerAccessPage() {
     error instanceof ApiClientError
       ? error.message
       : error
-        ? "Failed to load server access"
+        ? "Failed to load server settings"
         : null
 
   return (
     <section className="flex flex-col">
-      <ServerAccessHeader server={server} serverId={numericServerId} />
+      <ServerSettingsHeader server={server} serverId={numericServerId} />
 
       {errorMessage ? (
-        <Callout type="danger" title="Could not load access">
+        <Callout type="danger" title="Could not load settings">
           {errorMessage}
         </Callout>
       ) : null}
@@ -63,12 +63,16 @@ function ServerAccessPage() {
       {isPending && !errorMessage ? (
         <div className="flex items-center gap-2 text-neutral-500">
           <Spinner />
-          <span>Loading access…</span>
+          <span>Loading settings…</span>
         </div>
       ) : null}
 
-      {access && !errorMessage ? (
-        <ServerAccessView serverId={numericServerId} access={access} />
+      {access && server && !errorMessage ? (
+        <ServerSettingsView
+          serverId={numericServerId}
+          server={server}
+          access={access}
+        />
       ) : null}
     </section>
   )

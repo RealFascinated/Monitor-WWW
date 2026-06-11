@@ -33,27 +33,27 @@ function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-gray-50 dark:bg-base">
+      <div className="flex min-h-svh items-center justify-center bg-background">
         <Spinner />
       </div>
     )
   }
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center bg-gray-50 p-4 dark:bg-base">
+    <main className="relative flex min-h-svh items-center justify-center bg-background px-6 py-8">
       <div className="absolute top-4 right-4">
         <ThemeSwitcher />
       </div>
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-3xl">Sign in</CardTitle>
+          <CardTitle>Sign in</CardTitle>
           <CardDescription>
             Sign in to manage your monitored servers.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <AuthForm mode="login" />
-          <p className="pt-4 text-sm text-neutral-500">
+          <p className="pt-4 text-sm text-muted-foreground">
             No account?{" "}
             <Link
               to="/register"

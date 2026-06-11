@@ -1,12 +1,12 @@
 import { apiFetch } from "@/lib/auth/api"
 
-import type { ServerMemberRole } from "@/lib/api/user/access"
+import type { ServerRole } from "@/lib/api/user/servers"
 
 export type UserPendingInvite = {
   inviteId: number
   serverId: number
   serverName: string
-  role: ServerMemberRole
+  role: ServerRole
   expiresAt: string
   createdAt: string
 }
@@ -18,7 +18,7 @@ export type ServerInviteAcceptRequest = {
 export type ServerMemberResponse = {
   serverId: number
   serverName: string
-  role: ServerMemberRole
+  role: ServerRole
   joinedAt: string
 }
 

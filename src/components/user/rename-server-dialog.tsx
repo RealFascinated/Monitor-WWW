@@ -22,22 +22,10 @@ import {
   userServersQueryOptions,
 } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
-
-const MAX_NAME_LENGTH = 20
-
-function validateServerName(name: string): string | null {
-  const trimmed = name.trim()
-
-  if (!trimmed) {
-    return "Name must not be empty"
-  }
-
-  if (trimmed.length > MAX_NAME_LENGTH) {
-    return "Name must be at most 20 characters"
-  }
-
-  return null
-}
+import {
+  MAX_SERVER_NAME_LENGTH,
+  validateServerName,
+} from "@/lib/server-name"
 
 type RenameServerDialogProps = {
   serverId: number
@@ -137,7 +125,7 @@ function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) 
             <DialogTitle>Rename server</DialogTitle>
             <DialogDescription>
               Choose a new display name for this server. Names can be up to{" "}
-              {MAX_NAME_LENGTH} characters.
+              {MAX_SERVER_NAME_LENGTH} characters.
             </DialogDescription>
           </DialogHeader>
 
@@ -152,7 +140,7 @@ function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) 
             <Input
               id={inputId}
               value={name}
-              maxLength={MAX_NAME_LENGTH}
+              maxLength={MAX_SERVER_NAME_LENGTH}
               onChange={(event) => setName(event.target.value)}
               aria-invalid={fieldError ? true : undefined}
               disabled={mutation.isPending}

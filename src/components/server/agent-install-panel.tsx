@@ -116,8 +116,8 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
 
       <Callout type="warning" title="Save your ingest token">
         This token is shown only once. Copy it now — you will need it to
-        configure the agent. If you lose it, use Install agent on the server
-        page to issue a new token.
+        configure the agent. If you lose it, rotate the ingest token in server
+        settings to issue a new one.
       </Callout>
 
       <div className="flex flex-col gap-2">

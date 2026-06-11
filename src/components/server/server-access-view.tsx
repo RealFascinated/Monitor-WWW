@@ -19,17 +19,25 @@ import {
 } from "@/lib/api/user/access"
 import type { ServerAccessListResponse } from "@/lib/api/user/access"
 import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
-import { useAuth } from "@/lib/auth"
 import { ApiClientError } from "@/lib/auth/api"
 import { formatDate } from "@/lib/formatter"
 
 type ServerAccessViewProps = {
   serverId: number
   access: ServerAccessListResponse
+  canManage: boolean
 }
 
 function formatRole(role: string): string {
   return role.charAt(0) + role.slice(1).toLowerCase()
+}
+
+function RoleTag({ role }: { role: string }) {
+  return (
+    <span className="px-2 py-1 text-xs font-bold text-neutral-500 bg-neutral-100 dark:bg-monitor-gray-100">
+      {formatRole(role)}
+    </span>
+  )
 }
 
 function RemoveMemberButton({
@@ -162,70 +170,72 @@ function RevokeInviteButton({
   )
 }
 
-function ServerAccessView({ serverId, access }: ServerAccessViewProps) {
-  const { user } = useAuth()
-  const canManage = user?.id === access.owner.id
-
+function ServerAccessView({
+  serverId,
+  access,
+  canManage,
+}: ServerAccessViewProps) {
   return (
     <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold dark:text-white">Owner</h2>
-        <p className="text-sm text-neutral-500">
-          <span className="font-medium text-black dark:text-white">
-            {access.owner.email}
-          </span>
-        </p>
-      </section>
-
-      <section className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-bold dark:text-white">Members</h2>
+          <h3 className="text-lg font-bold dark:text-white">Members</h3>
           {canManage ? <InviteMemberDialog serverId={serverId} /> : null}
         </div>
 
-        {access.members.length === 0 ? (
-          <p className="text-neutral-500">No members yet.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Joined</TableHead>
+              {canManage ? (
+                <TableHead className="w-0">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              ) : null}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow key={access.owner.id}>
+              <TableCell className="font-bold">{access.owner.email}</TableCell>
+              <TableCell>
+                <RoleTag role="OWNER" />
+              </TableCell>
+              <TableCell className="text-neutral-500">—</TableCell>
+              {canManage ? (
+                <TableCell>
+                  <span className="inline-flex size-7" aria-hidden />
+                </TableCell>
+              ) : null}
+            </TableRow>
+            {access.members.map((member) => (
+              <TableRow key={member.userId}>
+                <TableCell className="font-bold">{member.email}</TableCell>
+                <TableCell>
+                  <RoleTag role={member.role} />
+                </TableCell>
+                <TableCell className="text-neutral-500">
+                  {formatDate(member.joinedAt)}
+                </TableCell>
                 {canManage ? (
-                  <TableHead className="w-0">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
+                  <TableCell>
+                    <RemoveMemberButton
+                      serverId={serverId}
+                      memberUserId={member.userId}
+                      memberEmail={member.email}
+                    />
+                  </TableCell>
                 ) : null}
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {access.members.map((member) => (
-                <TableRow key={member.userId}>
-                  <TableCell className="font-medium">{member.email}</TableCell>
-                  <TableCell>{formatRole(member.role)}</TableCell>
-                  <TableCell className="text-neutral-500">
-                    {formatDate(member.joinedAt)}
-                  </TableCell>
-                  {canManage ? (
-                    <TableCell>
-                      <RemoveMemberButton
-                        serverId={serverId}
-                        memberUserId={member.userId}
-                        memberEmail={member.email}
-                      />
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {canManage ? (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold dark:text-white">Pending invites</h2>
+        <div className="flex flex-col gap-3">
+          <h3 className="text-lg font-bold dark:text-white">Pending invites</h3>
 
           {access.pendingInvites.length === 0 ? (
             <p className="text-neutral-500">No pending invites.</p>
@@ -245,8 +255,10 @@ function ServerAccessView({ serverId, access }: ServerAccessViewProps) {
               <TableBody>
                 {access.pendingInvites.map((invite) => (
                   <TableRow key={invite.inviteId}>
-                    <TableCell className="font-medium">{invite.email}</TableCell>
-                    <TableCell>{formatRole(invite.role)}</TableCell>
+                    <TableCell className="font-bold">{invite.email}</TableCell>
+                    <TableCell>
+                      <RoleTag role={invite.role} />
+                    </TableCell>
                     <TableCell className="text-neutral-500">
                       {formatDate(invite.createdAt)}
                     </TableCell>
@@ -265,7 +277,7 @@ function ServerAccessView({ serverId, access }: ServerAccessViewProps) {
               </TableBody>
             </Table>
           )}
-        </section>
+        </div>
       ) : null}
     </div>
   )

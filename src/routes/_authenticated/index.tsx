@@ -21,8 +21,8 @@ function DashboardPage() {
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold dark:text-white">Dashboard</h1>
-        <p className="mt-2 text-neutral-500">
+        <h1>Dashboard</h1>
+        <p className="mt-2 text-muted-foreground">
           Signed in as{" "}
           <span className="font-bold text-monitor dark:text-warning">
             {user.email}

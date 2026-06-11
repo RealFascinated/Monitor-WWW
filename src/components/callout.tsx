@@ -4,7 +4,7 @@ import type { VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-const calloutVariants = cva("relative rounded-lg border p-4", {
+const calloutVariants = cva("relative flex gap-3 rounded-sm border p-3 text-sm", {
   variants: {
     type: {
       warning:

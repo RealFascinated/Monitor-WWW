@@ -11,9 +11,16 @@ import { ApiClientError } from "@/lib/auth/api"
 type DeleteServerButtonProps = {
   serverId: number
   serverName: string
+  onDeleted?: () => void
+  variant?: "icon" | "destructive"
 }
 
-function DeleteServerButton({ serverId, serverName }: DeleteServerButtonProps) {
+function DeleteServerButton({
+  serverId,
+  serverName,
+  onDeleted,
+  variant = "icon",
+}: DeleteServerButtonProps) {
   const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
 
@@ -23,6 +30,7 @@ function DeleteServerButton({ serverId, serverName }: DeleteServerButtonProps) {
       await queryClient.invalidateQueries({
         queryKey: userServersQueryOptions.queryKey,
       })
+      onDeleted?.()
     },
     onError: (mutationError) => {
       setError(
@@ -36,15 +44,22 @@ function DeleteServerButton({ serverId, serverName }: DeleteServerButtonProps) {
   return (
     <ConfirmDialog
       trigger={
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="text-neutral-400 hover:bg-transparent hover:text-red-600 dark:text-neutral-500 dark:hover:bg-transparent dark:hover:text-red-400"
-          aria-label={`Delete ${serverName}`}
-        >
-          <Trash2 className="size-4" />
-        </Button>
+        variant === "destructive" ? (
+          <Button type="button" variant="destructive" size="sm">
+            <Trash2 className="size-4" />
+            Delete server
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="text-neutral-400 hover:bg-transparent hover:text-red-600 dark:text-neutral-500 dark:hover:bg-transparent dark:hover:text-red-400"
+            aria-label={`Delete ${serverName}`}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        )
       }
       title="Delete server"
       description={

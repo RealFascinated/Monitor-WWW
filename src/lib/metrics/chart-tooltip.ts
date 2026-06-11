@@ -3,7 +3,7 @@ import type uPlot from "uplot"
 import type { ResolvedTheme } from "@/lib/theme/context"
 
 const TOOLTIP_OFFSET_X = 12
-const TOOLTIP_OFFSET_Y = 12
+const TOOLTIP_PADDING = 8
 const VIEWPORT_PADDING = 8
 
 function formatCursorTime(timestamp: number): string {
@@ -34,16 +34,16 @@ export function createCursorTooltipHandler({
 }: CreateCursorTooltipHandlerParams) {
   const isDark = theme === "dark"
   tooltip.className = [
-    "pointer-events-none fixed z-50 hidden max-w-xs rounded-sm border px-2.5 py-2 text-xs shadow-md",
+    "pointer-events-none fixed z-50 max-w-xs rounded-sm border px-2.5 py-2 text-xs shadow-md",
     isDark
       ? "border-monitor-gray-300 bg-monitor-gray-100 text-white"
       : "border-neutral-200 bg-white text-black",
   ].join(" ")
 
   return (u: uPlot) => {
-    const { idx, left, top } = u.cursor
+    const { idx, left } = u.cursor
 
-    if (idx == null || left == null || top == null) {
+    if (idx == null || left == null) {
       tooltip.style.display = "none"
       return
     }
@@ -86,8 +86,10 @@ export function createCursorTooltipHandler({
       rows.join("")
 
     const chartRect = u.root.getBoundingClientRect()
+    const plotLeft = chartRect.left + u.bbox.left
+    const plotTop = chartRect.top + u.bbox.top
+    const plotRight = plotLeft + u.bbox.width
     const cursorX = chartRect.left + left
-    const cursorY = chartRect.top + top
 
     tooltip.style.display = "block"
     tooltip.style.transform = "none"
@@ -99,18 +101,16 @@ export function createCursorTooltipHandler({
     const tooltipHeight = tooltip.offsetHeight
 
     let x = cursorX + TOOLTIP_OFFSET_X
-    if (x + tooltipWidth > window.innerWidth - VIEWPORT_PADDING) {
+    if (x + tooltipWidth > plotRight - TOOLTIP_PADDING) {
       x = cursorX - tooltipWidth - TOOLTIP_OFFSET_X
     }
     x = Math.max(
-      VIEWPORT_PADDING,
-      Math.min(x, window.innerWidth - tooltipWidth - VIEWPORT_PADDING)
+      plotLeft + TOOLTIP_PADDING,
+      Math.min(x, plotRight - tooltipWidth - TOOLTIP_PADDING)
     )
 
-    let y = cursorY + TOOLTIP_OFFSET_Y
-    if (y + tooltipHeight > window.innerHeight - VIEWPORT_PADDING) {
-      y = cursorY - tooltipHeight - TOOLTIP_OFFSET_Y
-    }
+    // Grafana-style: track crosshair on X, anchor to top of plot on Y.
+    let y = plotTop + TOOLTIP_PADDING
     y = Math.max(
       VIEWPORT_PADDING,
       Math.min(y, window.innerHeight - tooltipHeight - VIEWPORT_PADDING)
@@ -119,4 +119,23 @@ export function createCursorTooltipHandler({
     tooltip.style.left = `${x}px`
     tooltip.style.top = `${y}px`
   }
+}
+
+export function createChartTooltipElement(theme: ResolvedTheme): HTMLDivElement {
+  const tooltip = document.createElement("div")
+  const isDark = theme === "dark"
+  tooltip.className = [
+    "pointer-events-none fixed z-50 max-w-xs rounded-sm border px-2.5 py-2 text-xs shadow-md",
+    isDark
+      ? "border-monitor-gray-300 bg-monitor-gray-100 text-white"
+      : "border-neutral-200 bg-white text-black",
+  ].join(" ")
+  tooltip.style.display = "none"
+  document.body.appendChild(tooltip)
+  return tooltip
+}
+
+export function destroyChartTooltipElement(tooltip: HTMLDivElement) {
+  tooltip.style.display = "none"
+  tooltip.remove()
 }

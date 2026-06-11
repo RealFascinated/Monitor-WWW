@@ -2,7 +2,11 @@ import { useLayoutEffect, useMemo, useRef } from "react"
 import uPlot from "uplot"
 import "uplot/dist/uPlot.min.css"
 
-import { createCursorTooltipHandler } from "@/lib/metrics/chart-tooltip"
+import {
+  createChartTooltipElement,
+  createCursorTooltipHandler,
+  destroyChartTooltipElement,
+} from "@/lib/metrics/chart-tooltip"
 import { createThresholdDrawHook } from "@/lib/metrics/chart-thresholds"
 import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
 import { stackAlignedData } from "@/lib/metrics/series"
@@ -40,7 +44,6 @@ function MetricChart({
   mode = "line",
 }: MetricChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const tooltipRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<uPlot | null>(null)
   const valueFormatterRef = useRef(valueFormatter)
   const dataRef = useRef(data)
@@ -65,10 +68,11 @@ function MetricChart({
 
   useLayoutEffect(() => {
     const container = containerRef.current
-    const tooltip = tooltipRef.current
-    if (!container || !tooltip) {
+    if (!container) {
       return
     }
+
+    const tooltip = createChartTooltipElement(resolvedTheme)
 
     const options = buildUPlotOptions({
       theme: resolvedTheme,
@@ -122,7 +126,7 @@ function MetricChart({
 
     return () => {
       resizeObserver.disconnect()
-      tooltip.style.display = "none"
+      destroyChartTooltipElement(tooltip)
       destroyChart(chart)
       chartRef.current = null
     }
@@ -144,7 +148,6 @@ function MetricChart({
   return (
     <div className="relative w-full overflow-visible">
       <div ref={containerRef} className="w-full overflow-visible" />
-      <div ref={tooltipRef} />
     </div>
   )
 }

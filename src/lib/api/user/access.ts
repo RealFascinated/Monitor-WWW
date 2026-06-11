@@ -1,6 +1,5 @@
 import { apiFetch } from "@/lib/auth/api"
-
-export type ServerMemberRole = "VIEWER"
+import type { ServerRole } from "@/lib/api/user/servers"
 
 export type ServerAccessOwner = {
   id: number
@@ -10,14 +9,14 @@ export type ServerAccessOwner = {
 export type ServerAccessMember = {
   userId: number
   email: string
-  role: ServerMemberRole
+  role: ServerRole
   joinedAt: string
 }
 
 export type PendingServerInvite = {
   inviteId: number
   email: string
-  role: ServerMemberRole
+  role: ServerRole
   expiresAt: string
   createdAt: string
 }
@@ -35,7 +34,7 @@ export type ServerMemberInviteRequest = {
 export type ServerInviteCreatedResponse = {
   inviteId: number
   email: string
-  role: ServerMemberRole
+  role: ServerRole
   expiresAt: string
   token: string
 }

@@ -1,0 +1,101 @@
+import { useNavigate } from "@tanstack/react-router"
+
+import { ServerAccessView } from "@/components/server/server-access-view"
+import { ServerIngestTokenSection } from "@/components/server/server-ingest-token-section"
+import { DeleteServerButton } from "@/components/user/delete-server-button"
+import { RenameServerForm } from "@/components/user/rename-server-form"
+import type { ServerAccessListResponse } from "@/lib/api/user/access"
+import type { ServerResponse } from "@/lib/api/user/servers"
+
+type ServerSettingsViewProps = {
+  serverId: number
+  server: ServerResponse
+  access: ServerAccessListResponse
+}
+
+function SettingsSectionHeader({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <h2 className="text-xl font-bold dark:text-white">{title}</h2>
+      <p className="text-xs font-bold text-muted-foreground">{description}</p>
+    </div>
+  )
+}
+
+function ServerSettingsView({
+  serverId,
+  server,
+  access,
+}: ServerSettingsViewProps) {
+  const navigate = useNavigate()
+  const isOwner = server.role === "OWNER"
+
+  return (
+    <div className="mx-auto flex max-w-6xl flex-col gap-8">
+      {isOwner ? (
+        <section className="flex flex-col gap-3">
+          <SettingsSectionHeader
+            title="General"
+            description="Display name shown across the dashboard and server pages."
+          />
+          <RenameServerForm
+            serverId={serverId}
+            currentName={server.serverName}
+          />
+        </section>
+      ) : null}
+
+      {isOwner ? (
+        <section className="flex flex-col gap-3">
+          <SettingsSectionHeader
+            title="Monitor Agent"
+            description="Rotate the ingest token and install the agent on your host."
+          />
+          <ServerIngestTokenSection serverId={serverId} />
+        </section>
+      ) : null}
+
+      <section className="flex flex-col gap-3">
+        <SettingsSectionHeader
+          title="Access"
+          description="Manage who can view this server's metrics."
+        />
+        <ServerAccessView
+          serverId={serverId}
+          access={access}
+          canManage={isOwner}
+        />
+      </section>
+
+      {isOwner ? (
+        <section className="flex flex-col gap-3">
+          <SettingsSectionHeader
+            title="Danger zone"
+            description="Permanently delete this server and all stored metrics."
+          />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="text-sm text-neutral-500">
+              This action cannot be undone.
+            </p>
+            <DeleteServerButton
+              serverId={serverId}
+              serverName={server.serverName}
+              variant="destructive"
+              onDeleted={() => {
+                void navigate({ to: "/" })
+              }}
+            />
+          </div>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
+export { ServerSettingsView }

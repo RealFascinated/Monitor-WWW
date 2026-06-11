@@ -18,7 +18,7 @@ import { Route as AuthenticatedInvitesIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedInvitesAcceptRouteImport } from './routes/_authenticated/invites/accept'
 import { Route as AuthenticatedServersServerIdRouteRouteImport } from './routes/_authenticated/servers/$serverId/route'
 import { Route as AuthenticatedServersServerIdIndexRouteImport } from './routes/_authenticated/servers/$serverId/index'
-import { Route as AuthenticatedServersServerIdAccessRouteImport } from './routes/_authenticated/servers/$serverId/access'
+import { Route as AuthenticatedServersServerIdSettingsRouteImport } from './routes/_authenticated/servers/$serverId/settings'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -69,10 +69,10 @@ const AuthenticatedServersServerIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedServersServerIdRouteRoute,
   } as any)
-const AuthenticatedServersServerIdAccessRoute =
-  AuthenticatedServersServerIdAccessRouteImport.update({
-    id: '/access',
-    path: '/access',
+const AuthenticatedServersServerIdSettingsRoute =
+  AuthenticatedServersServerIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
     getParentRoute: () => AuthenticatedServersServerIdRouteRoute,
   } as any)
 
@@ -84,7 +84,7 @@ export interface FileRoutesByFullPath {
   '/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
   '/invites/accept': typeof AuthenticatedInvitesAcceptRoute
   '/invites/': typeof AuthenticatedInvitesIndexRoute
-  '/servers/$serverId/access': typeof AuthenticatedServersServerIdAccessRoute
+  '/servers/$serverId/settings': typeof AuthenticatedServersServerIdSettingsRoute
   '/servers/$serverId/': typeof AuthenticatedServersServerIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -93,7 +93,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/invites/accept': typeof AuthenticatedInvitesAcceptRoute
   '/invites': typeof AuthenticatedInvitesIndexRoute
-  '/servers/$serverId/access': typeof AuthenticatedServersServerIdAccessRoute
+  '/servers/$serverId/settings': typeof AuthenticatedServersServerIdSettingsRoute
   '/servers/$serverId': typeof AuthenticatedServersServerIdIndexRoute
 }
 export interface FileRoutesById {
@@ -106,7 +106,7 @@ export interface FileRoutesById {
   '/_authenticated/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
   '/_authenticated/invites/accept': typeof AuthenticatedInvitesAcceptRoute
   '/_authenticated/invites/': typeof AuthenticatedInvitesIndexRoute
-  '/_authenticated/servers/$serverId/access': typeof AuthenticatedServersServerIdAccessRoute
+  '/_authenticated/servers/$serverId/settings': typeof AuthenticatedServersServerIdSettingsRoute
   '/_authenticated/servers/$serverId/': typeof AuthenticatedServersServerIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -119,7 +119,7 @@ export interface FileRouteTypes {
     | '/servers/$serverId'
     | '/invites/accept'
     | '/invites/'
-    | '/servers/$serverId/access'
+    | '/servers/$serverId/settings'
     | '/servers/$serverId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -128,7 +128,7 @@ export interface FileRouteTypes {
     | '/'
     | '/invites/accept'
     | '/invites'
-    | '/servers/$serverId/access'
+    | '/servers/$serverId/settings'
     | '/servers/$serverId'
   id:
     | '__root__'
@@ -140,7 +140,7 @@ export interface FileRouteTypes {
     | '/_authenticated/servers/$serverId'
     | '/_authenticated/invites/accept'
     | '/_authenticated/invites/'
-    | '/_authenticated/servers/$serverId/access'
+    | '/_authenticated/servers/$serverId/settings'
     | '/_authenticated/servers/$serverId/'
   fileRoutesById: FileRoutesById
 }
@@ -215,11 +215,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedServersServerIdIndexRouteImport
       parentRoute: typeof AuthenticatedServersServerIdRouteRoute
     }
-    '/_authenticated/servers/$serverId/access': {
-      id: '/_authenticated/servers/$serverId/access'
-      path: '/access'
-      fullPath: '/servers/$serverId/access'
-      preLoaderRoute: typeof AuthenticatedServersServerIdAccessRouteImport
+    '/_authenticated/servers/$serverId/settings': {
+      id: '/_authenticated/servers/$serverId/settings'
+      path: '/settings'
+      fullPath: '/servers/$serverId/settings'
+      preLoaderRoute: typeof AuthenticatedServersServerIdSettingsRouteImport
       parentRoute: typeof AuthenticatedServersServerIdRouteRoute
     }
   }
@@ -242,14 +242,14 @@ const AuthenticatedInvitesRouteRouteWithChildren =
   )
 
 interface AuthenticatedServersServerIdRouteRouteChildren {
-  AuthenticatedServersServerIdAccessRoute: typeof AuthenticatedServersServerIdAccessRoute
+  AuthenticatedServersServerIdSettingsRoute: typeof AuthenticatedServersServerIdSettingsRoute
   AuthenticatedServersServerIdIndexRoute: typeof AuthenticatedServersServerIdIndexRoute
 }
 
 const AuthenticatedServersServerIdRouteRouteChildren: AuthenticatedServersServerIdRouteRouteChildren =
   {
-    AuthenticatedServersServerIdAccessRoute:
-      AuthenticatedServersServerIdAccessRoute,
+    AuthenticatedServersServerIdSettingsRoute:
+      AuthenticatedServersServerIdSettingsRoute,
     AuthenticatedServersServerIdIndexRoute:
       AuthenticatedServersServerIdIndexRoute,
   }
