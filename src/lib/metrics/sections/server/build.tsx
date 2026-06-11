@@ -57,14 +57,12 @@ function buildServerMetricSections(
   const host = metrics.host ?? {}
   const builder = createMetricsSectionBuilder()
 
-  if (overviewHasData(server, metrics.disks ?? undefined)) {
+  if (overviewHasData(server)) {
     builder.leaf({
       title: "Overview",
       icon: LayoutDashboard,
       contentMinHeight: OVERVIEW_SECTION_MIN_HEIGHT,
-      render: () => (
-        <OverviewStats serverId={metrics.id} disks={metrics.disks ?? undefined} />
-      ),
+      render: () => <OverviewStats serverId={metrics.id} />,
     })
   }
 

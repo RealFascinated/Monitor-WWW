@@ -1,6 +1,5 @@
 import { MetricStatCard } from "@/components/metrics/metric-stat-card"
 import { useUserServer } from "@/hooks/use-user-server"
-import type { DiskMetrics } from "@/lib/api/user/metrics"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import {
   formatMemoryBytes,
@@ -8,43 +7,30 @@ import {
   formatPercentValue,
   memoryUsagePercent,
 } from "@/lib/formatter"
-import { getLatestValue, hasValues } from "@/lib/metrics/series"
 import { percentLevelColorClass } from "@/lib/metrics/percent-level"
 
-function findRootDisk(disks: DiskMetrics[] | undefined): DiskMetrics | undefined {
-  return disks?.find((disk) => disk.disk === "/")
-}
-
 function overviewHasData(
-  server: Pick<ServerResponse, "cpuPercent" | "memUsage"> | undefined,
-  disks: DiskMetrics[] | undefined
+  server:
+    | Pick<ServerResponse, "cpuPercent" | "memUsage" | "diskUsage">
+    | undefined
 ): boolean {
-  const rootDisk = findRootDisk(disks)
-
   return (
     server?.cpuPercent != null ||
     server?.memUsage != null ||
-    hasValues(rootDisk?.usagePercent)
+    server?.diskUsage != null
   )
 }
 
-function OverviewStats({
-  serverId,
-  disks,
-}: {
-  serverId: number
-  disks?: DiskMetrics[]
-}) {
+function OverviewStats({ serverId }: { serverId: number }) {
   const { data: server } = useUserServer(serverId)
   const cpuUsage = server.cpuPercent ?? null
   const memUsage = server.memUsage ?? null
   const memTotal = server.memMax ?? null
   const memPercent = memoryUsagePercent(memUsage, memTotal)
 
-  const rootDisk = findRootDisk(disks)
-  const diskPercent = getLatestValue(rootDisk?.usagePercent)
-  const diskUsed = getLatestValue(rootDisk?.usedBytes)
-  const diskTotal = getLatestValue(rootDisk?.totalBytes)
+  const diskUsage = server.diskUsage ?? null
+  const diskTotal = server.diskMax ?? null
+  const diskPercent = memoryUsagePercent(diskUsage, diskTotal)
 
   const stats = [
     cpuUsage != null ? (
@@ -68,15 +54,15 @@ function OverviewStats({
         valueClassName={percentLevelColorClass(memPercent)}
       />
     ) : null,
-    diskPercent != null ? (
+    diskUsage != null ? (
       <MetricStatCard
         key="disk"
-        title="Disk /"
-        value={formatPercentValue(diskPercent)}
+        title="Root Disk"
+        value={formatMemoryUsage(diskUsage, diskTotal)}
         detail={
-          diskUsed != null && diskTotal != null
-            ? `${formatMemoryBytes(diskUsed)} of ${formatMemoryBytes(diskTotal)}`
-            : undefined
+          diskTotal != null
+            ? `${formatMemoryBytes(diskUsage)} of ${formatMemoryBytes(diskTotal)}`
+            : formatMemoryBytes(diskUsage)
         }
         valueClassName={percentLevelColorClass(diskPercent)}
       />

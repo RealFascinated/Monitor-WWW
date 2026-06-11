@@ -28,7 +28,7 @@ function CpuPercent({
   return <ColoredPercent value={value} className={className} />
 }
 
-function MemoryPercent({
+function UsagePercent({
   usage,
   max,
   className,
@@ -45,4 +45,28 @@ function MemoryPercent({
   )
 }
 
-export { CpuPercent, MemoryPercent }
+function MemoryPercent({
+  usage,
+  max,
+  className,
+}: {
+  usage: number | null
+  max: number | null
+  className?: string
+}) {
+  return <UsagePercent usage={usage} max={max} className={className} />
+}
+
+function DiskPercent({
+  usage,
+  max,
+  className,
+}: {
+  usage: number | null
+  max: number | null
+  className?: string
+}) {
+  return <UsagePercent usage={usage} max={max} className={className} />
+}
+
+export { CpuPercent, DiskPercent, MemoryPercent }

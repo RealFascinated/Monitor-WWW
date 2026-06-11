@@ -1,7 +1,11 @@
-import { Box, Clock, Cpu, Globe, MemoryStick } from "lucide-react"
+import { Box, Clock, Cpu, Globe, HardDrive, MemoryStick } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import type { ServerInventory, ServerResponse } from "@/lib/api/user/servers"
-import { formatMemoryBytes, formatUptime } from "@/lib/formatter"
+import {
+  formatMemoryBytes,
+  formatMemoryUsage,
+  formatUptime,
+} from "@/lib/formatter"
 import { cn } from "@/lib/utils"
 
 type ServerMetaSubtitleProps = {
@@ -50,6 +54,13 @@ function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitlePro
     items,
     server.memMax != null ? formatMemoryBytes(server.memMax) : null,
     { key: "memory", icon: MemoryStick, label: "Memory" }
+  )
+  pushMetaItem(
+    items,
+    server.diskUsage != null
+      ? formatMemoryUsage(server.diskUsage, server.diskMax)
+      : null,
+    { key: "root-disk", icon: HardDrive, label: "Root disk" }
   )
   pushMetaItem(items, inventory ? formatOs(inventory) : null, {
     key: "os",

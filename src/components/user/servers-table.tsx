@@ -4,16 +4,19 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnDef,
-  type SortingState,
 } from "@tanstack/react-table"
+import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { Search } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { CreateServerDialog } from "@/components/user/create-server-dialog"
 import { DeleteServerButton } from "@/components/user/delete-server-button"
 import { RenameServerDialog } from "@/components/user/rename-server-dialog"
-import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
+import {
+  CpuPercent,
+  DiskPercent,
+  MemoryPercent,
+} from "@/components/server/usage-percent"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
@@ -32,7 +35,7 @@ function ServersTable() {
     error,
   } = useUserServers()
 
-  const hasOwnedServers = (servers ?? []).some(
+  const hasOwnedServers = servers.some(
     (server) => server.role === "OWNER"
   )
 
@@ -83,6 +86,20 @@ function ServersTable() {
           <MemoryPercent
             usage={row.original.memUsage}
             max={row.original.memMax}
+          />
+        ),
+      },
+      {
+        id: "disk",
+        accessorFn: (row) =>
+          row.diskUsage != null && row.diskMax
+            ? row.diskUsage / row.diskMax
+            : null,
+        header: "Root Disk",
+        cell: ({ row }) => (
+          <DiskPercent
+            usage={row.original.diskUsage}
+            max={row.original.diskMax}
           />
         ),
       },

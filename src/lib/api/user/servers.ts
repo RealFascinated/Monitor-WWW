@@ -24,6 +24,8 @@ export type ServerResponse = {
   cpuPercent: number | null
   memUsage: number | null
   memMax: number | null
+  diskUsage: number | null
+  diskMax: number | null
   role: ServerRole
   inventory: ServerInventory | null
 }
