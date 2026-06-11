@@ -15,8 +15,8 @@ function buildWebSocketUrl(token: string): string {
     apiUrl.length > 0
       ? apiUrl
       : `${window.location.protocol}//${window.location.host}`
-  const wsBase = base.replace(/^http/, "ws")
-  const url = new URL("/v1/ws/servers", wsBase)
+  const wsBase = base.replace(/^http/, "ws").replace(/\/$/, "")
+  const url = new URL(`${wsBase}/v1/ws/servers`)
   url.searchParams.set("token", token)
   return url.toString()
 }
