@@ -27,7 +27,9 @@ function useMetricsSectionVirtualizer(
   sectionIdsKey: string
 ) {
   const listRef = useRef<HTMLDivElement>(null)
-  const restoredHashKeyRef = useRef<string | null>(null)
+  const hashRestoreKeyRef = useRef<string | null>(null)
+  const hashRestoreRetryKeyRef = useRef<string | null>(null)
+  const isRestoringHashRef = useRef(false)
   const hashWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [scrollMargin, setScrollMargin] = useState(0)
   const [activeId, setActiveId] = useState(leaves[0]?.id ?? "")
@@ -119,7 +121,10 @@ function useMetricsSectionVirtualizer(
           return current
         }
 
-        queueMetricsSectionHash(nextId)
+        if (!isRestoringHashRef.current) {
+          queueMetricsSectionHash(nextId)
+        }
+
         return nextId
       })
     },
@@ -128,29 +133,91 @@ function useMetricsSectionVirtualizer(
   const virtualizerRef = useRef(virtualizer)
   virtualizerRef.current = virtualizer
 
+  const scrollToHashSection = useCallback(
+    (hashId: string, behavior: ScrollBehavior = "auto") => {
+      const index = leaves.findIndex((section) => section.id === hashId)
+      if (index < 0) {
+        return false
+      }
+
+      isRestoringHashRef.current = true
+      setActiveId(hashId)
+      virtualizerRef.current.scrollToIndex(index, {
+        align: "start",
+        behavior,
+      })
+      requestAnimationFrame(() => {
+        isRestoringHashRef.current = false
+      })
+      return true
+    },
+    [leaves]
+  )
+
   useLayoutEffect(() => {
-    if (restoredHashKeyRef.current === sectionIdsKey) {
+    if (hashRestoreKeyRef.current === sectionIdsKey) {
       return
     }
 
-    restoredHashKeyRef.current = sectionIdsKey
+    const listElement = listRef.current
+    if (!listElement) {
+      return
+    }
 
     const hashId = readMetricsSectionHash()
     const hashIndex = hashId
       ? leaves.findIndex((section) => section.id === hashId)
       : -1
 
-    if (hashIndex >= 0) {
-      setActiveId(hashId)
-      virtualizerRef.current.scrollToIndex(hashIndex, {
-        align: "start",
-        behavior: "auto",
-      })
+    if (hashIndex < 0) {
+      hashRestoreKeyRef.current = sectionIdsKey
+      setActiveId(leaves[0]?.id ?? "")
       return
     }
 
-    setActiveId(leaves[0]?.id ?? "")
-  }, [sectionIdsKey, leaves])
+    const measuredMargin =
+      listElement.getBoundingClientRect().top + window.scrollY
+    if (scrollMargin === 0 && measuredMargin > 0) {
+      return
+    }
+
+    if (!scrollToHashSection(hashId)) {
+      return
+    }
+
+    hashRestoreKeyRef.current = sectionIdsKey
+  }, [leaves, scrollMargin, scrollToHashSection, sectionIdsKey])
+
+  useEffect(() => {
+    if (hashRestoreKeyRef.current !== sectionIdsKey) {
+      return
+    }
+
+    if (hashRestoreRetryKeyRef.current === sectionIdsKey) {
+      return
+    }
+
+    const hashId = readMetricsSectionHash()
+    if (!hashId) {
+      return
+    }
+
+    hashRestoreRetryKeyRef.current = sectionIdsKey
+
+    let cancelled = false
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cancelled) {
+          scrollToHashSection(hashId)
+        }
+      })
+    })
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+    }
+  }, [scrollToHashSection, sectionIdsKey])
 
   const scrollToSection = useCallback(
     (id: string, behavior: ScrollBehavior = "smooth") => {
@@ -184,12 +251,12 @@ function useMetricsSectionVirtualizer(
         return
       }
 
-      scrollToSection(hashId, "auto")
+      scrollToHashSection(hashId, "auto")
     }
 
     window.addEventListener("hashchange", handleHashChange)
     return () => window.removeEventListener("hashchange", handleHashChange)
-  }, [scrollToSection])
+  }, [scrollToHashSection])
 
   return { listRef, virtualizer, activeId, scrollToSection }
 }
