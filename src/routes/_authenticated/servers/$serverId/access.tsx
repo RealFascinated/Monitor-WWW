@@ -43,21 +43,13 @@ function ServerAccessPage() {
         ? "Failed to load server access"
         : null
 
-  const isForbidden =
-    error instanceof ApiClientError && error.status === 403
-
   return (
     <section className="flex flex-col">
       <ServerAccessHeader server={server} serverId={numericServerId} />
 
       {errorMessage ? (
-        <Callout
-          type="danger"
-          title={isForbidden ? "Access denied" : "Could not load access"}
-        >
-          {isForbidden
-            ? "Only the server owner can manage members and invites."
-            : errorMessage}
+        <Callout type="danger" title="Could not load access">
+          {errorMessage}
         </Callout>
       ) : null}
 

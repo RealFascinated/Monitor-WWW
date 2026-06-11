@@ -80,22 +80,8 @@ function SidebarServerList({
   compact: boolean
   onNavigate?: () => void
 }) {
-  const { data: servers, isPending } = useUserServers()
+  const { data: servers } = useUserServers()
   const { detailed, toggleDetailed } = useSidebarDetailedMode()
-
-  if (isPending) {
-    return (
-      <div
-        className={cn(
-          "flex items-center gap-2 px-2 py-1 text-neutral-500",
-          compact && "justify-center"
-        )}
-      >
-        <Spinner />
-        {!compact ? <span className="text-xs">Loading servers…</span> : null}
-      </div>
-    )
-  }
 
   if (!servers?.length) {
     return null
