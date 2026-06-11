@@ -4,11 +4,8 @@ import { userServerQueryOptions } from "@/lib/api/user/servers.queries"
 import { serverPageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/_authenticated/servers/$serverId")({
+  ssr: false,
   loader: ({ context: { queryClient }, params }) => {
-    if (typeof window === "undefined") {
-      return
-    }
-
     const serverId = Number(params.serverId)
     return queryClient.ensureQueryData(userServerQueryOptions(serverId))
   },

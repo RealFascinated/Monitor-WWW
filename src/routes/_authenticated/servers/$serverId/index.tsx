@@ -4,6 +4,7 @@ import { z } from "zod"
 
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
+import { ServerAgentSetupDialog } from "@/components/server/server-agent-setup-dialog"
 import { ServerMetricsHeader } from "@/components/server/server-metrics-header"
 import { ServerMetricsView } from "@/components/server/server-metrics-view"
 import { useUserServer } from "@/hooks/use-user-server"
@@ -20,10 +21,6 @@ export const Route = createFileRoute("/_authenticated/servers/$serverId/")({
   validateSearch: serverMetricsSearchSchema,
   loaderDeps: ({ search: { range } }) => ({ range }),
   loader: ({ context: { queryClient }, params, deps: { range } }) => {
-    if (typeof window === "undefined") {
-      return
-    }
-
     const serverId = Number(params.serverId)
     return queryClient.ensureQueryData(
       userServerMetricsQueryOptions(serverId, range)
@@ -61,6 +58,23 @@ function ServerMetricsPage() {
       />
 
       <div className="flex flex-col gap-6">
+        {server?.status === "PENDING" && server.role === "OWNER" ? (
+          <Callout type="info" title="Waiting for the agent">
+            <div className="flex flex-col gap-3">
+              <p>
+                This server has not received metrics yet. Install the Monitor
+                Agent on your host to start reporting.
+              </p>
+              <div>
+                <ServerAgentSetupDialog
+                  serverId={numericServerId}
+                  serverName={server.serverName}
+                />
+              </div>
+            </div>
+          </Callout>
+        ) : null}
+
         {errorMessage ? (
           <Callout type="danger" title="Could not load metrics">
             {errorMessage}

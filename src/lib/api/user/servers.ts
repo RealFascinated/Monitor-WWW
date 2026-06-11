@@ -21,6 +21,17 @@ export type ServerCreateRequest = {
   name: string
 }
 
+export type CreatedServerResponse = {
+  serverId: number
+  serverName: string
+  ingestToken: string
+}
+
+export type IngestTokenResponse = {
+  serverId: number
+  ingestToken: string
+}
+
 export type ServerRenameRequest = {
   name: string
 }
@@ -33,8 +44,10 @@ export function getUserServer(serverId: number): Promise<ServerResponse> {
   return apiFetch<ServerResponse>(`/v1/servers/${serverId}`)
 }
 
-export function createServer(request: ServerCreateRequest): Promise<void> {
-  return apiFetch<void>("/v1/servers/create", {
+export function createServer(
+  request: ServerCreateRequest
+): Promise<CreatedServerResponse> {
+  return apiFetch<CreatedServerResponse>("/v1/servers/create", {
     method: "POST",
     body: JSON.stringify(request),
   })
@@ -48,6 +61,15 @@ export function renameServer(
     method: "POST",
     body: JSON.stringify(request),
   })
+}
+
+export function rotateIngestToken(
+  serverId: number
+): Promise<IngestTokenResponse> {
+  return apiFetch<IngestTokenResponse>(
+    `/v1/servers/${serverId}/ingest-token/rotate`,
+    { method: "POST" }
+  )
 }
 
 export function deleteServer(serverId: number): Promise<void> {

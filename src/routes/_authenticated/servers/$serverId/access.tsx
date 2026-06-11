@@ -15,10 +15,6 @@ export const Route = createFileRoute(
   "/_authenticated/servers/$serverId/access"
 )({
   loader: ({ context: { queryClient }, params }) => {
-    if (typeof window === "undefined") {
-      return
-    }
-
     const serverId = Number(params.serverId)
     return queryClient.ensureQueryData(serverAccessQueryOptions(serverId))
   },
