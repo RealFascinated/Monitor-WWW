@@ -19,6 +19,7 @@ export type ServerResponse = {
   serverName: string
   status: ServerStatus
   uptimeSeconds: number | null
+  uptimePercent30d: number | null
   agentVersion: string | null
   createdAt: string
   cpuPercent: number | null
@@ -69,8 +70,8 @@ export function createServer(
 export function renameServer(
   serverId: number,
   request: ServerRenameRequest
-): Promise<void> {
-  return apiFetch<void>(`/v1/servers/${serverId}/rename`, {
+): Promise<ServerResponse> {
+  return apiFetch<ServerResponse>(`/v1/servers/${serverId}/rename`, {
     method: "POST",
     body: JSON.stringify(request),
   })

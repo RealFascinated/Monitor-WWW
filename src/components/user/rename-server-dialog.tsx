@@ -39,8 +39,8 @@ function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) 
   const mutation = useMutation({
     mutationFn: (nextName: string) =>
       renameServer(serverId, { name: nextName }),
-    onSuccess: async () => {
-      await useServersStore.getState().ensureServer(serverId)
+    onSuccess: (server) => {
+      useServersStore.getState().upsertServer(server)
       setOpen(false)
       resetForm()
     },

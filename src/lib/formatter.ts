@@ -41,8 +41,19 @@ export function formatPercent(value: number | null): string {
   return formatPercentValue(value)
 }
 
-export function formatPercentValue(value: number): string {
-  return `${value.toFixed(1)}%`
+export function formatPercentValue(
+  value: number,
+  fractionDigits = 1
+): string {
+  return `${value.toFixed(fractionDigits)}%`
+}
+
+export function formatUptimePercent30d(value: number | null): string {
+  if (value == null) {
+    return "—"
+  }
+
+  return formatPercentValue(value, 2)
 }
 
 export function formatBytes(value: number, fractionDigits?: number): string {

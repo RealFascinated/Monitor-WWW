@@ -23,7 +23,7 @@ import { Spinner } from "@/components/spinner"
 import { DataTable } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
 import { useUserServers } from "@/hooks/use-user-servers"
-import { formatDate, formatUptime } from "@/lib/formatter"
+import { formatDate, formatUptime, formatUptimePercent30d } from "@/lib/formatter"
 import type { ServerResponse } from "@/lib/api/user/servers"
 
 function ServersTable() {
@@ -68,6 +68,11 @@ function ServersTable() {
         accessorKey: "uptimeSeconds",
         header: "Uptime",
         cell: ({ row }) => formatUptime(row.original.uptimeSeconds),
+      },
+      {
+        accessorKey: "uptimePercent30d",
+        header: "Uptime (30d)",
+        cell: ({ row }) => formatUptimePercent30d(row.original.uptimePercent30d),
       },
       {
         id: "cpu",

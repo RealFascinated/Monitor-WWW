@@ -34,8 +34,8 @@ function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
   const mutation = useMutation({
     mutationFn: (nextName: string) =>
       renameServer(serverId, { name: nextName }),
-    onSuccess: async () => {
-      await useServersStore.getState().ensureServer(serverId)
+    onSuccess: (server) => {
+      useServersStore.getState().upsertServer(server)
       setFieldError(null)
       setApiError(null)
     },
