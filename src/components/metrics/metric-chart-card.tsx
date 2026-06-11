@@ -124,6 +124,7 @@ function MetricChartCard({
             <MetricChart
               data={built.data}
               labels={built.labels}
+              negated={built.negated}
               height={chartHeight}
               valueFormatter={valueFormatter}
               yRange={yRange}

@@ -5,10 +5,15 @@ import type uPlot from "uplot"
 export type ChartSeries = {
   label: string
   values: MetricValues
+  negate?: boolean
 }
 
-export function chartSeries(label: string, values: MetricValues): ChartSeries {
-  return { label, values: values ?? null }
+export function chartSeries(
+  label: string,
+  values: MetricValues,
+  options?: { negate?: boolean }
+): ChartSeries {
+  return { label, values: values ?? null, negate: options?.negate }
 }
 
 export function hasAnyValues(
@@ -61,7 +66,7 @@ export function buildMultiSeriesData(
   gridTimestamps: number[],
   sourceTimestamps: number[] | null,
   series: ChartSeries[]
-): { data: uPlot.AlignedData; labels: string[] } | null {
+): { data: uPlot.AlignedData; labels: string[]; negated: boolean[] } | null {
   const activeSeries = series.filter((entry) => hasValues(entry.values))
 
   if (activeSeries.length === 0 || gridTimestamps.length === 0) {
@@ -70,6 +75,7 @@ export function buildMultiSeriesData(
 
   const data: uPlot.AlignedData = [gridTimestamps]
   const labels: string[] = []
+  const negated: boolean[] = []
 
   for (const entry of activeSeries) {
     const aligned = alignValuesToTimestamps(
@@ -81,15 +87,20 @@ export function buildMultiSeriesData(
       continue
     }
 
-    data.push(aligned)
+    data.push(
+      entry.negate
+        ? aligned.map((value) => (value == null ? null : -value))
+        : aligned
+    )
     labels.push(entry.label)
+    negated.push(entry.negate ?? false)
   }
 
   if (labels.length === 0) {
     return null
   }
 
-  return { data, labels }
+  return { data, labels, negated }
 }
 
 export function stackAlignedData(

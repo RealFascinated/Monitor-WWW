@@ -36,7 +36,24 @@ export type ChartYRange = {
   max?: number
 }
 
-function buildYScale(yRange?: ChartYRange): uPlot.Scale {
+function buildYScale(
+  yRange?: ChartYRange,
+  bidirectional = false
+): uPlot.Scale {
+  if (bidirectional) {
+    return {
+      range: (_self, dataMin, dataMax) => {
+        const extent = Math.max(
+          Math.abs(dataMin ?? 0),
+          Math.abs(dataMax ?? 0),
+          1
+        )
+        const [, padded] = uPlot.rangeNum(-extent, extent, 0.1, true)
+        return [-padded, padded]
+      },
+    }
+  }
+
   const yMin = yRange?.min ?? 0
 
   if (yRange?.max != null) {
@@ -83,6 +100,8 @@ type BuildUPlotOptionsParams = {
   yRange?: ChartYRange
   stacked?: boolean
   bands?: uPlot.Band[]
+  bidirectional?: boolean
+  negated?: boolean[]
 }
 
 export function buildUPlotOptions({
@@ -93,11 +112,17 @@ export function buildUPlotOptions({
   yRange,
   stacked = false,
   bands,
+  bidirectional = false,
+  negated = [],
 }: BuildUPlotOptionsParams): uPlot.Options {
   const colors = getChartColors(theme)
   const isDark = theme === "dark"
   const gridColor = isDark ? "#282828" : "#e5e5e5"
   const axisColor = isDark ? "#737373" : "#a3a3a3"
+  const formatAxisValue = (value: number) => {
+    const display = bidirectional ? Math.abs(value) : value
+    return valueFormatter ? valueFormatter(display) : String(display)
+  }
   return {
     width: 0,
     height,
@@ -111,12 +136,17 @@ export function buildUPlotOptions({
           : undefined,
         width: stacked ? 1 : 2,
         spanGaps: false,
-        value: (_self: uPlot, rawValue: number | null) =>
-          rawValue == null
-            ? "—"
-            : valueFormatter
-              ? valueFormatter(rawValue)
-              : String(rawValue),
+        value: (_self: uPlot, rawValue: number | null, seriesIndex: number) => {
+          if (rawValue == null) {
+            return "—"
+          }
+
+          const display =
+            negated[seriesIndex - 1] ?? false
+              ? Math.abs(rawValue)
+              : rawValue
+          return valueFormatter ? valueFormatter(display) : String(display)
+        },
       })),
     ],
     axes: [
@@ -130,10 +160,7 @@ export function buildUPlotOptions({
         size: (_self, values) => measureAxisWidth(values),
         grid: { stroke: gridColor },
         ticks: { stroke: axisColor },
-        values: (_self, ticks) =>
-          ticks.map((value) =>
-            valueFormatter ? valueFormatter(value) : String(value)
-          ),
+        values: (_self, ticks) => ticks.map((value) => formatAxisValue(value)),
       },
     ],
     legend: { show: false },
@@ -145,7 +172,7 @@ export function buildUPlotOptions({
     },
     scales: {
       x: { time: true },
-      y: buildYScale(yRange),
+      y: buildYScale(yRange, bidirectional),
     },
     // Extra padding keeps top/bottom tick labels from being clipped.
     padding: [14, 16, 12, 8],

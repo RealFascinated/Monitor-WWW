@@ -21,7 +21,7 @@ type CreateCursorTooltipHandlerParams = {
   labels: string[]
   colors: string[]
   getData: () => uPlot.AlignedData
-  formatValue: (value: number) => string
+  formatValue: (value: number, seriesIndex: number) => string
   theme: ResolvedTheme
 }
 
@@ -52,7 +52,12 @@ export function createCursorTooltipHandler({
     const data = getData()
     const timestamp = data[0][idx]
 
-    const entries: { value: number; label: string; color: string }[] = []
+    const entries: {
+      value: number
+      label: string
+      color: string
+      seriesIndex: number
+    }[] = []
     for (let seriesIndex = 0; seriesIndex < labels.length; seriesIndex++) {
       const value = (data[seriesIndex + 1] as (number | null)[])[idx]
       if (value == null) {
@@ -63,17 +68,18 @@ export function createCursorTooltipHandler({
         value,
         label: labels[seriesIndex],
         color: colors[seriesIndex % colors.length],
+        seriesIndex,
       })
     }
 
-    entries.sort((a, b) => b.value - a.value)
+    entries.sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
 
     const rows = entries.map(
       (entry) =>
         `<div class="flex items-center gap-2 py-0.5">` +
         `<span class="size-2 shrink-0 rounded-full" style="background:${entry.color}"></span>` +
         `<span class="truncate text-neutral-500 dark:text-neutral-400">${entry.label}</span>` +
-        `<span class="ml-auto pl-3 font-medium whitespace-nowrap">${formatValue(entry.value)}</span>` +
+        `<span class="ml-auto pl-3 font-medium whitespace-nowrap">${formatValue(entry.value, entry.seriesIndex)}</span>` +
         `</div>`
     )
 

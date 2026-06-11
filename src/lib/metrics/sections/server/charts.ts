@@ -137,7 +137,7 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
       title: "Throughput",
       series: [
         chartSeries("Read", disk.ioReadBps),
-        chartSeries("Write", disk.ioWriteBps),
+        chartSeries("Write", disk.ioWriteBps, { negate: true }),
       ],
       valueFormatter: formatRate,
     },
@@ -182,7 +182,7 @@ function networkCharts(network: NetworkMetrics): MetricChartConfig[] {
       title: "Throughput",
       series: [
         chartSeries("RX", network.rxBps),
-        chartSeries("TX", network.txBps),
+        chartSeries("TX", network.txBps, { negate: true }),
       ],
       valueFormatter: formatNetworkRate,
     },

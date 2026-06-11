@@ -20,6 +20,7 @@ export type MetricChartMode = "line" | "stack"
 type MetricChartProps = {
   data: uPlot.AlignedData
   labels: string[]
+  negated?: boolean[]
   height?: number
   valueFormatter?: (value: number) => string
   yRange?: ChartYRange
@@ -38,6 +39,7 @@ function destroyChart(chart: uPlot) {
 function MetricChart({
   data,
   labels,
+  negated = [],
   height = 200,
   valueFormatter,
   yRange,
@@ -51,9 +53,11 @@ function MetricChart({
   const { resolvedTheme } = useTheme()
   const yMax = yRange?.max ?? null
   const labelsKey = labels.join("\0")
+  const negatedKey = negated.map(String).join("\0")
   const thresholdsKey =
     thresholds?.map((entry) => `${entry.level}:${entry.value}`).join("|") ?? ""
   const stacked = mode === "stack"
+  const bidirectional = negated.some(Boolean)
 
   const prepared = useMemo(() => {
     if (!stacked) {
@@ -95,11 +99,15 @@ function MetricChart({
         yRange,
         stacked,
         bands: prepared.bands,
+        bidirectional,
+        negated,
       })
 
       const colors = getChartColors(resolvedTheme)
-      const formatValue = (value: number) =>
-        valueFormatterRef.current?.(value) ?? String(value)
+      const formatValue = (value: number, seriesIndex: number) => {
+        const display = negated[seriesIndex] ? Math.abs(value) : value
+        return valueFormatterRef.current?.(display) ?? String(display)
+      }
       const hooks: uPlot.Hooks.Arrays = {
         setCursor: [
           createCursorTooltipHandler({
@@ -156,6 +164,8 @@ function MetricChart({
     yMax,
     thresholdsKey,
     stacked,
+    bidirectional,
+    negatedKey,
     prepared.bands,
     thresholds,
   ])
