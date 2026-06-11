@@ -46,6 +46,11 @@ function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitlePro
     server.uptimeSeconds != null ? formatUptime(server.uptimeSeconds) : null,
     { key: "uptime", icon: Clock, label: "Uptime" }
   )
+  pushMetaItem(
+    items,
+    server.memMax != null ? formatMemoryBytes(server.memMax) : null,
+    { key: "memory", icon: MemoryStick, label: "Memory" }
+  )
   pushMetaItem(items, inventory ? formatOs(inventory) : null, {
     key: "os",
     icon: Box,
@@ -56,11 +61,6 @@ function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitlePro
     icon: Cpu,
     label: "CPU",
   })
-  pushMetaItem(
-    items,
-    server.memMax != null ? formatMemoryBytes(server.memMax) : null,
-    { key: "memory", icon: MemoryStick, label: "Memory" }
-  )
 
   if (items.length === 0 && !prefix) {
     return null
