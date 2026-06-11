@@ -22,8 +22,8 @@ function MetricSection({
 }: MetricSectionProps) {
   return (
     <section
-      id={id}
-      className="flex scroll-mt-[calc(var(--metrics-header-offset)+1rem)] flex-col gap-4"
+      data-section-id={id}
+      className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2.5">

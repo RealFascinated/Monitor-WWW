@@ -1,5 +1,5 @@
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
-import { useCallback, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import {
   METRIC_SECTION_HEADER_HEIGHT,
@@ -8,13 +8,49 @@ import {
 } from "@/lib/metrics/grid-height"
 import type { MetricsSectionLeaf } from "@/lib/metrics/sections/types"
 
+function readMetricsSectionHash(): string {
+  const raw = window.location.hash.slice(1)
+  return raw ? decodeURIComponent(raw) : ""
+}
+
+function writeMetricsSectionHash(id: string) {
+  if (readMetricsSectionHash() === id) {
+    return
+  }
+
+  const next = `${window.location.pathname}${window.location.search}#${encodeURIComponent(id)}`
+  window.history.replaceState(window.history.state, "", next)
+}
+
 function useMetricsSectionVirtualizer(
   leaves: MetricsSectionLeaf[],
   sectionIdsKey: string
 ) {
   const listRef = useRef<HTMLDivElement>(null)
+  const restoredHashKeyRef = useRef<string | null>(null)
+  const hashWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [scrollMargin, setScrollMargin] = useState(0)
   const [activeId, setActiveId] = useState(leaves[0]?.id ?? "")
+
+  const queueMetricsSectionHash = useCallback((id: string) => {
+    if (hashWriteTimerRef.current) {
+      clearTimeout(hashWriteTimerRef.current)
+    }
+
+    hashWriteTimerRef.current = setTimeout(() => {
+      hashWriteTimerRef.current = null
+      writeMetricsSectionHash(id)
+    }, 150)
+  }, [])
+
+  const commitMetricsSectionHash = useCallback((id: string) => {
+    if (hashWriteTimerRef.current) {
+      clearTimeout(hashWriteTimerRef.current)
+      hashWriteTimerRef.current = null
+    }
+
+    writeMetricsSectionHash(id)
+  }, [])
 
   const updateScrollMargin = useCallback(() => {
     const element = listRef.current
@@ -78,26 +114,82 @@ function useMetricsSectionVirtualizer(
         return
       }
 
-      setActiveId((current) => (current === nextId ? current : nextId))
+      setActiveId((current) => {
+        if (current === nextId) {
+          return current
+        }
+
+        queueMetricsSectionHash(nextId)
+        return nextId
+      })
     },
   })
 
+  const virtualizerRef = useRef(virtualizer)
+  virtualizerRef.current = virtualizer
+
   useLayoutEffect(() => {
+    if (restoredHashKeyRef.current === sectionIdsKey) {
+      return
+    }
+
+    restoredHashKeyRef.current = sectionIdsKey
+
+    const hashId = readMetricsSectionHash()
+    const hashIndex = hashId
+      ? leaves.findIndex((section) => section.id === hashId)
+      : -1
+
+    if (hashIndex >= 0) {
+      setActiveId(hashId)
+      virtualizerRef.current.scrollToIndex(hashIndex, {
+        align: "start",
+        behavior: "auto",
+      })
+      return
+    }
+
     setActiveId(leaves[0]?.id ?? "")
   }, [sectionIdsKey, leaves])
 
   const scrollToSection = useCallback(
-    (id: string) => {
+    (id: string, behavior: ScrollBehavior = "smooth") => {
       const index = leaves.findIndex((section) => section.id === id)
-      if (index >= 0) {
-        virtualizer.scrollToIndex(index, {
-          align: "start",
-          behavior: "smooth",
-        })
+      if (index < 0) {
+        return
       }
+
+      commitMetricsSectionHash(id)
+      setActiveId(id)
+      virtualizer.scrollToIndex(index, {
+        align: "start",
+        behavior,
+      })
     },
-    [leaves, virtualizer]
+    [commitMetricsSectionHash, leaves, virtualizer]
   )
+
+  useEffect(() => {
+    return () => {
+      if (hashWriteTimerRef.current) {
+        clearTimeout(hashWriteTimerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    function handleHashChange() {
+      const hashId = readMetricsSectionHash()
+      if (!hashId) {
+        return
+      }
+
+      scrollToSection(hashId, "auto")
+    }
+
+    window.addEventListener("hashchange", handleHashChange)
+    return () => window.removeEventListener("hashchange", handleHashChange)
+  }, [scrollToSection])
 
   return { listRef, virtualizer, activeId, scrollToSection }
 }
