@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { UserPendingInvites } from "@/components/user/user-pending-invites"
+import { pageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/_authenticated/invites/")({
+  head: () => ({
+    meta: [{ title: pageTitle("Invites") }],
+  }),
   component: InvitesPage,
 })
 

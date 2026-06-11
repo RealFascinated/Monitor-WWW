@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
-import { Plus } from "lucide-react"
+import { Check, Copy, Plus } from "lucide-react"
 import { useState } from "react"
 
 import { Callout } from "@/components/callout"
@@ -17,7 +16,10 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { inviteServerMember } from "@/lib/api/user/access"
+import {
+  inviteServerMember,
+  type ServerInviteCreatedResponse,
+} from "@/lib/api/user/access"
 import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import { ApiClientError } from "@/lib/auth/api"
 
@@ -41,13 +43,24 @@ function validateEmail(email: string): string | null {
   return null
 }
 
+function buildInviteUrl(invite: ServerInviteCreatedResponse): string {
+  const params = new URLSearchParams({
+    token: invite.token,
+    email: invite.email,
+  })
+
+  return `${window.location.origin}/invites/accept?${params.toString()}`
+}
+
 function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
+  const [createdInvite, setCreatedInvite] =
+    useState<ServerInviteCreatedResponse | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const mutation = useMutation({
     mutationFn: (request: { email: string }) =>
@@ -56,12 +69,8 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
       await queryClient.invalidateQueries({
         queryKey: serverAccessQueryOptions(serverId).queryKey,
       })
-      setOpen(false)
-      resetForm()
-      await navigate({
-        to: "/invites/accept",
-        search: { token: invite.token, email: invite.email },
-      })
+      setCreatedInvite(invite)
+      setCopied(false)
     },
     onError: (error) => {
       setApiError(
@@ -76,6 +85,8 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
     setEmail("")
     setFieldError(null)
     setApiError(null)
+    setCreatedInvite(null)
+    setCopied(false)
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -104,6 +115,17 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
     mutation.mutate({ email: email.trim() })
   }
 
+  async function handleCopyInviteUrl() {
+    if (!createdInvite) {
+      return
+    }
+
+    await navigator.clipboard.writeText(buildInviteUrl(createdInvite))
+    setCopied(true)
+  }
+
+  const inviteUrl = createdInvite ? buildInviteUrl(createdInvite) : null
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -113,58 +135,102 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
         </Button>
       </DialogTrigger>
       <DialogContent className="rounded-sm border border-neutral-200 sm:max-w-lg dark:border-monitor-gray-300">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Invite member</DialogTitle>
-            <DialogDescription>
-              Send an invite by email. They will receive viewer access once they
-              accept.
-            </DialogDescription>
-          </DialogHeader>
+        {createdInvite && inviteUrl ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Invite created</DialogTitle>
+              <DialogDescription>
+                Share this link with {createdInvite.email}. They will receive
+                viewer access once they accept.
+              </DialogDescription>
+            </DialogHeader>
 
-          {apiError ? (
-            <Callout type="danger" title="Could not send invite">
-              {apiError}
-            </Callout>
-          ) : null}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="invite-url">Invite link</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="invite-url"
+                  type="url"
+                  value={inviteUrl}
+                  readOnly
+                  className="min-w-0"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={() => void handleCopyInviteUrl()}
+                >
+                  {copied ? <Check /> : <Copy />}
+                  {copied ? "Copied" : "Copy"}
+                </Button>
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="invite-email">Email</Label>
-            <Input
-              id="invite-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={fieldError ? true : undefined}
-              disabled={mutation.isPending}
-              required
-              autoFocus
-              placeholder="bob@gmail.com"
-            />
-            {fieldError ? (
-              <p className="text-xs font-bold text-error">{fieldError}</p>
+            <DialogFooter className="border-t border-neutral-200 pt-3 dark:border-monitor-gray-200">
+              <Button
+                type="button"
+                variant="highlighted"
+                onClick={() => handleOpenChange(false)}
+              >
+                Done
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>Invite member</DialogTitle>
+              <DialogDescription>
+                Send an invite by email. They will receive viewer access once
+                they accept.
+              </DialogDescription>
+            </DialogHeader>
+
+            {apiError ? (
+              <Callout type="danger" title="Could not send invite">
+                {apiError}
+              </Callout>
             ) : null}
-          </div>
 
-          <DialogFooter className="border-t border-neutral-200 pt-3 dark:border-monitor-gray-200">
-            <Button
-              type="button"
-              variant="default"
-              disabled={mutation.isPending}
-              onClick={() => handleOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="highlighted"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? <Spinner /> : null}
-              Send invite
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="invite-email">Email</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={fieldError ? true : undefined}
+                disabled={mutation.isPending}
+                required
+                autoFocus
+                placeholder="bob@gmail.com"
+              />
+              {fieldError ? (
+                <p className="text-xs font-bold text-error">{fieldError}</p>
+              ) : null}
+            </div>
+
+            <DialogFooter className="border-t border-neutral-200 pt-3 dark:border-monitor-gray-200">
+              <Button
+                type="button"
+                variant="default"
+                disabled={mutation.isPending}
+                onClick={() => handleOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="highlighted"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? <Spinner /> : null}
+                Send invite
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   )

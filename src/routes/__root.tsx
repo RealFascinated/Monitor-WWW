@@ -8,6 +8,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 
 import { AuthProvider } from "@/lib/auth"
+import { APP_NAME } from "@/lib/page-title"
 import { ThemeProvider } from "@/lib/theme"
 import { themeInitScript } from "@/lib/theme/script"
 import appCss from "../styles.css?url"
@@ -25,7 +26,7 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Server Monitor",
+        title: APP_NAME,
       },
     ],
     links: [

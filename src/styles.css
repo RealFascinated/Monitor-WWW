@@ -278,3 +278,13 @@
 .dark .uplot .u-cursor-x {
   border-left-color: var(--color-warning);
 }
+
+.uplot .u-select {
+  background: color-mix(in srgb, var(--color-monitor) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-monitor) 45%, transparent);
+}
+
+.dark .uplot .u-select {
+  background: color-mix(in srgb, var(--color-warning) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 50%, transparent);
+}

@@ -40,6 +40,7 @@ const navItems = [
 const statusDotStyles: Record<ServerStatus, string> = {
   ONLINE: "bg-green-500",
   OFFLINE: "bg-red-500",
+  PENDING: "bg-amber-500",
 }
 
 function SidebarDetailedToggle({

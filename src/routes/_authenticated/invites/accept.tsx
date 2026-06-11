@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { Callout } from "@/components/callout"
 import { AcceptInviteView } from "@/components/user/accept-invite-view"
+import { pageTitle } from "@/lib/page-title"
 
 const acceptInviteSearchSchema = z.object({
   token: z.string().min(1),
@@ -11,6 +12,9 @@ const acceptInviteSearchSchema = z.object({
 
 export const Route = createFileRoute("/_authenticated/invites/accept")({
   validateSearch: acceptInviteSearchSchema,
+  head: () => ({
+    meta: [{ title: pageTitle("Accept invite") }],
+  }),
   component: AcceptInvitePage,
 })
 

@@ -7,7 +7,9 @@ import { ServerAccessHeader } from "@/components/server/server-access-header"
 import { ServerAccessView } from "@/components/server/server-access-view"
 import { useUserServers } from "@/hooks/use-user-servers"
 import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
+import type { ServerResponse } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
+import { serverPageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute(
   "/_authenticated/servers/$serverId/access"
@@ -19,6 +21,16 @@ export const Route = createFileRoute(
 
     const serverId = Number(params.serverId)
     return queryClient.ensureQueryData(serverAccessQueryOptions(serverId))
+  },
+  head: ({ matches, params }) => {
+    const servers = matches.find(
+      (match) =>
+        (match.routeId as string) === "/_authenticated/servers/$serverId"
+    )?.loaderData as ServerResponse[] | undefined
+
+    return {
+      meta: [{ title: serverPageTitle(servers, params.serverId, "Access") }],
+    }
   },
   component: ServerAccessPage,
 })

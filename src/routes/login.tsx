@@ -12,8 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth"
+import { pageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [{ title: pageTitle("Sign in") }],
+  }),
   component: LoginPage,
 })
 

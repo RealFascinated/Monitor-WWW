@@ -2,8 +2,12 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { ServersTable } from "@/components/user/servers-table"
 import { useAuth } from "@/lib/auth"
+import { pageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/_authenticated/")({
+  head: () => ({
+    meta: [{ title: pageTitle("Dashboard") }],
+  }),
   component: DashboardPage,
 })
 

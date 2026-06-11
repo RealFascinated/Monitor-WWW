@@ -53,6 +53,10 @@ function ServersTable() {
         ? "Failed to load servers"
         : null
 
+  const hasOwnedServers = filteredServers.some(
+    (server) => server.role === "OWNER"
+  )
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
@@ -109,9 +113,11 @@ function ServersTable() {
               <TableHead>Memory</TableHead>
               <TableHead>Agent</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="w-0">
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              {hasOwnedServers ? (
+                <TableHead className="w-0">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -144,18 +150,22 @@ function ServersTable() {
                 <TableCell className="text-neutral-500">
                   {formatDate(server.createdAt)}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <RenameServerDialog
-                      serverId={server.serverId}
-                      currentName={server.serverName}
-                    />
-                    <DeleteServerButton
-                      serverId={server.serverId}
-                      serverName={server.serverName}
-                    />
-                  </div>
-                </TableCell>
+                {server.role === "OWNER" ? (
+                  <TableCell>
+                    <div className="flex items-center">
+                      <RenameServerDialog
+                        serverId={server.serverId}
+                        currentName={server.serverName}
+                      />
+                      <DeleteServerButton
+                        serverId={server.serverId}
+                        serverName={server.serverName}
+                      />
+                    </div>
+                  </TableCell>
+                ) : hasOwnedServers ? (
+                  <TableCell />
+                ) : null}
               </TableRow>
             ))}
           </TableBody>
