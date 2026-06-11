@@ -1,5 +1,6 @@
 import { Monitor, Moon, Sun } from "lucide-react"
 
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import { cn } from "@/lib/utils"
 import type { ThemePreference } from "@/lib/theme"
 import { useTheme } from "@/lib/theme"
@@ -30,21 +31,22 @@ export function ThemeSwitcher({ className }: { className?: string }) {
         const isActive = theme === value
 
         return (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setTheme(value)}
-            aria-label={label}
-            aria-pressed={isActive}
-            className={cn(
-              "flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors",
-              isActive
-                ? "bg-white text-monitor dark:bg-monitor-gray-300 dark:text-warning"
-                : "text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
-            )}
-          >
-            <Icon className="size-3.5" />
-          </button>
+          <SimpleTooltip key={value} content={`${label} theme`}>
+            <button
+              type="button"
+              onClick={() => setTheme(value)}
+              aria-label={label}
+              aria-pressed={isActive}
+              className={cn(
+                "flex size-6 shrink-0 cursor-help items-center justify-center rounded-sm transition-colors",
+                isActive
+                  ? "bg-white text-monitor dark:bg-monitor-gray-300 dark:text-warning"
+                  : "text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+              )}
+            >
+              <Icon className="size-3.5" />
+            </button>
+          </SimpleTooltip>
         )
       })}
     </div>

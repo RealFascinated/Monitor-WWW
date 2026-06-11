@@ -2,8 +2,10 @@ import { Check, Copy } from "lucide-react"
 import { useState } from "react"
 
 import { Callout } from "@/components/callout"
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { SETTINGS_TOOLTIPS } from "@/lib/tooltips/copy"
 import {
   getAgentInstallContent,
   getUnraidInstallSteps,
@@ -56,9 +58,17 @@ function CopyableField({
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const labelNode = <Label htmlFor={id}>{label}</Label>
+
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
+      {id === "ingest-token" ? (
+        <SimpleTooltip content={SETTINGS_TOOLTIPS.ingestToken}>
+          <span className="w-fit cursor-help">{labelNode}</span>
+        </SimpleTooltip>
+      ) : (
+        labelNode
+      )}
       <div className="flex gap-2">
         <pre
           id={id}
@@ -123,21 +133,29 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
       <div className="flex flex-col gap-2">
         <Label>Install method</Label>
         <div className="flex flex-wrap gap-1.5">
-          {INSTALL_METHODS.map((option) => (
-            <Button
-              key={option.value}
-              type="button"
-              size="sm"
-              variant={method === option.value ? "highlighted" : "outline"}
-              className={cn(
-                "h-7 px-2.5 text-xs",
-                method !== option.value && "text-neutral-600 dark:text-neutral-400"
-              )}
-              onClick={() => setMethod(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
+          {INSTALL_METHODS.map((option) => {
+            const note =
+              METHOD_NOTES[option.value] ??
+              `Install the Monitor Agent on ${option.label}.`
+
+            return (
+              <SimpleTooltip key={option.value} content={note}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={method === option.value ? "highlighted" : "outline"}
+                  className={cn(
+                    "h-7 cursor-help px-2.5 text-xs",
+                    method !== option.value &&
+                      "text-neutral-600 dark:text-neutral-400"
+                  )}
+                  onClick={() => setMethod(option.value)}
+                >
+                  {option.label}
+                </Button>
+              </SimpleTooltip>
+            )
+          })}
         </div>
       </div>
 

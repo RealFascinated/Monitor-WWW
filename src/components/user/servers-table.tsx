@@ -19,12 +19,26 @@ import {
 } from "@/components/server/usage-percent"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import { Callout } from "@/components/callout"
+import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
 import { DataTable } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
 import { useUserServers } from "@/hooks/use-user-servers"
-import { formatDate, formatUptime, formatUptimePercent30d } from "@/lib/formatter"
+import {
+  formatDate,
+  formatDateWithRelative,
+  formatUptime,
+  formatUptimeDetailed,
+  formatUptimePercent30d,
+} from "@/lib/formatter"
 import type { ServerResponse } from "@/lib/api/user/servers"
+import {
+  pendingOnlyTooltip,
+  SERVER_TABLE_COLUMN_TOOLTIPS,
+} from "@/lib/tooltips/copy"
+import { cn } from "@/lib/utils"
+
+const unknownStatClassName = "text-neutral-500"
 
 function ServersTable() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -59,26 +73,87 @@ function ServersTable() {
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: () => (
+          <TableHeaderTooltip
+            label="Status"
+            tooltip="Whether the Monitor Agent is reporting metrics for this server."
+          />
+        ),
         cell: ({ row }) => (
           <ServerStatusBadge status={row.original.status} />
         ),
       },
       {
         accessorKey: "uptimeSeconds",
-        header: "Uptime",
-        cell: ({ row }) => formatUptime(row.original.uptimeSeconds),
+        header: () => (
+          <TableHeaderTooltip
+            label="Uptime"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.uptime}
+          />
+        ),
+        cell: ({ row }) => {
+          const formatted = formatUptime(row.original.uptimeSeconds)
+          const detailed = formatUptimeDetailed(row.original.uptimeSeconds)
+          const tooltip =
+            detailed ?? pendingOnlyTooltip(row.original.status)
+          const className = cn(
+            row.original.uptimeSeconds == null && unknownStatClassName
+          )
+
+          if (!tooltip) {
+            return <span className={className}>{formatted}</span>
+          }
+
+          return (
+            <SimpleTooltip content={tooltip}>
+              <span className={cn("cursor-help", className)}>{formatted}</span>
+            </SimpleTooltip>
+          )
+        },
       },
       {
         accessorKey: "uptimePercent30d",
-        header: "Uptime (30d)",
-        cell: ({ row }) => formatUptimePercent30d(row.original.uptimePercent30d),
+        header: () => (
+          <TableHeaderTooltip
+            label="Uptime (30d)"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.uptime30d}
+          />
+        ),
+        cell: ({ row }) => {
+          const formatted = formatUptimePercent30d(
+            row.original.uptimePercent30d
+          )
+          const tooltip = pendingOnlyTooltip(row.original.status)
+          const className = cn(
+            row.original.uptimePercent30d == null && unknownStatClassName
+          )
+
+          if (row.original.uptimePercent30d != null || !tooltip) {
+            return <span className={className}>{formatted}</span>
+          }
+
+          return (
+            <SimpleTooltip content={tooltip}>
+              <span className={cn("cursor-help", className)}>{formatted}</span>
+            </SimpleTooltip>
+          )
+        },
       },
       {
         id: "cpu",
         accessorFn: (row) => row.cpuPercent,
-        header: "CPU",
-        cell: ({ row }) => <CpuPercent value={row.original.cpuPercent} />,
+        header: () => (
+          <TableHeaderTooltip
+            label="CPU"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.cpu}
+          />
+        ),
+        cell: ({ row }) => (
+          <CpuPercent
+            value={row.original.cpuPercent}
+            status={row.original.status}
+          />
+        ),
       },
       {
         id: "memory",
@@ -86,11 +161,17 @@ function ServersTable() {
           row.memUsage != null && row.memMax
             ? row.memUsage / row.memMax
             : null,
-        header: "Memory",
+        header: () => (
+          <TableHeaderTooltip
+            label="Memory"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.memory}
+          />
+        ),
         cell: ({ row }) => (
           <MemoryPercent
             usage={row.original.memUsage}
             max={row.original.memMax}
+            status={row.original.status}
           />
         ),
       },
@@ -100,24 +181,48 @@ function ServersTable() {
           row.diskUsage != null && row.diskMax
             ? row.diskUsage / row.diskMax
             : null,
-        header: "Root Disk",
+        header: () => (
+          <TableHeaderTooltip
+            label="Root Disk"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.rootDisk}
+          />
+        ),
         cell: ({ row }) => (
           <DiskPercent
             usage={row.original.diskUsage}
             max={row.original.diskMax}
+            status={row.original.status}
           />
         ),
       },
       {
         accessorKey: "agentVersion",
-        header: "Agent",
+        header: () => (
+          <TableHeaderTooltip
+            label="Agent"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.agent}
+          />
+        ),
         cell: ({ row }) => row.original.agentVersion ?? "—",
       },
       {
         accessorKey: "createdAt",
-        header: "Created",
+        header: () => (
+          <TableHeaderTooltip
+            label="Created"
+            tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.created}
+          />
+        ),
         meta: { className: "text-neutral-500" },
-        cell: ({ row }) => formatDate(row.original.createdAt),
+        cell: ({ row }) => (
+          <SimpleTooltip
+            content={formatDateWithRelative(row.original.createdAt)}
+          >
+            <span className="cursor-help">
+              {formatDate(row.original.createdAt)}
+            </span>
+          </SimpleTooltip>
+        ),
       },
     ]
 

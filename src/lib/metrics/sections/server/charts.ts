@@ -114,6 +114,7 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
   return [
     {
       title: "Usage",
+      description: "Filesystem space used as a percentage of total capacity.",
       series: [chartSeries("Usage", disk.usagePercent)],
       valueFormatter: formatPercentValue,
       yRange: PERCENT_Y_RANGE,
@@ -121,6 +122,7 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "Capacity",
+      description: "Used and total disk space over time.",
       series: [
         chartSeries("Used", disk.usedBytes),
         chartSeries("Total", disk.totalBytes),
@@ -129,12 +131,13 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "ETA until full",
-      description: "Free space divided by daily growth rate",
+      description: "Estimated time until the disk fills, based on recent growth.",
       series: [chartSeries("ETA", disk.etaUntilFull)],
       valueFormatter: formatDurationSeconds,
     },
     {
       title: "Throughput",
+      description: "Disk read and write bytes per second.",
       series: [
         chartSeries("Read", disk.ioReadBps),
         chartSeries("Write", disk.ioWriteBps, { negate: true }),
@@ -143,6 +146,8 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "I/O",
+      description:
+        "Disk utilization percentage and average I/O wait time in milliseconds.",
       series: [
         chartSeries("Usage", disk.ioUsagePct),
         chartSeries("Wait", disk.ioWaitMs),
@@ -151,6 +156,8 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "Inodes",
+      description:
+        "File metadata slots used vs total. Exhaustion blocks new files even with free space.",
       series: [
         chartSeries("Used", disk.inodeUsed),
         chartSeries("Total", disk.inodeTotal),
@@ -159,6 +166,7 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "IOPS",
+      description: "Read and write operations per second.",
       series: [
         chartSeries("Read", disk.readIops),
         chartSeries("Write", disk.writeIops),
@@ -167,6 +175,7 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "Latency",
+      description: "Average read and write latency in milliseconds.",
       series: [
         chartSeries("Read", disk.readLatencyMs),
         chartSeries("Write", disk.writeLatencyMs),
@@ -180,6 +189,7 @@ function networkCharts(network: NetworkMetrics): MetricChartConfig[] {
   return [
     {
       title: "Throughput",
+      description: "Receive and transmit bandwidth.",
       series: [
         chartSeries("RX", network.rxBps),
         chartSeries("TX", network.txBps, { negate: true }),
@@ -188,6 +198,7 @@ function networkCharts(network: NetworkMetrics): MetricChartConfig[] {
     },
     {
       title: "Packets",
+      description: "Packets received and transmitted per second.",
       series: [
         chartSeries("RX", network.rxPacketsPerSecond),
         chartSeries("TX", network.txPacketsPerSecond),
@@ -196,6 +207,7 @@ function networkCharts(network: NetworkMetrics): MetricChartConfig[] {
     },
     {
       title: "Errors",
+      description: "Network errors per second on receive and transmit.",
       series: [
         chartSeries("RX", network.rxErrorsPerSecond),
         chartSeries("TX", network.txErrorsPerSecond),
@@ -209,6 +221,7 @@ function gpuCharts(gpu: GpuMetrics): MetricChartConfig[] {
   return [
     {
       title: "Usage",
+      description: "GPU core utilization.",
       series: [chartSeries("Usage", gpu.usagePercent)],
       valueFormatter: formatPercentValue,
       yRange: PERCENT_Y_RANGE,
@@ -216,6 +229,7 @@ function gpuCharts(gpu: GpuMetrics): MetricChartConfig[] {
     },
     {
       title: "Memory",
+      description: "GPU memory used vs total.",
       series: [
         chartSeries("Used", gpu.memoryUsedBytes),
         chartSeries("Total", gpu.memoryTotalBytes),
@@ -224,12 +238,14 @@ function gpuCharts(gpu: GpuMetrics): MetricChartConfig[] {
     },
     {
       title: "Temperature",
+      description: "GPU die temperature.",
       series: [chartSeries("°C", gpu.temperatureCelsius)],
       valueFormatter: formatCelsius,
       thresholds: TEMPERATURE_THRESHOLDS,
     },
     {
       title: "Power",
+      description: "GPU power draw in watts.",
       series: [chartSeries("Watts", gpu.powerWatts)],
       valueFormatter: formatWatts,
     },
@@ -244,6 +260,8 @@ function containerCharts(
   return [
     {
       title: "CPU",
+      description:
+        "Per-container CPU share stacked. Hover the chart for values at a point in time.",
       mode: "stack",
       series: items.map((container) =>
         chartSeries(container.container, container.cpuUsage)
@@ -255,6 +273,8 @@ function containerCharts(
     },
     {
       title: "Memory",
+      description:
+        "Per-container memory usage stacked. Hover the chart for values at a point in time.",
       mode: "stack",
       series: items.map((container) =>
         chartSeries(container.container, container.memoryUsage)
@@ -269,6 +289,7 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): MetricChartConfig[] {
   return [
     {
       title: "Capacity",
+      description: "Pool capacity, fragmentation, and scrub/resilver scan progress.",
       series: [
         chartSeries("Capacity", pool.capacityPercent),
         chartSeries("Fragmentation", pool.fragmentationPercent),
@@ -280,6 +301,7 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): MetricChartConfig[] {
     },
     {
       title: "Space",
+      description: "Allocated, free, and total pool space.",
       series: [
         chartSeries("Allocated", pool.allocatedBytes),
         chartSeries("Free", pool.freeBytes),
@@ -289,6 +311,7 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): MetricChartConfig[] {
     },
     {
       title: "I/O",
+      description: "Pool read and write throughput.",
       series: [
         chartSeries("Read", pool.readBps),
         chartSeries("Write", pool.writeBps),
@@ -297,6 +320,7 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): MetricChartConfig[] {
     },
     {
       title: "IOPS",
+      description: "Pool read and write operations per second.",
       series: [
         chartSeries("Read", pool.readIops),
         chartSeries("Write", pool.writeIops),
@@ -305,6 +329,7 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): MetricChartConfig[] {
     },
     {
       title: "Checksum errors",
+      description: "ZFS checksum errors detected on this pool.",
       series: [chartSeries("Errors", pool.checksumErrors)],
       valueFormatter: formatCount,
     },
@@ -318,6 +343,8 @@ function hostCpuCharts(
   return [
     {
       title: "CPU breakdown",
+      description:
+        "User, system, I/O wait, and steal time as a share of CPU capacity. I/O wait is time spent waiting on disk. Steal is time taken by the hypervisor on VMs.",
       series: [
         chartSeries("User", host.cpuUserPct),
         chartSeries("System", host.cpuSystemPct),
@@ -330,6 +357,7 @@ function hostCpuCharts(
     },
     {
       title: "Per-core usage",
+      description: "Utilization per logical CPU core.",
       series: (cpuCores ?? []).map((core) =>
         chartSeries(core.cpu, core.cpuCorePct)
       ),
@@ -340,11 +368,13 @@ function hostCpuCharts(
     },
     {
       title: "CPU clock",
+      description: "Current CPU frequency.",
       series: [chartSeries("MHz", host.cpuClockMhz)],
       valueFormatter: formatMegahertz,
     },
     {
       title: "CPU power",
+      description: "Processor power draw in watts.",
       series: [chartSeries("Watts", host.cpuPowerWatts)],
       valueFormatter: formatWatts,
     },
@@ -357,6 +387,7 @@ function hostMemoryCharts(
   return [
     {
       title: "Memory bytes",
+      description: "Used, available, and total physical memory.",
       series: [
         chartSeries("Used", host.memUsage),
         chartSeries("Available", host.memAvailable),
@@ -366,6 +397,7 @@ function hostMemoryCharts(
     },
     {
       title: "Memory cache",
+      description: "Kernel buffers and page cache.",
       series: [
         chartSeries("Buffers", host.memBuffers),
         chartSeries("Cached", host.memCached),
@@ -374,6 +406,7 @@ function hostMemoryCharts(
     },
     {
       title: "Swap",
+      description: "Swap space used vs total.",
       series: [
         chartSeries("Used", host.swapUsed),
         chartSeries("Total", host.swapTotal),
@@ -389,6 +422,7 @@ function hostProcessCharts(
   return [
     {
       title: "Processes",
+      description: "Total and currently running processes.",
       series: [
         chartSeries("Total", host.processCount),
         chartSeries("Running", host.runningProcesses),
@@ -397,6 +431,7 @@ function hostProcessCharts(
     },
     {
       title: "Kernel activity",
+      description: "Context switches and hardware interrupts per second.",
       series: [
         chartSeries("Context switches/s", host.ctxSwitchesPerSecond),
         chartSeries("Interrupts/s", host.interruptsPerSecond),

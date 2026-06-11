@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import { cn } from "@/lib/utils"
 import {
   flattenMetricSectionLeaves,
@@ -30,6 +31,14 @@ const navItemClassName = (isActive: boolean, nested = false) =>
       : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
   )
 
+function sectionNavTooltip(section: MetricsSectionLeaf): string {
+  if (section.description) {
+    return `${section.title} — ${section.description}`
+  }
+
+  return section.title
+}
+
 function NavLeafButton({
   section,
   isActive,
@@ -42,13 +51,15 @@ function NavLeafButton({
   nested?: boolean
 }) {
   return (
-    <button
-      type="button"
-      onClick={() => onScrollToSection(section.id)}
-      className={navItemClassName(isActive, nested)}
-    >
-      <span className="truncate">{metricsSectionNavLabel(section)}</span>
-    </button>
+    <SimpleTooltip content={sectionNavTooltip(section)}>
+      <button
+        type="button"
+        onClick={() => onScrollToSection(section.id)}
+        className={cn(navItemClassName(isActive, nested), "cursor-help")}
+      >
+        <span className="truncate">{metricsSectionNavLabel(section)}</span>
+      </button>
+    </SimpleTooltip>
   )
 }
 

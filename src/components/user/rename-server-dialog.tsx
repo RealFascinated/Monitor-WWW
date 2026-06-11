@@ -6,6 +6,11 @@ import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -97,17 +102,22 @@ function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="text-neutral-400 hover:bg-transparent hover:text-neutral-600 dark:text-neutral-500 dark:hover:bg-transparent dark:hover:text-white"
-          aria-label={`Rename ${currentName}`}
-        >
-          <Pencil className="size-4" />
-        </Button>
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="text-neutral-400 hover:bg-transparent hover:text-neutral-600 dark:text-neutral-500 dark:hover:bg-transparent dark:hover:text-white"
+              aria-label={`Rename ${currentName}`}
+            >
+              <Pencil className="size-4" />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Rename server</TooltipContent>
+      </Tooltip>
       <DialogContent className="rounded-sm border border-neutral-200 sm:max-w-lg dark:border-monitor-gray-300">
         <form onSubmit={handleSubmit}>
           <DialogHeader>

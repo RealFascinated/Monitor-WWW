@@ -10,6 +10,7 @@ import { Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
 import { InviteMemberDialog } from "@/components/server/invite-member-dialog"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
@@ -24,7 +25,8 @@ import type {
 import type { ServerRole } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { useAccessStore } from "@/stores/access-store"
-import { formatDate } from "@/lib/formatter"
+import { formatDate, formatDateWithRelative } from "@/lib/formatter"
+import { INVITE_EXPIRY_TOOLTIP, SERVER_ROLE_TOOLTIPS } from "@/lib/tooltips/copy"
 
 type ServerAccessViewProps = {
   serverId: number
@@ -45,10 +47,16 @@ function formatRole(role: string): string {
 }
 
 function RoleTag({ role }: { role: string }) {
+  const tooltip =
+    SERVER_ROLE_TOOLTIPS[role as keyof typeof SERVER_ROLE_TOOLTIPS] ??
+    formatRole(role)
+
   return (
-    <span className="px-2 py-1 text-xs font-bold text-neutral-500 bg-neutral-100 dark:bg-monitor-gray-100">
-      {formatRole(role)}
-    </span>
+    <SimpleTooltip content={tooltip}>
+      <span className="cursor-help px-2 py-1 text-xs font-bold text-neutral-500 bg-neutral-100 dark:bg-monitor-gray-100">
+        {formatRole(role)}
+      </span>
+    </SimpleTooltip>
   )
 }
 
@@ -91,6 +99,7 @@ function RemoveMemberButton({
         </Button>
       }
       title="Remove member"
+      triggerTooltip="Remove member"
       description={
         <>
           Remove <span className="font-bold">{memberEmail}</span> from this
@@ -153,6 +162,7 @@ function RevokeInviteButton({
         </Button>
       }
       title="Revoke invite"
+      triggerTooltip="Revoke invite"
       description={
         <>
           Revoke the pending invite for{" "}
@@ -214,15 +224,35 @@ function ServerAccessView({
       },
       {
         accessorKey: "role",
-        header: "Role",
+        header: () => (
+          <TableHeaderTooltip
+            label="Role"
+            tooltip="Owner has full control. Viewers can only read metrics."
+          />
+        ),
         cell: ({ row }) => <RoleTag role={row.original.role} />,
       },
       {
         accessorKey: "joinedAt",
-        header: "Joined",
+        header: () => (
+          <TableHeaderTooltip
+            label="Joined"
+            tooltip="When this member accepted access to the server."
+          />
+        ),
         meta: { className: "text-neutral-500" },
         cell: ({ row }) =>
-          row.original.joinedAt ? formatDate(row.original.joinedAt) : "—",
+          row.original.joinedAt ? (
+            <SimpleTooltip
+              content={formatDateWithRelative(row.original.joinedAt)}
+            >
+              <span className="cursor-help">
+                {formatDate(row.original.joinedAt)}
+              </span>
+            </SimpleTooltip>
+          ) : (
+            "—"
+          ),
       },
     ]
 
@@ -264,20 +294,51 @@ function ServerAccessView({
       },
       {
         accessorKey: "role",
-        header: "Role",
+        header: () => (
+          <TableHeaderTooltip
+            label="Role"
+            tooltip="Viewer invites grant read-only access to this server's metrics."
+          />
+        ),
         cell: ({ row }) => <RoleTag role={row.original.role} />,
       },
       {
         accessorKey: "createdAt",
-        header: "Sent",
+        header: () => (
+          <TableHeaderTooltip
+            label="Sent"
+            tooltip="When the invite was created."
+          />
+        ),
         meta: { className: "text-neutral-500" },
-        cell: ({ row }) => formatDate(row.original.createdAt),
+        cell: ({ row }) => (
+          <SimpleTooltip
+            content={formatDateWithRelative(row.original.createdAt)}
+          >
+            <span className="cursor-help">
+              {formatDate(row.original.createdAt)}
+            </span>
+          </SimpleTooltip>
+        ),
       },
       {
         accessorKey: "expiresAt",
-        header: "Expires",
+        header: () => (
+          <TableHeaderTooltip
+            label="Expires"
+            tooltip="Pending invites stop working after this time."
+          />
+        ),
         meta: { className: "text-neutral-500" },
-        cell: ({ row }) => formatDate(row.original.expiresAt),
+        cell: ({ row }) => (
+          <SimpleTooltip
+            content={`${INVITE_EXPIRY_TOOLTIP} ${formatDateWithRelative(row.original.expiresAt)}`}
+          >
+            <span className="cursor-help">
+              {formatDate(row.original.expiresAt)}
+            </span>
+          </SimpleTooltip>
+        ),
       },
       {
         id: "actions",

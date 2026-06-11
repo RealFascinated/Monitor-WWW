@@ -3,8 +3,10 @@ import { useState } from "react"
 
 import { Callout } from "@/components/callout"
 import { AgentInstallPanel } from "@/components/server/agent-install-panel"
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
+import { SETTINGS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { rotateIngestToken } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 
@@ -52,17 +54,19 @@ function ServerIngestTokenSection({ serverId }: ServerIngestTokenSectionProps) {
       {ingestToken ? (
         <AgentInstallPanel ingestToken={ingestToken} />
       ) : (
-        <Button
-          type="button"
-          variant="highlighted"
-          size="sm"
-          className="self-start"
-          disabled={mutation.isPending}
-          onClick={handleRotate}
-        >
-          {mutation.isPending ? <Spinner /> : null}
-          Rotate ingest token
-        </Button>
+        <SimpleTooltip content={SETTINGS_TOOLTIPS.rotateIngestToken}>
+          <Button
+            type="button"
+            variant="highlighted"
+            size="sm"
+            className="cursor-help self-start"
+            disabled={mutation.isPending}
+            onClick={handleRotate}
+          >
+            {mutation.isPending ? <Spinner /> : null}
+            Rotate ingest token
+          </Button>
+        </SimpleTooltip>
       )}
     </div>
   )

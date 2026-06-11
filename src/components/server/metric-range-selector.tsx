@@ -1,5 +1,6 @@
 import { CalendarRange } from "lucide-react"
 
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import {
   Select,
   SelectContent,
@@ -36,20 +37,21 @@ function MetricRangeSelector({ value, onChange }: MetricRangeSelectorProps) {
           const isActive = value === range
 
           return (
-            <button
-              key={range}
-              type="button"
-              onClick={() => onChange(range)}
-              aria-pressed={isActive}
-              className={cn(
-                "rounded-sm px-2.5 py-1 text-xs font-medium transition-colors",
-                isActive
-                  ? "bg-monitor text-white dark:bg-monitor-100"
-                  : "text-muted-foreground hover:bg-neutral-100 hover:text-foreground dark:hover:bg-monitor-gray-200 dark:hover:text-white"
-              )}
-            >
-              {option.shortLabel}
-            </button>
+            <SimpleTooltip key={range} content={option.label}>
+              <button
+                type="button"
+                onClick={() => onChange(range)}
+                aria-pressed={isActive}
+                className={cn(
+                  "cursor-help rounded-sm px-2.5 py-1 text-xs font-medium transition-colors",
+                  isActive
+                    ? "bg-monitor text-white dark:bg-monitor-100"
+                    : "text-muted-foreground hover:bg-neutral-100 hover:text-foreground dark:hover:bg-monitor-gray-200 dark:hover:text-white"
+                )}
+              >
+                {option.shortLabel}
+              </button>
+            </SimpleTooltip>
           )
         })}
       </div>

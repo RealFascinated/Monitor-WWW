@@ -180,6 +180,7 @@ function buildServerMetricSections(
     const temperatureCharts = [
       {
         title: "Sensors",
+        description: "Hardware temperature readings from system sensors.",
         series: (metrics.temperatures ?? []).map((sensor) =>
           chartSeries(sensor.sensor, sensor.temperatureCelsius)
         ),
@@ -205,6 +206,8 @@ function buildServerMetricSections(
     const zfsArcCharts = [
       {
         title: "ARC size",
+        description:
+          "ZFS adaptive replacement cache size vs target, max, and min limits.",
         series: [
           chartSeries("Size", metrics.zfsArc.sizeBytes),
           chartSeries("Target", metrics.zfsArc.targetBytes),
@@ -215,6 +218,7 @@ function buildServerMetricSections(
       },
       {
         title: "ARC composition",
+        description: "Data, metadata, and L2ARC cache breakdown.",
         series: [
           chartSeries("Data", metrics.zfsArc.dataBytes),
           chartSeries("Metadata", metrics.zfsArc.metadataBytes),
@@ -224,6 +228,7 @@ function buildServerMetricSections(
       },
       {
         title: "ARC efficiency",
+        description: "Cache hit ratio and misses per second.",
         series: [
           chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
           chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
@@ -268,6 +273,8 @@ function buildServerMetricSections(
     const tcpCharts = [
       {
         title: "Connections by state",
+        description:
+          "TCP connections grouped by state (for example ESTABLISHED, TIME_WAIT).",
         series: (metrics.tcpConnections ?? []).map((tcp) =>
           chartSeries(tcp.state, tcp.connections)
         ),

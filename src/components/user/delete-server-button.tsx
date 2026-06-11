@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { Button } from "@/components/ui/button"
+import { SETTINGS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { deleteServer } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { useAccessStore } from "@/stores/access-store"
@@ -61,6 +62,7 @@ function DeleteServerButton({
         )
       }
       title="Delete server"
+      triggerTooltip={SETTINGS_TOOLTIPS.deleteServer}
       description={
         <>
           Are you sure you want to delete{" "}

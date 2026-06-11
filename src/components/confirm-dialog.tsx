@@ -1,6 +1,11 @@
 import { useState } from "react"
 
 import { Callout } from "@/components/callout"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import type { buttonVariants } from "@/components/ui/button"
@@ -21,6 +26,7 @@ type ConfirmVariant = NonNullable<
 
 type ConfirmDialogProps = {
   trigger: React.ReactNode
+  triggerTooltip?: string
   title: string
   description: React.ReactNode
   confirmLabel?: string
@@ -34,6 +40,7 @@ type ConfirmDialogProps = {
 
 function ConfirmDialog({
   trigger,
+  triggerTooltip,
   title,
   description,
   confirmLabel = "Confirm",
@@ -69,9 +76,20 @@ function ConfirmDialog({
     }
   }
 
+  const dialogTrigger = triggerTooltip ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      </TooltipTrigger>
+      <TooltipContent>{triggerTooltip}</TooltipContent>
+    </Tooltip>
+  ) : (
+    <DialogTrigger asChild>{trigger}</DialogTrigger>
+  )
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {dialogTrigger}
       <DialogContent className="rounded-sm border border-neutral-200 sm:max-w-lg dark:border-monitor-gray-300">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

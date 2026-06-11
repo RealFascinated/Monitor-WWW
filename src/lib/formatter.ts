@@ -146,3 +146,62 @@ export function formatDate(iso: string): string {
     timeStyle: "short",
   }).format(new Date(iso))
 }
+
+export function formatRelativeTime(iso: string): string {
+  const date = new Date(iso)
+  const diffMs = date.getTime() - Date.now()
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" })
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 365 * 86_400 * 1000],
+    ["month", 30 * 86_400 * 1000],
+    ["day", 86_400 * 1000],
+    ["hour", 3_600 * 1000],
+    ["minute", 60 * 1000],
+  ]
+
+  for (const [unit, ms] of units) {
+    if (Math.abs(diffMs) >= ms || unit === "minute") {
+      return rtf.format(Math.round(diffMs / ms), unit)
+    }
+  }
+
+  return rtf.format(0, "second")
+}
+
+export function formatDateWithRelative(iso: string): string {
+  return `${formatDate(iso)} (${formatRelativeTime(iso)})`
+}
+
+export function formatUptimeDetailed(seconds: number | null): string | null {
+  if (seconds == null) {
+    return null
+  }
+
+  const days = Math.floor(seconds / 86_400)
+  const hours = Math.floor((seconds % 86_400) / 3_600)
+  const minutes = Math.floor((seconds % 3_600) / 60)
+  const parts: string[] = []
+
+  if (days > 0) {
+    parts.push(`${days} day${days === 1 ? "" : "s"}`)
+  }
+
+  if (hours > 0) {
+    parts.push(`${hours} hour${hours === 1 ? "" : "s"}`)
+  }
+
+  if (minutes > 0 || parts.length === 0) {
+    parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`)
+  }
+
+  return parts.join(", ")
+}
+
+export function formatChartTimestamp(timestamp: number): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(timestamp * 1000))
+}

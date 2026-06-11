@@ -1,4 +1,6 @@
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import type { ServerStatus } from "@/lib/api/user/servers"
+import { SERVER_STATUS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { cn } from "@/lib/utils"
 
 const statusStyles: Record<ServerStatus, string> = {
@@ -12,14 +14,16 @@ const statusStyles: Record<ServerStatus, string> = {
 
 function ServerStatusBadge({ status }: { status: ServerStatus }) {
   return (
-    <span
-      className={cn(
-        "inline-flex rounded-sm px-2 py-0.5 text-xs font-medium",
-        statusStyles[status]
-      )}
-    >
-      {status}
-    </span>
+    <SimpleTooltip content={SERVER_STATUS_TOOLTIPS[status]}>
+      <span
+        className={cn(
+          "inline-flex cursor-help rounded-sm px-2 py-0.5 text-xs font-medium",
+          statusStyles[status]
+        )}
+      >
+        {status}
+      </span>
+    </SimpleTooltip>
   )
 }
 

@@ -1,10 +1,13 @@
 import { Box, Clock, Cpu, Globe, HardDrive, MemoryStick } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import type { ServerInventory, ServerResponse } from "@/lib/api/user/servers"
 import {
   formatMemoryBytes,
   formatMemoryUsage,
   formatUptime,
+  formatUptimeDetailed,
 } from "@/lib/formatter"
 import { cn } from "@/lib/utils"
 
@@ -19,6 +22,7 @@ type MetaItem = {
   icon: LucideIcon
   label: string
   value: string
+  tooltip?: string
 }
 
 function formatOs(inventory: ServerInventory): string | null {
@@ -36,7 +40,7 @@ function pushMetaItem(
   }
 }
 
-function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitleProps) {
+function buildMetaItems(server: ServerResponse): MetaItem[] {
   const inventory = server.inventory
   const items: MetaItem[] = []
 
@@ -44,34 +48,87 @@ function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitlePro
     key: "ip",
     icon: Globe,
     label: "IP address",
+    tooltip: "As reported by the Monitor Agent.",
   })
-  pushMetaItem(
-    items,
-    server.uptimeSeconds != null ? formatUptime(server.uptimeSeconds) : null,
-    { key: "uptime", icon: Clock, label: "Uptime" }
-  )
+
+  const uptimeFormatted =
+    server.uptimeSeconds != null ? formatUptime(server.uptimeSeconds) : null
+  const uptimeDetailed = formatUptimeDetailed(server.uptimeSeconds)
+  pushMetaItem(items, uptimeFormatted, {
+    key: "uptime",
+    icon: Clock,
+    label: "Uptime",
+    tooltip:
+      uptimeDetailed && uptimeDetailed !== uptimeFormatted
+        ? uptimeDetailed
+        : undefined,
+  })
+
   pushMetaItem(
     items,
     server.memMax != null ? formatMemoryBytes(server.memMax) : null,
     { key: "memory", icon: MemoryStick, label: "Memory" }
   )
-  pushMetaItem(
-    items,
+
+  const diskFormatted =
     server.diskUsage != null
       ? formatMemoryUsage(server.diskUsage, server.diskMax)
-      : null,
-    { key: "root-disk", icon: HardDrive, label: "Root disk" }
-  )
+      : null
+  pushMetaItem(items, diskFormatted, {
+    key: "root-disk",
+    icon: HardDrive,
+    label: "Root disk",
+    tooltip:
+      server.diskUsage != null && server.diskMax != null
+        ? `${formatMemoryBytes(server.diskUsage)} of ${formatMemoryBytes(server.diskMax)}`
+        : undefined,
+  })
+
   pushMetaItem(items, inventory ? formatOs(inventory) : null, {
     key: "os",
     icon: Box,
     label: "Operating system",
   })
-  pushMetaItem(items, inventory?.cpuModel, {
+
+  const cpuFormatted = inventory?.cpuModel ?? null
+  const cpuTooltip = [
+    inventory?.coreCount != null ? `${inventory.coreCount} cores` : null,
+    inventory?.threadCount != null ? `${inventory.threadCount} threads` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+  pushMetaItem(items, cpuFormatted, {
     key: "cpu",
     icon: Cpu,
     label: "CPU",
+    tooltip: cpuTooltip || undefined,
   })
+
+  return items
+}
+
+function MetaChip({ item }: { item: MetaItem }) {
+  const Icon = item.icon
+  const chip = (
+    <span className="inline-flex items-center gap-1.5">
+      <Icon className="size-3.5 shrink-0 opacity-70" aria-hidden />
+      <span aria-label={item.label}>{item.value}</span>
+    </span>
+  )
+
+  if (!item.tooltip) {
+    return chip
+  }
+
+  return (
+    <SimpleTooltip content={item.tooltip}>
+      <span className="cursor-help">{chip}</span>
+    </SimpleTooltip>
+  )
+}
+
+function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitleProps) {
+  const items = buildMetaItems(server)
 
   if (items.length === 0 && !prefix) {
     return null
@@ -90,23 +147,16 @@ function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitlePro
           |
         </span>
       ) : null}
-      {items.map((item, index) => {
-        const Icon = item.icon
-
-        return (
-          <span key={item.key} className="inline-flex items-center gap-2">
-            {index > 0 ? (
-              <span className="text-muted-foreground/40" aria-hidden>
-                |
-              </span>
-            ) : null}
-            <span className="inline-flex items-center gap-1.5">
-              <Icon className="size-3.5 shrink-0 opacity-70" aria-hidden />
-              <span aria-label={item.label}>{item.value}</span>
+      {items.map((item, index) => (
+        <span key={item.key} className="inline-flex items-center gap-2">
+          {index > 0 ? (
+            <span className="text-muted-foreground/40" aria-hidden>
+              |
             </span>
-          </span>
-        )
-      })}
+          ) : null}
+          <MetaChip item={item} />
+        </span>
+      ))}
     </div>
   )
 }
