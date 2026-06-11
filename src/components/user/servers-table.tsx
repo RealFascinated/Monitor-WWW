@@ -1,6 +1,14 @@
 import { Link } from "@tanstack/react-router"
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table"
 import { Search } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { CreateServerDialog } from "@/components/user/create-server-dialog"
 import { DeleteServerButton } from "@/components/user/delete-server-button"
@@ -9,47 +17,151 @@ import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
+import { DataTable } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { useUserServers } from "@/hooks/use-user-servers"
-import {
-  formatDate,
-  formatUptime,
-} from "@/lib/formatter"
+import { formatDate, formatUptime } from "@/lib/formatter"
+import type { ServerResponse } from "@/lib/api/user/servers"
 
 function ServersTable() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [sorting, setSorting] = useState<SortingState>([])
   const {
     data: servers,
     isPending,
     error,
   } = useUserServers()
 
-  const normalizedSearch = searchQuery.trim().toLowerCase()
-  const filteredServers =
-    servers?.filter((server) => {
-      if (!normalizedSearch) {
-        return true
-      }
-      return (
-        server.serverName.toLowerCase().includes(normalizedSearch) ||
-        server.status.toLowerCase().includes(normalizedSearch) ||
-        (server.agentVersion?.toLowerCase().includes(normalizedSearch) ?? false)
-      )
-    }) ?? []
-
-  const errorMessage = error ?? null
-
-  const hasOwnedServers = filteredServers.some(
+  const hasOwnedServers = (servers ?? []).some(
     (server) => server.role === "OWNER"
   )
+
+  const columns = useMemo<ColumnDef<ServerResponse>[]>(() => {
+    const baseColumns: ColumnDef<ServerResponse>[] = [
+      {
+        accessorKey: "serverName",
+        header: "Name",
+        cell: ({ row }) => (
+          <span className="font-medium">
+            <Link
+              to="/servers/$serverId"
+              params={{ serverId: String(row.original.serverId) }}
+              search={{ range: "7d" }}
+              className="text-monitor hover:underline dark:text-warning"
+            >
+              {row.original.serverName}
+            </Link>
+          </span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <ServerStatusBadge status={row.original.status} />
+        ),
+      },
+      {
+        accessorKey: "uptimeSeconds",
+        header: "Uptime",
+        cell: ({ row }) => formatUptime(row.original.uptimeSeconds),
+      },
+      {
+        id: "cpu",
+        accessorFn: (row) => row.cpuPercent,
+        header: "CPU",
+        cell: ({ row }) => <CpuPercent value={row.original.cpuPercent} />,
+      },
+      {
+        id: "memory",
+        accessorFn: (row) =>
+          row.memUsage != null && row.memMax
+            ? row.memUsage / row.memMax
+            : null,
+        header: "Memory",
+        cell: ({ row }) => (
+          <MemoryPercent
+            usage={row.original.memUsage}
+            max={row.original.memMax}
+          />
+        ),
+      },
+      {
+        accessorKey: "agentVersion",
+        header: "Agent",
+        cell: ({ row }) => row.original.agentVersion ?? "—",
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Created",
+        meta: { className: "text-neutral-500" },
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+    ]
+
+    if (!hasOwnedServers) {
+      return baseColumns
+    }
+
+    return [
+      ...baseColumns,
+      {
+        id: "actions",
+        enableSorting: false,
+        header: () => <span className="sr-only">Actions</span>,
+        meta: { className: "w-0" },
+        cell: ({ row }) => {
+          if (row.original.role !== "OWNER") {
+            return null
+          }
+
+          return (
+            <div className="flex items-center">
+              <RenameServerDialog
+                serverId={row.original.serverId}
+                currentName={row.original.serverName}
+              />
+              <DeleteServerButton
+                serverId={row.original.serverId}
+                serverName={row.original.serverName}
+              />
+            </div>
+          )
+        },
+      },
+    ]
+  }, [hasOwnedServers])
+
+  const table = useReactTable({
+    data: servers ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => String(row.serverId),
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const search = String(filterValue).trim().toLowerCase()
+      if (!search) {
+        return true
+      }
+
+      const server = row.original
+      return (
+        server.serverName.toLowerCase().includes(search) ||
+        server.status.toLowerCase().includes(search) ||
+        (server.agentVersion?.toLowerCase().includes(search) ?? false)
+      )
+    },
+    state: {
+      globalFilter: searchQuery,
+      sorting,
+    },
+    onGlobalFilterChange: setSearchQuery,
+    onSortingChange: setSorting,
+  })
+
+  const filteredRowCount = table.getFilteredRowModel().rows.length
+  const errorMessage = error ?? null
 
   return (
     <div className="flex flex-col gap-3">
@@ -92,79 +204,11 @@ function ServersTable() {
         <p className="text-neutral-500">No servers registered yet.</p>
       ) : null}
 
-      {servers && servers.length > 0 && filteredServers.length === 0 ? (
+      {servers && servers.length > 0 && filteredRowCount === 0 ? (
         <p className="text-neutral-500">No servers match your search.</p>
       ) : null}
 
-      {filteredServers.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Uptime</TableHead>
-              <TableHead>CPU</TableHead>
-              <TableHead>Memory</TableHead>
-              <TableHead>Agent</TableHead>
-              <TableHead>Created</TableHead>
-              {hasOwnedServers ? (
-                <TableHead className="w-0">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              ) : null}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredServers.map((server) => (
-              <TableRow key={server.serverId}>
-                <TableCell className="font-medium">
-                  <Link
-                    to="/servers/$serverId"
-                    params={{ serverId: String(server.serverId) }}
-                    search={{ range: "7d" }}
-                    className="text-monitor hover:underline dark:text-warning"
-                  >
-                    {server.serverName}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <ServerStatusBadge status={server.status} />
-                </TableCell>
-                <TableCell>{formatUptime(server.uptimeSeconds)}</TableCell>
-                <TableCell>
-                  <CpuPercent value={server.cpuPercent} />
-                </TableCell>
-                <TableCell>
-                  <MemoryPercent
-                    usage={server.memUsage}
-                    max={server.memMax}
-                  />
-                </TableCell>
-                <TableCell>{server.agentVersion ?? "—"}</TableCell>
-                <TableCell className="text-neutral-500">
-                  {formatDate(server.createdAt)}
-                </TableCell>
-                {server.role === "OWNER" ? (
-                  <TableCell>
-                    <div className="flex items-center">
-                      <RenameServerDialog
-                        serverId={server.serverId}
-                        currentName={server.serverName}
-                      />
-                      <DeleteServerButton
-                        serverId={server.serverId}
-                        serverName={server.serverName}
-                      />
-                    </div>
-                  </TableCell>
-                ) : hasOwnedServers ? (
-                  <TableCell />
-                ) : null}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      ) : null}
+      {filteredRowCount > 0 ? <DataTable table={table} /> : null}
     </div>
   )
 }

@@ -1,23 +1,27 @@
 import { useMutation } from "@tanstack/react-query"
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table"
 import { Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { InviteMemberDialog } from "@/components/server/invite-member-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
 import {
   removeServerMember,
   revokeServerInvite,
 } from "@/lib/api/user/access"
-import type { ServerAccessListResponse } from "@/lib/api/user/access"
+import type {
+  PendingServerInvite,
+  ServerAccessListResponse,
+} from "@/lib/api/user/access"
+import type { ServerRole } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { useAccessStore } from "@/stores/access-store"
 import { formatDate } from "@/lib/formatter"
@@ -26,6 +30,14 @@ type ServerAccessViewProps = {
   serverId: number
   access: ServerAccessListResponse
   canManage: boolean
+}
+
+type AccessMemberRow = {
+  id: number
+  email: string
+  role: ServerRole | "OWNER"
+  joinedAt: string | null
+  memberUserId: number | null
 }
 
 function formatRole(role: string): string {
@@ -169,6 +181,141 @@ function ServerAccessView({
   access,
   canManage,
 }: ServerAccessViewProps) {
+  const [memberSorting, setMemberSorting] = useState<SortingState>([])
+  const [inviteSorting, setInviteSorting] = useState<SortingState>([])
+
+  const memberRows = useMemo<AccessMemberRow[]>(
+    () => [
+      {
+        id: access.owner.id,
+        email: access.owner.email,
+        role: "OWNER",
+        joinedAt: null,
+        memberUserId: null,
+      },
+      ...access.members.map((member) => ({
+        id: member.userId,
+        email: member.email,
+        role: member.role,
+        joinedAt: member.joinedAt,
+        memberUserId: member.userId,
+      })),
+    ],
+    [access]
+  )
+
+  const memberColumns = useMemo<ColumnDef<AccessMemberRow>[]>(() => {
+    const baseColumns: ColumnDef<AccessMemberRow>[] = [
+      {
+        accessorKey: "email",
+        header: "Email",
+        meta: { className: "font-bold" },
+        cell: ({ row }) => row.original.email,
+      },
+      {
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => <RoleTag role={row.original.role} />,
+      },
+      {
+        accessorKey: "joinedAt",
+        header: "Joined",
+        meta: { className: "text-neutral-500" },
+        cell: ({ row }) =>
+          row.original.joinedAt ? formatDate(row.original.joinedAt) : "—",
+      },
+    ]
+
+    if (!canManage) {
+      return baseColumns
+    }
+
+    return [
+      ...baseColumns,
+      {
+        id: "actions",
+        enableSorting: false,
+        header: () => <span className="sr-only">Actions</span>,
+        meta: { className: "w-0" },
+        cell: ({ row }) => {
+          if (row.original.memberUserId === null) {
+            return <span className="inline-flex size-7" aria-hidden />
+          }
+
+          return (
+            <RemoveMemberButton
+              serverId={serverId}
+              memberUserId={row.original.memberUserId}
+              memberEmail={row.original.email}
+            />
+          )
+        },
+      },
+    ]
+  }, [canManage, serverId])
+
+  const pendingInviteColumns = useMemo<ColumnDef<PendingServerInvite>[]>(
+    () => [
+      {
+        accessorKey: "email",
+        header: "Email",
+        meta: { className: "font-bold" },
+        cell: ({ row }) => row.original.email,
+      },
+      {
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => <RoleTag role={row.original.role} />,
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Sent",
+        meta: { className: "text-neutral-500" },
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+      {
+        accessorKey: "expiresAt",
+        header: "Expires",
+        meta: { className: "text-neutral-500" },
+        cell: ({ row }) => formatDate(row.original.expiresAt),
+      },
+      {
+        id: "actions",
+        enableSorting: false,
+        header: () => <span className="sr-only">Actions</span>,
+        meta: { className: "w-0" },
+        cell: ({ row }) => (
+          <RevokeInviteButton
+            serverId={serverId}
+            inviteId={row.original.inviteId}
+            inviteEmail={row.original.email}
+          />
+        ),
+      },
+    ],
+    [serverId]
+  )
+
+  const membersTable = useReactTable({
+    data: memberRows,
+    columns: memberColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => String(row.id),
+    state: { sorting: memberSorting },
+    onSortingChange: setMemberSorting,
+  })
+
+  const pendingInvitesTable = useReactTable({
+    data: access.pendingInvites,
+    columns: pendingInviteColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => String(row.inviteId),
+    state: { sorting: inviteSorting },
+    onSortingChange: setInviteSorting,
+  })
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
@@ -177,54 +324,7 @@ function ServerAccessView({
           {canManage ? <InviteMemberDialog serverId={serverId} /> : null}
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Joined</TableHead>
-              {canManage ? (
-                <TableHead className="w-0">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              ) : null}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow key={access.owner.id}>
-              <TableCell className="font-bold">{access.owner.email}</TableCell>
-              <TableCell>
-                <RoleTag role="OWNER" />
-              </TableCell>
-              <TableCell className="text-neutral-500">—</TableCell>
-              {canManage ? (
-                <TableCell>
-                  <span className="inline-flex size-7" aria-hidden />
-                </TableCell>
-              ) : null}
-            </TableRow>
-            {access.members.map((member) => (
-              <TableRow key={member.userId}>
-                <TableCell className="font-bold">{member.email}</TableCell>
-                <TableCell>
-                  <RoleTag role={member.role} />
-                </TableCell>
-                <TableCell className="text-neutral-500">
-                  {formatDate(member.joinedAt)}
-                </TableCell>
-                {canManage ? (
-                  <TableCell>
-                    <RemoveMemberButton
-                      serverId={serverId}
-                      memberUserId={member.userId}
-                      memberEmail={member.email}
-                    />
-                  </TableCell>
-                ) : null}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable table={membersTable} />
       </div>
 
       {canManage ? (
@@ -234,42 +334,7 @@ function ServerAccessView({
           {access.pendingInvites.length === 0 ? (
             <p className="text-neutral-500">No pending invites.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Sent</TableHead>
-                  <TableHead>Expires</TableHead>
-                  <TableHead className="w-0">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {access.pendingInvites.map((invite) => (
-                  <TableRow key={invite.inviteId}>
-                    <TableCell className="font-bold">{invite.email}</TableCell>
-                    <TableCell>
-                      <RoleTag role={invite.role} />
-                    </TableCell>
-                    <TableCell className="text-neutral-500">
-                      {formatDate(invite.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-neutral-500">
-                      {formatDate(invite.expiresAt)}
-                    </TableCell>
-                    <TableCell>
-                      <RevokeInviteButton
-                        serverId={serverId}
-                        inviteId={invite.inviteId}
-                        inviteEmail={invite.email}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable table={pendingInvitesTable} />
           )}
         </div>
       ) : null}
