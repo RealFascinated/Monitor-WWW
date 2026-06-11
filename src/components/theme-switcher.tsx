@@ -1,0 +1,52 @@
+import { Monitor, Moon, Sun } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import type { ThemePreference } from "@/lib/theme"
+import { useTheme } from "@/lib/theme"
+
+const themeOptions = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "system", label: "System", icon: Monitor },
+  { value: "dark", label: "Dark", icon: Moon },
+] as const satisfies ReadonlyArray<{
+  value: ThemePreference
+  label: string
+  icon: typeof Sun
+}>
+
+export function ThemeSwitcher({ className }: { className?: string }) {
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <div
+      role="group"
+      aria-label="Theme"
+      className={cn(
+        "inline-flex items-center gap-0.5 rounded-sm bg-neutral-100 p-0.5 dark:bg-monitor-gray-200",
+        className
+      )}
+    >
+      {themeOptions.map(({ value, label, icon: Icon }) => {
+        const isActive = theme === value
+
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setTheme(value)}
+            aria-label={label}
+            aria-pressed={isActive}
+            className={cn(
+              "flex size-6 shrink-0 items-center justify-center rounded-sm transition-colors",
+              isActive
+                ? "bg-white text-monitor dark:bg-monitor-gray-300 dark:text-warning"
+                : "text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+            )}
+          >
+            <Icon className="size-3.5" />
+          </button>
+        )
+      })}
+    </div>
+  )
+}

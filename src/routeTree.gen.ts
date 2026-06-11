@@ -8,59 +8,286 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as IndexRouteImport } from "./routes/index"
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedInvitesRouteRouteImport } from './routes/_authenticated/invites/route'
+import { Route as AuthenticatedInvitesIndexRouteImport } from './routes/_authenticated/invites/index'
+import { Route as AuthenticatedInvitesAcceptRouteImport } from './routes/_authenticated/invites/accept'
+import { Route as AuthenticatedServersServerIdRouteRouteImport } from './routes/_authenticated/servers/$serverId/route'
+import { Route as AuthenticatedServersServerIdIndexRouteImport } from './routes/_authenticated/servers/$serverId/index'
+import { Route as AuthenticatedServersServerIdAccessRouteImport } from './routes/_authenticated/servers/$serverId/access'
 
-const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedInvitesRouteRoute =
+  AuthenticatedInvitesRouteRouteImport.update({
+    id: '/invites',
+    path: '/invites',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInvitesIndexRoute =
+  AuthenticatedInvitesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedInvitesRouteRoute,
+  } as any)
+const AuthenticatedInvitesAcceptRoute =
+  AuthenticatedInvitesAcceptRouteImport.update({
+    id: '/accept',
+    path: '/accept',
+    getParentRoute: () => AuthenticatedInvitesRouteRoute,
+  } as any)
+const AuthenticatedServersServerIdRouteRoute =
+  AuthenticatedServersServerIdRouteRouteImport.update({
+    id: '/servers/$serverId',
+    path: '/servers/$serverId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedServersServerIdIndexRoute =
+  AuthenticatedServersServerIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedServersServerIdRouteRoute,
+  } as any)
+const AuthenticatedServersServerIdAccessRoute =
+  AuthenticatedServersServerIdAccessRouteImport.update({
+    id: '/access',
+    path: '/access',
+    getParentRoute: () => AuthenticatedServersServerIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/invites': typeof AuthenticatedInvitesRouteRouteWithChildren
+  '/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
+  '/invites/accept': typeof AuthenticatedInvitesAcceptRoute
+  '/invites/': typeof AuthenticatedInvitesIndexRoute
+  '/servers/$serverId/access': typeof AuthenticatedServersServerIdAccessRoute
+  '/servers/$serverId/': typeof AuthenticatedServersServerIdIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/invites/accept': typeof AuthenticatedInvitesAcceptRoute
+  '/invites': typeof AuthenticatedInvitesIndexRoute
+  '/servers/$serverId/access': typeof AuthenticatedServersServerIdAccessRoute
+  '/servers/$serverId': typeof AuthenticatedServersServerIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  "/": typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/_authenticated/invites': typeof AuthenticatedInvitesRouteRouteWithChildren
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
+  '/_authenticated/invites/accept': typeof AuthenticatedInvitesAcceptRoute
+  '/_authenticated/invites/': typeof AuthenticatedInvitesIndexRoute
+  '/_authenticated/servers/$serverId/access': typeof AuthenticatedServersServerIdAccessRoute
+  '/_authenticated/servers/$serverId/': typeof AuthenticatedServersServerIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/"
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/invites'
+    | '/servers/$serverId'
+    | '/invites/accept'
+    | '/invites/'
+    | '/servers/$serverId/access'
+    | '/servers/$serverId/'
   fileRoutesByTo: FileRoutesByTo
-  to: "/"
-  id: "__root__" | "/"
+  to:
+    | '/login'
+    | '/register'
+    | '/'
+    | '/invites/accept'
+    | '/invites'
+    | '/servers/$serverId/access'
+    | '/servers/$serverId'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/register'
+    | '/_authenticated/invites'
+    | '/_authenticated/'
+    | '/_authenticated/servers/$serverId'
+    | '/_authenticated/invites/accept'
+    | '/_authenticated/invites/'
+    | '/_authenticated/servers/$serverId/access'
+    | '/_authenticated/servers/$serverId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/"
-      path: "/"
-      fullPath: "/"
-      preLoaderRoute: typeof IndexRouteImport
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/invites': {
+      id: '/_authenticated/invites'
+      path: '/invites'
+      fullPath: '/invites'
+      preLoaderRoute: typeof AuthenticatedInvitesRouteRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/invites/': {
+      id: '/_authenticated/invites/'
+      path: '/'
+      fullPath: '/invites/'
+      preLoaderRoute: typeof AuthenticatedInvitesIndexRouteImport
+      parentRoute: typeof AuthenticatedInvitesRouteRoute
+    }
+    '/_authenticated/invites/accept': {
+      id: '/_authenticated/invites/accept'
+      path: '/accept'
+      fullPath: '/invites/accept'
+      preLoaderRoute: typeof AuthenticatedInvitesAcceptRouteImport
+      parentRoute: typeof AuthenticatedInvitesRouteRoute
+    }
+    '/_authenticated/servers/$serverId': {
+      id: '/_authenticated/servers/$serverId'
+      path: '/servers/$serverId'
+      fullPath: '/servers/$serverId'
+      preLoaderRoute: typeof AuthenticatedServersServerIdRouteRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/servers/$serverId/': {
+      id: '/_authenticated/servers/$serverId/'
+      path: '/'
+      fullPath: '/servers/$serverId/'
+      preLoaderRoute: typeof AuthenticatedServersServerIdIndexRouteImport
+      parentRoute: typeof AuthenticatedServersServerIdRouteRoute
+    }
+    '/_authenticated/servers/$serverId/access': {
+      id: '/_authenticated/servers/$serverId/access'
+      path: '/access'
+      fullPath: '/servers/$serverId/access'
+      preLoaderRoute: typeof AuthenticatedServersServerIdAccessRouteImport
+      parentRoute: typeof AuthenticatedServersServerIdRouteRoute
     }
   }
 }
 
+interface AuthenticatedInvitesRouteRouteChildren {
+  AuthenticatedInvitesAcceptRoute: typeof AuthenticatedInvitesAcceptRoute
+  AuthenticatedInvitesIndexRoute: typeof AuthenticatedInvitesIndexRoute
+}
+
+const AuthenticatedInvitesRouteRouteChildren: AuthenticatedInvitesRouteRouteChildren =
+  {
+    AuthenticatedInvitesAcceptRoute: AuthenticatedInvitesAcceptRoute,
+    AuthenticatedInvitesIndexRoute: AuthenticatedInvitesIndexRoute,
+  }
+
+const AuthenticatedInvitesRouteRouteWithChildren =
+  AuthenticatedInvitesRouteRoute._addFileChildren(
+    AuthenticatedInvitesRouteRouteChildren,
+  )
+
+interface AuthenticatedServersServerIdRouteRouteChildren {
+  AuthenticatedServersServerIdAccessRoute: typeof AuthenticatedServersServerIdAccessRoute
+  AuthenticatedServersServerIdIndexRoute: typeof AuthenticatedServersServerIdIndexRoute
+}
+
+const AuthenticatedServersServerIdRouteRouteChildren: AuthenticatedServersServerIdRouteRouteChildren =
+  {
+    AuthenticatedServersServerIdAccessRoute:
+      AuthenticatedServersServerIdAccessRoute,
+    AuthenticatedServersServerIdIndexRoute:
+      AuthenticatedServersServerIdIndexRoute,
+  }
+
+const AuthenticatedServersServerIdRouteRouteWithChildren =
+  AuthenticatedServersServerIdRouteRoute._addFileChildren(
+    AuthenticatedServersServerIdRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedInvitesRouteRoute: typeof AuthenticatedInvitesRouteRouteWithChildren
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedServersServerIdRouteRoute: typeof AuthenticatedServersServerIdRouteRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedInvitesRouteRoute: AuthenticatedInvitesRouteRouteWithChildren,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedServersServerIdRouteRoute:
+    AuthenticatedServersServerIdRouteRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx"
-import type { createStart } from "@tanstack/react-start"
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>

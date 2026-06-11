@@ -1,10 +1,20 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
+import type { QueryClient } from "@tanstack/react-query"
+import {
+  HeadContent,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 
+import { AuthProvider } from "@/lib/auth"
+import { ThemeProvider } from "@/lib/theme"
+import { themeInitScript } from "@/lib/theme/script"
 import appCss from "../styles.css?url"
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
   head: () => ({
     meta: [
       {
@@ -15,7 +25,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "Server Monitor",
       },
     ],
     links: [
@@ -28,7 +38,7 @@ export const Route = createRootRoute({
   notFoundComponent: () => (
     <main className="container mx-auto p-4 pt-16">
       <h1>404</h1>
-      <p>The requested page could not be found.</p>
+      <p className="text-neutral-500">The requested page could not be found.</p>
     </main>
   ),
   shellComponent: RootDocument,
@@ -36,12 +46,15 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        {children}
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",
