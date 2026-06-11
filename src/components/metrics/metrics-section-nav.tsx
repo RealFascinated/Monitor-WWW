@@ -17,13 +17,8 @@ import type {
 
 type MetricsSectionNavProps = {
   sections: MetricsSectionNode[]
-}
-
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  })
+  activeId: string
+  onScrollToSection: (id: string) => void
 }
 
 const navItemClassName = (isActive: boolean, nested = false) =>
@@ -38,16 +33,18 @@ const navItemClassName = (isActive: boolean, nested = false) =>
 function NavLeafButton({
   section,
   isActive,
+  onScrollToSection,
   nested = false,
 }: {
   section: MetricsSectionLeaf
   isActive: boolean
+  onScrollToSection: (id: string) => void
   nested?: boolean
 }) {
   return (
     <button
       type="button"
-      onClick={() => scrollToSection(section.id)}
+      onClick={() => onScrollToSection(section.id)}
       className={navItemClassName(isActive, nested)}
     >
       <span className="truncate">{metricsSectionNavLabel(section)}</span>
@@ -60,11 +57,13 @@ function NavGroup({
   activeId,
   expanded,
   onToggle,
+  onScrollToSection,
 }: {
   group: Extract<MetricsSectionNode, { kind: "group" }>
   activeId: string
   expanded: boolean
   onToggle: () => void
+  onScrollToSection: (id: string) => void
 }) {
   const hasActiveChild = group.children.some((child) => child.id === activeId)
 
@@ -101,6 +100,7 @@ function NavGroup({
               key={child.id}
               section={child}
               isActive={child.id === activeId}
+              onScrollToSection={onScrollToSection}
               nested
             />
           ))}
@@ -110,12 +110,12 @@ function NavGroup({
   )
 }
 
-function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
+function MetricsSectionNav({
+  sections,
+  activeId,
+  onScrollToSection,
+}: MetricsSectionNavProps) {
   const sectionIdsKey = metricsSectionIdsKey(sections)
-  const leaves = useMemo(
-    () => flattenMetricSectionLeaves(sections),
-    [sectionIdsKey]
-  )
   const groupIds = useMemo(
     () =>
       sections
@@ -124,14 +124,9 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
     [sectionIdsKey, sections]
   )
 
-  const [activeId, setActiveId] = useState(leaves[0]?.id ?? "")
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     () => new Set(groupIds)
   )
-
-  useEffect(() => {
-    setActiveId(leaves[0]?.id ?? "")
-  }, [sectionIdsKey, leaves])
 
   useEffect(() => {
     setExpandedGroups((current) => {
@@ -167,52 +162,6 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
     })
   }, [activeId, sections])
 
-  useEffect(() => {
-    const elements = leaves
-      .map((section) => document.getElementById(section.id))
-      .filter((element): element is HTMLElement => element !== null)
-
-    if (elements.length === 0) {
-      return
-    }
-
-    const visibility = new Map<string, boolean>()
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          visibility.set(entry.target.id, entry.isIntersecting)
-        }
-
-        const visibleLeaves = leaves.filter((leaf) => visibility.get(leaf.id))
-
-        if (visibleLeaves.length === 0) {
-          return
-        }
-
-        const topLeaf = visibleLeaves.reduce((current, candidate) => {
-          const currentTop =
-            document.getElementById(current.id)?.getBoundingClientRect().top ??
-            Number.POSITIVE_INFINITY
-          const candidateTop =
-            document.getElementById(candidate.id)?.getBoundingClientRect().top ??
-            Number.POSITIVE_INFINITY
-
-          return candidateTop < currentTop ? candidate : current
-        })
-
-        setActiveId(topLeaf.id)
-      },
-      { rootMargin: "-15% 0px -70% 0px", threshold: 0 }
-    )
-
-    for (const element of elements) {
-      observer.observe(element)
-    }
-
-    return () => observer.disconnect()
-  }, [sectionIdsKey, leaves])
-
   function toggleGroup(groupId: string) {
     setExpandedGroups((current) => {
       const next = new Set(current)
@@ -227,7 +176,12 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
     })
   }
 
-  if (leaves.length <= 1) {
+  const leafCount = useMemo(
+    () => flattenMetricSectionLeaves(sections).length,
+    [sectionIdsKey, sections]
+  )
+
+  if (leafCount <= 1) {
     return null
   }
 
@@ -253,6 +207,7 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
                   activeId={activeId}
                   expanded={expandedGroups.has(node.id)}
                   onToggle={() => toggleGroup(node.id)}
+                  onScrollToSection={onScrollToSection}
                 />
               )
             }
@@ -262,6 +217,7 @@ function MetricsSectionNav({ sections }: MetricsSectionNavProps) {
                 key={node.id}
                 section={node}
                 isActive={node.id === activeId}
+                onScrollToSection={onScrollToSection}
               />
             )
           })}

@@ -1,10 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
-import {
-  METRIC_CHART_LAZY_ROOT_MARGIN,
-  useInView,
-} from "@/hooks/use-in-view"
 import { cn } from "@/lib/utils"
 
 type MetricSectionProps = {
@@ -24,11 +20,6 @@ function MetricSection({
   contentMinHeight,
   render,
 }: MetricSectionProps) {
-  const { ref: contentRef, isInView } = useInView({
-    rootMargin: METRIC_CHART_LAZY_ROOT_MARGIN,
-    once: true,
-  })
-
   return (
     <section
       id={id}
@@ -54,12 +45,8 @@ function MetricSection({
           </p>
         ) : null}
       </div>
-      <div
-        ref={contentRef}
-        className="w-full"
-        style={{ minHeight: contentMinHeight }}
-      >
-        {isInView ? render() : null}
+      <div className="w-full" style={{ minHeight: contentMinHeight }}>
+        {render()}
       </div>
     </section>
   )
