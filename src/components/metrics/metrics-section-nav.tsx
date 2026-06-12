@@ -2,6 +2,8 @@ import { ChevronRight } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 import { SimpleTooltip } from "@/components/simple-tooltip"
+import { formatPercent } from "@/lib/formatter"
+import { percentLevelColorClass } from "@/lib/metrics/percent-level"
 import { cn } from "@/lib/utils"
 import {
   flattenMetricSectionLeaves,
@@ -50,16 +52,42 @@ function NavLeafButton({
   onScrollToSection: (id: string) => void
   nested?: boolean
 }) {
+  const percent = section.navPercent != null && (
+    <span
+      className={cn(
+        "ml-auto shrink-0 text-[10px] tabular-nums",
+        percentLevelColorClass(section.navPercent)
+      )}
+    >
+      {formatPercent(section.navPercent)}
+    </span>
+  )
+
   return (
-    <SimpleTooltip content={sectionNavTooltip(section)}>
-      <button
-        type="button"
-        onClick={() => onScrollToSection(section.id)}
-        className={cn(navItemClassName(isActive, nested), "cursor-help")}
-      >
-        <span className="truncate">{metricsSectionNavLabel(section)}</span>
-      </button>
-    </SimpleTooltip>
+    <button
+      type="button"
+      onClick={() => onScrollToSection(section.id)}
+      className={navItemClassName(isActive, nested)}
+    >
+      {section.navPercentTooltip ? (
+        <span className="min-w-0 flex-1 truncate">
+          {metricsSectionNavLabel(section)}
+        </span>
+      ) : (
+        <SimpleTooltip content={sectionNavTooltip(section)}>
+          <span className="min-w-0 flex-1 cursor-help truncate">
+            {metricsSectionNavLabel(section)}
+          </span>
+        </SimpleTooltip>
+      )}
+      {section.navPercent != null && section.navPercentTooltip ? (
+        <SimpleTooltip content={section.navPercentTooltip}>
+          <span className="cursor-help">{percent}</span>
+        </SimpleTooltip>
+      ) : (
+        percent
+      )}
+    </button>
   )
 }
 

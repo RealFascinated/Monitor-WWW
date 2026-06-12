@@ -11,6 +11,8 @@ type LeafInput = {
   id?: string
   title: string
   navLabel?: string
+  navPercent?: number | null
+  navPercentTooltip?: string
   icon: LucideIcon
   description?: string
   contentMinHeight: number
@@ -32,6 +34,8 @@ class MetricsSectionGroupBuilder {
       id: input.id ?? metricSectionId(input.title),
       title: input.title,
       navLabel: input.navLabel,
+      navPercent: input.navPercent,
+      navPercentTooltip: input.navPercentTooltip,
       icon: input.icon,
       description: input.description,
       contentMinHeight: input.contentMinHeight,
@@ -53,6 +57,8 @@ class MetricsSectionBuilder {
       id: input.id ?? metricSectionId(input.title),
       title: input.title,
       navLabel: input.navLabel,
+      navPercent: input.navPercent,
+      navPercentTooltip: input.navPercentTooltip,
       icon: input.icon,
       description: input.description,
       contentMinHeight: input.contentMinHeight,

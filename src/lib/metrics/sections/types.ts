@@ -6,6 +6,8 @@ type MetricsSectionLeaf = {
   id: string
   title: string
   navLabel?: string
+  navPercent?: number | null
+  navPercentTooltip?: string
   icon: LucideIcon
   description?: string
   contentMinHeight: number

@@ -28,6 +28,7 @@ import {
   ZFS_POOL_SECTION_CHART_COUNT,
 } from "@/lib/metrics/grid-height"
 import { metricSectionId } from "@/lib/metrics/sections/id"
+import { getLatestValue } from "@/lib/metrics/series"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
   chartsHaveData,
@@ -120,10 +121,21 @@ function buildServerMetricSections(
         continue
       }
 
+      const usedBytes = getLatestValue(disk.usedBytes)
+      const totalBytes = getLatestValue(disk.totalBytes)
+      const navPercentTooltip =
+        usedBytes != null && totalBytes != null
+          ? `${formatMemoryBytes(usedBytes)} of ${formatMemoryBytes(totalBytes)}`
+          : usedBytes != null
+            ? formatMemoryBytes(usedBytes)
+            : undefined
+
       group.leaf({
         id: metricSectionId(`disk-${disk.disk}`),
         title: `Disk ${disk.disk}`,
         navLabel: disk.disk,
+        navPercent: getLatestValue(disk.usagePercent),
+        navPercentTooltip,
         icon: HardDrive,
         contentMinHeight: estimateChartsGridHeight(DISK_SECTION_CHART_COUNT),
         render: () => (
