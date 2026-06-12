@@ -18,9 +18,9 @@ export function getPercentLevel(value: number): PercentLevel {
 
 const percentLevelColorClasses: Record<PercentLevel, string> = {
   unknown: "text-neutral-500",
-  normal: "text-green-700 dark:text-green-400",
-  warning: "text-yellow-700 dark:text-warning",
-  critical: "text-red-700 dark:text-error",
+  normal: "text-[#2E9470] dark:text-green-400",
+  warning: "text-[#B8870A] dark:text-warning",
+  critical: "text-[#C44E4E] dark:text-error",
 }
 
 export function percentLevelColorClass(

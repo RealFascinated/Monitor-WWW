@@ -1,40 +1,40 @@
 import type { ResolvedTheme } from "@/lib/theme/context"
 
-// Grafana-style classic palette — distinct hues for multi-series charts.
-const GRAFANA_PALETTE_LIGHT = [
-  "#5794F2", // blue
-  "#73BF69", // green
-  "#FF9830", // orange
-  "#F2495C", // red
-  "#B877D9", // purple
-  "#FADE2A", // yellow
-  "#6ED0E0", // cyan
-  "#1F78C1", // dark blue
-  "#BA43A9", // magenta
-  "#705DA0", // violet
-  "#508642", // dark green
-  "#EAB839", // gold
+// Distinct hues tuned for the app brand; even spacing avoids muddy near-duplicates.
+const CHART_PALETTE_LIGHT = [
+  "#7A6FDB", // periwinkle
+  "#4A84E6", // blue
+  "#3AADBE", // cyan
+  "#3FAF87", // emerald
+  "#D4A030", // amber
+  "#DC6B6B", // coral
+  "#D9609F", // rose
+  "#8E84D4", // violet
+  "#3CA89E", // teal
+  "#E08A58", // orange
+  "#6F7CE0", // indigo
+  "#8AAF5A", // lime
 ] as const
 
-const GRAFANA_PALETTE_DARK = [
-  "#5794F2",
-  "#73BF69",
-  "#FF9830",
-  "#F2495C",
-  "#B877D9",
-  "#FADE2A",
-  "#6ED0E0",
-  "#1F78C1",
-  "#BA43A9",
-  "#705DA0",
-  "#56A64B",
-  "#E0B400",
+const CHART_PALETTE_DARK = [
+  "#A855F7", // purple
+  "#60A5FA", // blue
+  "#22D3EE", // cyan
+  "#34D399", // emerald
+  "#FBBF24", // amber
+  "#F87171", // red
+  "#F472B6", // rose
+  "#C084FC", // violet
+  "#2DD4BF", // teal
+  "#FB923C", // orange
+  "#818CF8", // indigo
+  "#A3E635", // lime
 ] as const
 
 export function getChartColors(theme: ResolvedTheme = "light"): string[] {
   return theme === "dark"
-    ? [...GRAFANA_PALETTE_DARK]
-    : [...GRAFANA_PALETTE_LIGHT]
+    ? [...CHART_PALETTE_DARK]
+    : [...CHART_PALETTE_LIGHT]
 }
 
 export function getChartColor(

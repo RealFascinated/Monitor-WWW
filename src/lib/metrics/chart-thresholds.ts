@@ -13,8 +13,8 @@ const THRESHOLD_COLORS: Record<
   Record<ChartThresholdLevel, string>
 > = {
   light: {
-    warning: "#CA8A04",
-    critical: "#DC2626",
+    warning: "#D4A030",
+    critical: "#DC6B6B",
   },
   dark: {
     warning: "#FADE2A",
