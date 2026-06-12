@@ -60,6 +60,26 @@ export function getLatestValue(values: MetricValues): number | null {
   return null
 }
 
+function stackSortValue(series: ChartSeries): number {
+  const value = getLatestValue(series.values)
+  if (value == null) {
+    return Number.NEGATIVE_INFINITY
+  }
+
+  return series.negate ? Math.abs(value) : value
+}
+
+export function sortSeriesForStack(series: ChartSeries[]): ChartSeries[] {
+  return [...series].sort((a, b) => {
+    const valueDelta = stackSortValue(a) - stackSortValue(b)
+    if (valueDelta !== 0) {
+      return valueDelta
+    }
+
+    return a.label.localeCompare(b.label)
+  })
+}
+
 export function buildMultiSeriesData(
   gridTimestamps: number[],
   sourceTimestamps: number[] | null,

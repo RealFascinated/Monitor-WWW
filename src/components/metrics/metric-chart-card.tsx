@@ -10,6 +10,7 @@ import {
   buildMultiSeriesData,
   getLatestValue,
   hasSeriesData,
+  sortSeriesForStack,
 } from "@/lib/metrics/series"
 import type { ChartSeries } from "@/lib/metrics/series"
 import type { MetricsTimeGrid } from "@/lib/metrics/timestamps"
@@ -46,19 +47,23 @@ function MetricChartCard({
 }: MetricChartCardProps) {
   const chartHeight = height ?? 200
   const isHydrated = useChartHydration()
+  const chartSeries = useMemo(
+    () => (mode === "stack" ? sortSeriesForStack(series) : series),
+    [mode, series]
+  )
   const built = useMemo(() => {
-    if (!isHydrated || !hasSeriesData(series)) {
+    if (!isHydrated || !hasSeriesData(chartSeries)) {
       return null
     }
 
     return buildMultiSeriesData(
       timeGrid.gridTimestamps,
       timeGrid.sourceTimestamps,
-      series
+      chartSeries
     )
-  }, [isHydrated, timeGrid, series])
+  }, [isHydrated, timeGrid, chartSeries])
   const { resolvedTheme } = useTheme()
-  const shouldShowCurrentValues = showCurrentValues ?? series.length <= 4
+  const shouldShowCurrentValues = showCurrentValues ?? chartSeries.length <= 4
   const latestTimestamp = timeGrid.gridTimestamps.at(-1)
   const latestTimestampLabel = latestTimestamp
     ? formatChartTimestamp(latestTimestamp)
@@ -92,7 +97,7 @@ function MetricChartCard({
           </div>
           {shouldShowCurrentValues ? (
             <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5">
-              {series.map((entry, index) => {
+              {chartSeries.map((entry, index) => {
                 const value = getLatestValue(entry.values)
                 if (value == null) {
                   return null
@@ -116,7 +121,7 @@ function MetricChartCard({
                           backgroundColor: getChartColor(index, resolvedTheme),
                         }}
                       />
-                      {series.length > 1 ? (
+                      {chartSeries.length > 1 ? (
                         <span className="text-muted-foreground">
                           {entry.label}
                         </span>

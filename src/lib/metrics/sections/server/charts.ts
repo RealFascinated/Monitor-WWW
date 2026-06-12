@@ -342,7 +342,8 @@ function hostCpuCharts(
     {
       title: "CPU breakdown",
       description:
-        "User, system, I/O wait, and steal time as a share of CPU capacity. I/O wait is time spent waiting on disk. Steal is time taken by the hypervisor on VMs.",
+        "User, system, I/O wait, and steal time stacked as a share of CPU capacity. I/O wait is time spent waiting on disk. Steal is time taken by the hypervisor on VMs.",
+      mode: "stack",
       series: [
         chartSeries("User", host.cpuUserPct),
         chartSeries("System", host.cpuSystemPct),
