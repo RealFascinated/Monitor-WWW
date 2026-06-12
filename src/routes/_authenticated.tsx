@@ -1,4 +1,5 @@
 import {
+  Link,
   Outlet,
   createFileRoute,
   useNavigate,
@@ -129,8 +130,14 @@ function AuthenticatedLayout() {
           >
             <Menu className="size-4" />
           </Button>
-          <MonitorLogo />
-          <p className="text-lg font-bold dark:text-white">Monitor</p>
+          <Link
+            to="/"
+            aria-label="Dashboard"
+            className="flex items-center gap-3"
+          >
+            <MonitorLogo />
+            <p className="text-lg font-bold dark:text-white">Monitor</p>
+          </Link>
         </header>
 
         <main className="p-4 sm:px-6 lg:px-8 lg:py-6">

@@ -251,12 +251,19 @@ export function AppSidebar({
             compact && "justify-center px-2"
           )}
         >
-          <MonitorLogo />
-          {!compact ? (
-            <p className="text-2xl font-bold tracking-wide text-black dark:text-white">
-              Monitor
-            </p>
-          ) : null}
+          <Link
+            to="/"
+            onClick={handleNavigate}
+            aria-label="Dashboard"
+            className="flex items-center gap-2"
+          >
+            <MonitorLogo />
+            {!compact ? (
+              <p className="text-2xl font-bold tracking-wide text-black dark:text-white">
+                Monitor
+              </p>
+            ) : null}
+          </Link>
           <button
             type="button"
             aria-label="Close sidebar"
