@@ -32,9 +32,7 @@ const CHART_PALETTE_DARK = [
 ] as const
 
 export function getChartColors(theme: ResolvedTheme = "light"): string[] {
-  return theme === "dark"
-    ? [...CHART_PALETTE_DARK]
-    : [...CHART_PALETTE_LIGHT]
+  return theme === "dark" ? [...CHART_PALETTE_DARK] : [...CHART_PALETTE_LIGHT]
 }
 
 export function getChartColor(

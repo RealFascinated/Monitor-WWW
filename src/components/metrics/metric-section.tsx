@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react"
+import { memo } from "react"
 import type { ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
@@ -50,4 +51,6 @@ function MetricSection({
   )
 }
 
-export { MetricSection }
+const MemoizedMetricSection = memo(MetricSection)
+
+export { MemoizedMetricSection as MetricSection }

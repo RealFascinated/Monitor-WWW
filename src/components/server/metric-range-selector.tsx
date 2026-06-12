@@ -38,7 +38,7 @@ function MetricRangeSelector({
       role="group"
       aria-label="Time range"
     >
-      <div className="flex min-w-0 flex-1 items-center gap-px overflow-x-auto scrollbar-none sm:flex-initial sm:overflow-visible">
+      <div className="flex min-w-0 flex-1 scrollbar-none items-center gap-px overflow-x-auto sm:flex-initial sm:overflow-visible">
         {METRIC_RANGE_QUICK_PICKS.map((range) => {
           const option = getMetricRangeOption(range)
           const isActive = value === range
@@ -70,7 +70,9 @@ function MetricRangeSelector({
         <SelectTrigger
           size="sm"
           aria-label={
-            isQuickPick ? "More time ranges" : `Time range: ${activeOption.label}`
+            isQuickPick
+              ? "More time ranges"
+              : `Time range: ${activeOption.label}`
           }
           className={cn(
             "h-7 shrink-0 gap-1 rounded-sm border-0 bg-transparent px-2 shadow-none focus-visible:ring-1",

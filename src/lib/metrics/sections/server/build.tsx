@@ -28,7 +28,7 @@ import {
   ZFS_POOL_SECTION_CHART_COUNT,
 } from "@/lib/metrics/grid-height"
 import { metricSectionId } from "@/lib/metrics/sections/id"
-import { getLatestValue } from "@/lib/metrics/series"
+import { getLatestValue, chartSeries } from "@/lib/metrics/series"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
   chartsHaveData,
@@ -49,7 +49,6 @@ import {
   OverviewStats,
   overviewHasData,
 } from "@/lib/metrics/sections/server/overview"
-import { chartSeries } from "@/lib/metrics/series"
 import type { MetricsTimeGrid } from "@/lib/metrics/timestamps"
 import {
   formatCelsius,

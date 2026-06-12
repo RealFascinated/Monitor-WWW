@@ -46,7 +46,7 @@ function MetricChartCard({
   mode,
 }: MetricChartCardProps) {
   const chartHeight = height ?? 200
-  const isHydrated = useChartHydration()
+  const { hydrated: isHydrated, containerRef } = useChartHydration()
   const chartSeries = useMemo(
     () => (mode === "stack" ? sortSeriesForStack(series) : series),
     [mode, series]
@@ -138,7 +138,11 @@ function MetricChartCard({
         </div>
       </CardHeader>
       <CardContent className="px-3 pt-2 pb-3">
-        <div className="w-full" style={{ minHeight: chartHeight }}>
+        <div
+          ref={containerRef}
+          className="w-full"
+          style={{ minHeight: chartHeight }}
+        >
           {built ? (
             <MetricChart
               data={built.data}

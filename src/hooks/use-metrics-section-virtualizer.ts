@@ -14,18 +14,29 @@ import {
 } from "@/lib/metrics/grid-height"
 import type { MetricsSectionLeaf } from "@/lib/metrics/sections/types"
 
-function readMetricsSectionHash(): string {
-  const raw = window.location.hash.slice(1)
-  return raw ? decodeURIComponent(raw) : ""
-}
-
-function writeMetricsSectionHash(id: string) {
-  if (readMetricsSectionHash() === id) {
-    return
+function computeActiveSectionId(
+  leaves: MetricsSectionLeaf[],
+  scrollOffset: number,
+  virtualItems: Array<{ index: number; start: number }>
+): string | null {
+  if (virtualItems.length === 0) {
+    return null
   }
 
-  const next = `${window.location.pathname}${window.location.search}#${encodeURIComponent(id)}`
-  window.history.replaceState(window.history.state, "", next)
+  const scrollLine = scrollOffset + METRICS_SECTION_SCROLL_PADDING
+  let activeIndex = virtualItems[0].index
+
+  for (const item of virtualItems) {
+    if (item.start <= scrollLine + 1) {
+      activeIndex = item.index
+    }
+  }
+
+  if (virtualItems[0].start > scrollLine && virtualItems[0].index > 0) {
+    activeIndex = virtualItems[0].index - 1
+  }
+
+  return leaves[activeIndex]?.id ?? null
 }
 
 function useMetricsSectionVirtualizer(
@@ -33,32 +44,16 @@ function useMetricsSectionVirtualizer(
   sectionIdsKey: string
 ) {
   const listRef = useRef<HTMLDivElement>(null)
-  const hashRestoreKeyRef = useRef<string | null>(null)
-  const hashRestoreRetryKeyRef = useRef<string | null>(null)
-  const isRestoringHashRef = useRef(false)
-  const hashWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const activeIdRef = useRef(leaves[0]?.id ?? "")
+  const leavesRef = useRef(leaves)
+  const isProgrammaticScrollRef = useRef(false)
+  const programmaticScrollTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
   const [scrollMargin, setScrollMargin] = useState(0)
   const [activeId, setActiveId] = useState(leaves[0]?.id ?? "")
 
-  const queueMetricsSectionHash = useCallback((id: string) => {
-    if (hashWriteTimerRef.current) {
-      clearTimeout(hashWriteTimerRef.current)
-    }
-
-    hashWriteTimerRef.current = setTimeout(() => {
-      hashWriteTimerRef.current = null
-      writeMetricsSectionHash(id)
-    }, 150)
-  }, [])
-
-  const commitMetricsSectionHash = useCallback((id: string) => {
-    if (hashWriteTimerRef.current) {
-      clearTimeout(hashWriteTimerRef.current)
-      hashWriteTimerRef.current = null
-    }
-
-    writeMetricsSectionHash(id)
-  }, [])
+  leavesRef.current = leaves
 
   const updateScrollMargin = useCallback(() => {
     const element = listRef.current
@@ -66,24 +61,15 @@ function useMetricsSectionVirtualizer(
       return
     }
 
-    const rect = element.getBoundingClientRect()
-    setScrollMargin(rect.top + window.scrollY)
+    const next = element.getBoundingClientRect().top + window.scrollY
+    setScrollMargin((current) => (current === next ? current : next))
   }, [])
 
   useLayoutEffect(() => {
     updateScrollMargin()
-
-    const element = listRef.current
-    if (!element) {
-      return
-    }
-
-    const observer = new ResizeObserver(updateScrollMargin)
-    observer.observe(element)
     window.addEventListener("resize", updateScrollMargin, { passive: true })
 
     return () => {
-      observer.disconnect()
       window.removeEventListener("resize", updateScrollMargin)
     }
   }, [updateScrollMargin, sectionIdsKey])
@@ -97,133 +83,81 @@ function useMetricsSectionVirtualizer(
     scrollMargin,
     scrollPaddingStart: METRICS_SECTION_SCROLL_PADDING,
     getItemKey: (index) => leaves[index].id,
-    onChange: (instance) => {
-      const items = instance.getVirtualItems()
-      if (items.length === 0) {
-        return
-      }
-
-      const scrollLine =
-        (instance.scrollOffset ?? 0) + METRICS_SECTION_SCROLL_PADDING
-      let activeIndex = items[0].index
-
-      for (const item of items) {
-        if (item.start <= scrollLine + 1) {
-          activeIndex = item.index
-        }
-      }
-
-      if (items[0].start > scrollLine && items[0].index > 0) {
-        activeIndex = items[0].index - 1
-      }
-
-      const nextId = leaves[activeIndex]?.id
-      if (!nextId) {
-        return
-      }
-
-      setActiveId((current) => {
-        if (current === nextId) {
-          return current
-        }
-
-        if (!isRestoringHashRef.current) {
-          queueMetricsSectionHash(nextId)
-        }
-
-        return nextId
-      })
-    },
+    useCachedMeasurements: true,
   })
 
   const virtualizerRef = useRef(virtualizer)
   virtualizerRef.current = virtualizer
 
-  const scrollToHashSection = useCallback(
-    (hashId: string, behavior: ScrollBehavior = "auto") => {
-      const index = leaves.findIndex((section) => section.id === hashId)
-      if (index < 0) {
-        return false
-      }
-
-      isRestoringHashRef.current = true
-      setActiveId(hashId)
-      virtualizerRef.current.scrollToIndex(index, {
-        align: "start",
-        behavior,
-      })
-      requestAnimationFrame(() => {
-        isRestoringHashRef.current = false
-      })
-      return true
-    },
-    [leaves]
-  )
-
-  useLayoutEffect(() => {
-    if (hashRestoreKeyRef.current === sectionIdsKey) {
+  const syncActiveSection = useCallback(() => {
+    if (isProgrammaticScrollRef.current) {
       return
     }
 
-    const listElement = listRef.current
-    if (!listElement) {
+    const instance = virtualizerRef.current
+    const nextId = computeActiveSectionId(
+      leavesRef.current,
+      instance.scrollOffset ?? 0,
+      instance.getVirtualItems()
+    )
+
+    if (!nextId || nextId === activeIdRef.current) {
       return
     }
 
-    const hashId = readMetricsSectionHash()
-    const hashIndex = hashId
-      ? leaves.findIndex((section) => section.id === hashId)
-      : -1
-
-    if (hashIndex < 0) {
-      hashRestoreKeyRef.current = sectionIdsKey
-      setActiveId(leaves[0]?.id ?? "")
-      return
-    }
-
-    const measuredMargin =
-      listElement.getBoundingClientRect().top + window.scrollY
-    if (scrollMargin === 0 && measuredMargin > 0) {
-      return
-    }
-
-    if (!scrollToHashSection(hashId)) {
-      return
-    }
-
-    hashRestoreKeyRef.current = sectionIdsKey
-  }, [leaves, scrollMargin, scrollToHashSection, sectionIdsKey])
+    activeIdRef.current = nextId
+    setActiveId(nextId)
+  }, [])
 
   useEffect(() => {
-    if (hashRestoreKeyRef.current !== sectionIdsKey) {
-      return
-    }
+    let rafId = 0
 
-    if (hashRestoreRetryKeyRef.current === sectionIdsKey) {
-      return
-    }
-
-    const hashId = readMetricsSectionHash()
-    if (!hashId) {
-      return
-    }
-
-    hashRestoreRetryKeyRef.current = sectionIdsKey
-
-    let cancelled = false
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!cancelled) {
-          scrollToHashSection(hashId)
+    const onScroll = () => {
+      if (isProgrammaticScrollRef.current) {
+        if (programmaticScrollTimerRef.current) {
+          clearTimeout(programmaticScrollTimerRef.current)
         }
+
+        programmaticScrollTimerRef.current = setTimeout(() => {
+          programmaticScrollTimerRef.current = null
+          isProgrammaticScrollRef.current = false
+        }, 150)
+        return
+      }
+
+      if (rafId) {
+        return
+      }
+
+      rafId = requestAnimationFrame(() => {
+        rafId = 0
+        syncActiveSection()
       })
-    })
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    syncActiveSection()
 
     return () => {
-      cancelled = true
-      cancelAnimationFrame(frame)
+      window.removeEventListener("scroll", onScroll)
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+      }
+      if (programmaticScrollTimerRef.current) {
+        clearTimeout(programmaticScrollTimerRef.current)
+      }
     }
-  }, [scrollToHashSection, sectionIdsKey])
+  }, [syncActiveSection, sectionIdsKey])
+
+  useEffect(() => {
+    const firstId = leaves[0]?.id ?? ""
+    activeIdRef.current = firstId
+    setActiveId(firstId)
+  }, [sectionIdsKey, leaves])
+
+  const measureElement = useCallback((node: HTMLElement | null) => {
+    virtualizerRef.current.measureElement(node)
+  }, [])
 
   const scrollToSection = useCallback(
     (id: string, behavior: ScrollBehavior = "smooth") => {
@@ -232,39 +166,23 @@ function useMetricsSectionVirtualizer(
         return
       }
 
-      commitMetricsSectionHash(id)
+      if (programmaticScrollTimerRef.current) {
+        clearTimeout(programmaticScrollTimerRef.current)
+        programmaticScrollTimerRef.current = null
+      }
+
+      isProgrammaticScrollRef.current = true
+      activeIdRef.current = id
       setActiveId(id)
-      virtualizer.scrollToIndex(index, {
+      virtualizerRef.current.scrollToIndex(index, {
         align: "start",
         behavior,
       })
     },
-    [commitMetricsSectionHash, leaves, virtualizer]
+    [leaves]
   )
 
-  useEffect(() => {
-    return () => {
-      if (hashWriteTimerRef.current) {
-        clearTimeout(hashWriteTimerRef.current)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    function handleHashChange() {
-      const hashId = readMetricsSectionHash()
-      if (!hashId) {
-        return
-      }
-
-      scrollToHashSection(hashId, "auto")
-    }
-
-    window.addEventListener("hashchange", handleHashChange)
-    return () => window.removeEventListener("hashchange", handleHashChange)
-  }, [scrollToHashSection])
-
-  return { listRef, virtualizer, activeId, scrollToSection }
+  return { listRef, virtualizer, measureElement, activeId, scrollToSection }
 }
 
 export { useMetricsSectionVirtualizer }
