@@ -136,11 +136,27 @@ export function formatMemoryUsage(
   return formatPercent(memoryUsagePercent(usage, max))
 }
 
-export function formatDate(iso: string): string {
+const RELATIVE_TIME_THRESHOLD_MS = 30 * 86_400 * 1000
+
+function formatAbsoluteDate(iso: string): string {
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(iso))
+}
+
+function isWithinRelativeTimeThreshold(iso: string): boolean {
+  return (
+    Math.abs(new Date(iso).getTime() - Date.now()) < RELATIVE_TIME_THRESHOLD_MS
+  )
+}
+
+export function formatDate(iso: string): string {
+  if (isWithinRelativeTimeThreshold(iso)) {
+    return formatRelativeTime(iso)
+  }
+
+  return formatAbsoluteDate(iso)
 }
 
 export function formatRelativeTime(iso: string): string {
@@ -165,7 +181,13 @@ export function formatRelativeTime(iso: string): string {
 }
 
 export function formatDateWithRelative(iso: string): string {
-  return `${formatDate(iso)} (${formatRelativeTime(iso)})`
+  const absolute = formatAbsoluteDate(iso)
+
+  if (isWithinRelativeTimeThreshold(iso)) {
+    return absolute
+  }
+
+  return `${absolute} (${formatRelativeTime(iso)})`
 }
 
 export function formatUptimeDetailed(seconds: number | null): string | null {
