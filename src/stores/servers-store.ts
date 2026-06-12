@@ -49,9 +49,9 @@ export const useServersStore = create<ServersState>((set, get) => ({
   },
 
   ensureServer: async (serverId) => {
-    const existing = get().servers[serverId]
-    if (existing) {
-      return existing
+    const servers = get().servers
+    if (serverId in servers) {
+      return servers[serverId]
     }
     const server = await getUserServer(serverId)
     get().upsertServer(server)

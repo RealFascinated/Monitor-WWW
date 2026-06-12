@@ -20,7 +20,9 @@ function estimateChartsGridHeight(chartCount: number): number {
   }
 
   const rows = Math.ceil(chartCount / CHART_GRID_COLUMNS)
-  return rows * CHART_CARD_APPROX_HEIGHT + Math.max(0, rows - 1) * CHART_GRID_GAP
+  return (
+    rows * CHART_CARD_APPROX_HEIGHT + Math.max(0, rows - 1) * CHART_GRID_GAP
+  )
 }
 
 function countChartsWithData(charts: MetricChartConfig[]): number {

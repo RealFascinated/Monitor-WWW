@@ -29,7 +29,9 @@ function AuthenticatedLayout() {
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const {
     width: sidebarWidth,
     compact: sidebarCompact,

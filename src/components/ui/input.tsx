@@ -7,11 +7,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
     <input
       type={type}
       data-slot="input"
-      className={cn(
-        "monitor-input",
-        type === "password" && "pr-10",
-        className
-      )}
+      className={cn("monitor-input", type === "password" && "pr-10", className)}
       {...props}
     />
   )

@@ -25,7 +25,7 @@ type MetricsSectionNavProps = {
 const navItemClassName = (isActive: boolean, nested = false) =>
   cn(
     "flex w-full items-center gap-1 rounded-sm py-1 text-left text-xs leading-snug transition-colors",
-    nested ? "pl-6 pr-2" : "px-2",
+    nested ? "pr-2 pl-6" : "px-2",
     isActive
       ? "bg-neutral-200/90 font-medium text-foreground dark:bg-monitor-gray-200 dark:text-warning"
       : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -85,7 +85,7 @@ function NavGroup({
         onClick={onToggle}
         aria-expanded={expanded}
         className={cn(
-          "flex w-full items-center gap-1 rounded-sm px-2 py-1 text-left text-xs font-medium leading-snug transition-colors",
+          "flex w-full items-center gap-1 rounded-sm px-2 py-1 text-left text-xs leading-snug font-medium transition-colors",
           hasActiveChild
             ? "text-foreground"
             : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -99,7 +99,7 @@ function NavGroup({
           )}
         />
         <span className="truncate">{group.title}</span>
-        <span className="ml-auto shrink-0 text-[10px] tabular-nums text-muted-foreground">
+        <span className="ml-auto shrink-0 text-[10px] text-muted-foreground tabular-nums">
           {group.children.length}
         </span>
       </button>
@@ -128,10 +128,7 @@ function MetricsSectionNav({
 }: MetricsSectionNavProps) {
   const sectionIdsKey = metricsSectionIdsKey(sections)
   const groupIds = useMemo(
-    () =>
-      sections
-        .filter(isMetricsSectionGroup)
-        .map((group) => group.id),
+    () => sections.filter(isMetricsSectionGroup).map((group) => group.id),
     [sectionIdsKey, sections]
   )
 

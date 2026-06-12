@@ -32,9 +32,6 @@ function MetricsView({ sections }: MetricsViewProps) {
         >
           {virtualItems.map((virtualItem) => {
             const section = leaves[virtualItem.index]
-            if (!section) {
-              return null
-            }
 
             return (
               <div

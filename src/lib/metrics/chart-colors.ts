@@ -37,7 +37,10 @@ export function getChartColors(theme: ResolvedTheme = "light"): string[] {
     : [...GRAFANA_PALETTE_LIGHT]
 }
 
-export function getChartColor(index: number, theme: ResolvedTheme = "light"): string {
+export function getChartColor(
+  index: number,
+  theme: ResolvedTheme = "light"
+): string {
   const palette = getChartColors(theme)
   return palette[index % palette.length]
 }

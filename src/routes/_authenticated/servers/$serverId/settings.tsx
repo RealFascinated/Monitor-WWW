@@ -36,19 +36,16 @@ function ServerSettingsPage() {
   const { serverId } = Route.useParams()
   const numericServerId = Number(serverId)
 
-  const {
-    data: access,
-    isPending,
-    error,
-  } = useServerAccess(numericServerId)
+  const { data: access, isPending, error } = useServerAccess(numericServerId)
 
   const { data: server } = useUserServer(numericServerId)
 
   useEffect(() => {
-    if (!access && !isPending && !error) {
+    const stored = useAccessStore.getState().accessByServerId
+    if (!(numericServerId in stored) && !isPending && !error) {
       void useAccessStore.getState().fetchAccess(numericServerId)
     }
-  }, [access, isPending, error, numericServerId])
+  }, [numericServerId, isPending, error])
 
   const errorMessage = error
 
@@ -69,7 +66,7 @@ function ServerSettingsPage() {
         </div>
       ) : null}
 
-      {access && server && !errorMessage ? (
+      {!errorMessage ? (
         <ServerSettingsView
           serverId={numericServerId}
           server={server}

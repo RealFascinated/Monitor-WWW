@@ -11,7 +11,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       <table
         data-slot="table"
         className={cn(
-          "w-full min-w-[42rem] border-collapse caption-bottom text-left text-sm",
+          "w-full min-w-[42rem] caption-bottom border-collapse text-left text-sm",
           className
         )}
         {...props}
@@ -61,7 +61,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b border-neutral-200 transition-colors hover:bg-neutral-100 dark:border-monitor-gray-200 dark:hover:bg-monitor-gray-200 data-[state=selected]:bg-neutral-100 dark:data-[state=selected]:bg-monitor-gray-200",
+        "border-b border-neutral-200 transition-colors hover:bg-neutral-100 data-[state=selected]:bg-neutral-100 dark:border-monitor-gray-200 dark:hover:bg-monitor-gray-200 dark:data-[state=selected]:bg-monitor-gray-200",
         className
       )}
       {...props}

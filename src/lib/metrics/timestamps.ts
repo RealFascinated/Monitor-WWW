@@ -1,4 +1,7 @@
-import type { MetricValues, ServerMetricsResponse } from "@/lib/api/user/metrics"
+import type {
+  MetricValues,
+  ServerMetricsResponse,
+} from "@/lib/api/user/metrics"
 import {
   METRIC_RANGE_LOOKBACK_SECONDS,
   parseMetricRange,
@@ -18,7 +21,11 @@ function buildWindowTimestamps(
   const alignedStart = start - (start % stepSeconds)
   const timestamps: number[] = []
 
-  for (let timestamp = alignedStart; timestamp <= end; timestamp += stepSeconds) {
+  for (
+    let timestamp = alignedStart;
+    timestamp <= end;
+    timestamp += stepSeconds
+  ) {
     timestamps.push(timestamp)
   }
 
@@ -86,15 +93,10 @@ export function alignValuesToTimestamps(
     const byTimestamp = new Map<number, number | null>()
 
     for (let index = 0; index < values.length; index++) {
-      byTimestamp.set(
-        sourceTimestamps[index],
-        normalizeValue(values[index])
-      )
+      byTimestamp.set(sourceTimestamps[index], normalizeValue(values[index]))
     }
 
-    return gridTimestamps.map(
-      (timestamp) => byTimestamp.get(timestamp) ?? null
-    )
+    return gridTimestamps.map((timestamp) => byTimestamp.get(timestamp) ?? null)
   }
 
   if (values.length < gridTimestamps.length) {

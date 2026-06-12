@@ -36,18 +36,11 @@ export type ChartYRange = {
   max?: number
 }
 
-function buildYScale(
-  yRange?: ChartYRange,
-  bidirectional = false
-): uPlot.Scale {
+function buildYScale(yRange?: ChartYRange, bidirectional = false): uPlot.Scale {
   if (bidirectional) {
     return {
       range: (_self, dataMin, dataMax) => {
-        const extent = Math.max(
-          Math.abs(dataMin ?? 0),
-          Math.abs(dataMax ?? 0),
-          1
-        )
+        const extent = Math.max(Math.abs(dataMin), Math.abs(dataMax), 1)
         const [, padded] = uPlot.rangeNum(-extent, extent, 0.1, true)
         return [-padded, padded]
       },
@@ -66,10 +59,7 @@ function buildYScale(
   return {
     range: (_self, dataMin, dataMax) => {
       const [min, max] = uPlot.rangeNum(dataMin, dataMax, 0.1, true)
-      return [
-        Math.min(yMin, min ?? yMin),
-        Math.max(yMin, max ?? yMin + 1),
-      ]
+      return [Math.min(yMin, min ?? yMin), Math.max(yMin, max ?? yMin + 1)]
     },
   }
 }
@@ -142,9 +132,7 @@ export function buildUPlotOptions({
           }
 
           const display =
-            negated[seriesIndex - 1] ?? false
-              ? Math.abs(rawValue)
-              : rawValue
+            (negated[seriesIndex - 1] ?? false) ? Math.abs(rawValue) : rawValue
           return valueFormatter ? valueFormatter(display) : String(display)
         },
       })),

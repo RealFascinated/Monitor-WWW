@@ -1,5 +1,4 @@
-import type { ServerStatus } from "@/lib/api/user/servers"
-import type { ServerRole } from "@/lib/api/user/servers"
+import type { ServerStatus, ServerRole } from "@/lib/api/user/servers"
 import type { UserRole } from "@/lib/auth/types"
 
 export const PENDING_NO_METRIC_DATA =

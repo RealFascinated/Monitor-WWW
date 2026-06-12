@@ -44,10 +44,18 @@ import {
   zfsPoolCharts,
   zfsPoolHasData,
 } from "@/lib/metrics/sections/server/charts"
-import { OverviewStats, overviewHasData } from "@/lib/metrics/sections/server/overview"
+import {
+  OverviewStats,
+  overviewHasData,
+} from "@/lib/metrics/sections/server/overview"
 import { chartSeries } from "@/lib/metrics/series"
 import type { MetricsTimeGrid } from "@/lib/metrics/timestamps"
-import { formatCelsius, formatCount, formatMemoryBytes, formatNumber } from "@/lib/formatter"
+import {
+  formatCelsius,
+  formatCount,
+  formatMemoryBytes,
+  formatNumber,
+} from "@/lib/formatter"
 
 function buildServerMetricSections(
   metrics: ServerMetricsResponse,
@@ -71,7 +79,9 @@ function buildServerMetricSections(
     builder.leaf({
       title: "CPU",
       icon: Cpu,
-      contentMinHeight: estimateChartsGridHeight(countChartsWithData(cpuCharts)),
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(cpuCharts)
+      ),
       render: () => <MetricChartGrid timeGrid={timeGrid} charts={cpuCharts} />,
     })
   }
@@ -123,24 +133,32 @@ function buildServerMetricSections(
     }
   })
 
-  builder.group({ id: "networks", title: "Network", icon: Network }, (group) => {
-    for (const network of metrics.networks ?? []) {
-      if (!networkHasData(network)) {
-        continue
-      }
+  builder.group(
+    { id: "networks", title: "Network", icon: Network },
+    (group) => {
+      for (const network of metrics.networks ?? []) {
+        if (!networkHasData(network)) {
+          continue
+        }
 
-      group.leaf({
-        id: metricSectionId(`network-${network.interface}`),
-        title: `Network ${network.interface}`,
-        navLabel: network.interface,
-        icon: Network,
-        contentMinHeight: estimateChartsGridHeight(NETWORK_SECTION_CHART_COUNT),
-        render: () => (
-          <MetricChartGrid timeGrid={timeGrid} charts={networkCharts(network)} />
-        ),
-      })
+        group.leaf({
+          id: metricSectionId(`network-${network.interface}`),
+          title: `Network ${network.interface}`,
+          navLabel: network.interface,
+          icon: Network,
+          contentMinHeight: estimateChartsGridHeight(
+            NETWORK_SECTION_CHART_COUNT
+          ),
+          render: () => (
+            <MetricChartGrid
+              timeGrid={timeGrid}
+              charts={networkCharts(network)}
+            />
+          ),
+        })
+      }
     }
-  })
+  )
 
   builder.group({ id: "gpus", title: "GPU", icon: Gpu }, (group) => {
     for (const gpu of metrics.gpus ?? []) {
@@ -249,25 +267,30 @@ function buildServerMetricSections(
     })
   }
 
-  builder.group({ id: "zfs-pools", title: "ZFS pool", icon: Database }, (group) => {
-    for (const pool of metrics.zfsPools ?? []) {
-      if (!zfsPoolHasData(pool)) {
-        continue
-      }
+  builder.group(
+    { id: "zfs-pools", title: "ZFS pool", icon: Database },
+    (group) => {
+      for (const pool of metrics.zfsPools ?? []) {
+        if (!zfsPoolHasData(pool)) {
+          continue
+        }
 
-      group.leaf({
-        id: metricSectionId(`zfs-pool-${pool.pool}`),
-        title: `ZFS pool ${pool.pool}`,
-        navLabel: pool.pool,
-        icon: Database,
-        description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
-        contentMinHeight: estimateChartsGridHeight(ZFS_POOL_SECTION_CHART_COUNT),
-        render: () => (
-          <MetricChartGrid timeGrid={timeGrid} charts={zfsPoolCharts(pool)} />
-        ),
-      })
+        group.leaf({
+          id: metricSectionId(`zfs-pool-${pool.pool}`),
+          title: `ZFS pool ${pool.pool}`,
+          navLabel: pool.pool,
+          icon: Database,
+          description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
+          contentMinHeight: estimateChartsGridHeight(
+            ZFS_POOL_SECTION_CHART_COUNT
+          ),
+          render: () => (
+            <MetricChartGrid timeGrid={timeGrid} charts={zfsPoolCharts(pool)} />
+          ),
+        })
+      }
     }
-  })
+  )
 
   if ((metrics.tcpConnections ?? []).length > 0) {
     const tcpCharts = [
@@ -286,7 +309,9 @@ function buildServerMetricSections(
     builder.leaf({
       title: "TCP",
       icon: Cable,
-      contentMinHeight: estimateChartsGridHeight(countChartsWithData(tcpCharts)),
+      contentMinHeight: estimateChartsGridHeight(
+        countChartsWithData(tcpCharts)
+      ),
       render: () => <MetricChartGrid timeGrid={timeGrid} charts={tcpCharts} />,
     })
   }

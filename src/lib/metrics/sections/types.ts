@@ -38,13 +38,5 @@ function metricsSectionNavLabel(section: MetricsSectionLeaf): string {
   return section.navLabel ?? section.title
 }
 
-export type {
-  MetricsSectionGroup,
-  MetricsSectionLeaf,
-  MetricsSectionNode,
-}
-export {
-  isMetricsSectionGroup,
-  isMetricsSectionLeaf,
-  metricsSectionNavLabel,
-}
+export type { MetricsSectionGroup, MetricsSectionLeaf, MetricsSectionNode }
+export { isMetricsSectionGroup, isMetricsSectionLeaf, metricsSectionNavLabel }

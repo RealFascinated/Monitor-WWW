@@ -80,9 +80,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
     [theme, resolvedTheme, setTheme]
   )
 
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 function useTheme(): ThemeContextValue {

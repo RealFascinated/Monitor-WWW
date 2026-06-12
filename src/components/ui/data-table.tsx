@@ -1,4 +1,5 @@
-import { flexRender, type Table as TanStackTable } from "@tanstack/react-table"
+import { flexRender } from "@tanstack/react-table"
+import type { Table as TanStackTable } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
 
 import {

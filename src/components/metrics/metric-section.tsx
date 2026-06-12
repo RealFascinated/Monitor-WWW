@@ -21,10 +21,7 @@ function MetricSection({
   render,
 }: MetricSectionProps) {
   return (
-    <section
-      data-section-id={id}
-      className="flex flex-col gap-4"
-    >
+    <section data-section-id={id} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2.5">
           <span
@@ -35,14 +32,15 @@ function MetricSection({
             )}
           />
           <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
-            <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <Icon
+              className="size-4 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
             {title}
           </h2>
         </div>
         {description ? (
-          <p className="ml-3 text-sm text-muted-foreground">
-            {description}
-          </p>
+          <p className="ml-3 text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
       <div className="w-full" style={{ minHeight: contentMinHeight }}>

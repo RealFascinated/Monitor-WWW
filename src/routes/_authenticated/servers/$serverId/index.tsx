@@ -71,7 +71,7 @@ function ServerMetricsPage() {
       />
 
       <div className="flex flex-col gap-6">
-        {server?.status === "PENDING" && server.role === "OWNER" ? (
+        {server.status === "PENDING" && server.role === "OWNER" ? (
           <Callout type="info" title="Waiting for the agent">
             <div className="flex flex-col gap-3">
               <p>

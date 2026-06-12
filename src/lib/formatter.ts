@@ -41,10 +41,7 @@ export function formatPercent(value: number | null): string {
   return formatPercentValue(value)
 }
 
-export function formatPercentValue(
-  value: number,
-  fractionDigits = 1
-): string {
+export function formatPercentValue(value: number, fractionDigits = 1): string {
   return `${value.toFixed(fractionDigits)}%`
 }
 
@@ -66,8 +63,7 @@ export function formatBytes(value: number, fractionDigits?: number): string {
     unitIndex++
   }
 
-  const decimals =
-    fractionDigits ?? (size >= 10 || unitIndex === 0 ? 0 : 1)
+  const decimals = fractionDigits ?? (size >= 10 || unitIndex === 0 ? 0 : 1)
   return `${size.toFixed(decimals)} ${units[unitIndex]}`
 }
 

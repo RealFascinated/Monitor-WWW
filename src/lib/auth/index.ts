@@ -3,7 +3,13 @@ import { getMe } from "@/lib/auth/session"
 import type { AuthToken, Credentials, User } from "@/lib/auth/types"
 import { clearToken, setSession } from "@/lib/auth/token"
 
-export type { ApiError, AuthToken, Credentials, User, UserRole } from "@/lib/auth/types"
+export type {
+  ApiError,
+  AuthToken,
+  Credentials,
+  User,
+  UserRole,
+} from "@/lib/auth/types"
 export { ApiClientError, apiFetch } from "@/lib/auth/api"
 export { AuthProvider, useAuth } from "@/lib/auth/context"
 export { fetchCurrentUser, getMe } from "@/lib/auth/session"

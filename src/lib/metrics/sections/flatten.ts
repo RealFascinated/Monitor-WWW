@@ -39,9 +39,7 @@ function findParentGroupId(
 }
 
 function collectGroupIds(nodes: MetricsSectionNode[]): string[] {
-  return nodes
-    .filter(isMetricsSectionGroup)
-    .map((group) => group.id)
+  return nodes.filter(isMetricsSectionGroup).map((group) => group.id)
 }
 
 function metricsSectionIdsKey(nodes: MetricsSectionNode[]): string {

@@ -19,10 +19,7 @@ import { useSidebarDetailedMode } from "@/hooks/use-sidebar-detailed-mode"
 import { useUserServers } from "@/hooks/use-user-servers"
 import type { ServerStatus } from "@/lib/api/user/servers"
 import type { User } from "@/lib/auth/types"
-import {
-  SERVER_STATUS_TOOLTIPS,
-  SIDEBAR_TOOLTIPS,
-} from "@/lib/tooltips/copy"
+import { SERVER_STATUS_TOOLTIPS, SIDEBAR_TOOLTIPS } from "@/lib/tooltips/copy"
 import { cn } from "@/lib/utils"
 
 const MOBILE_SIDEBAR_WIDTH = 280
@@ -91,7 +88,7 @@ function SidebarServerList({
   const { data: servers } = useUserServers()
   const { detailed, toggleDetailed } = useSidebarDetailedMode()
 
-  if (!servers?.length) {
+  if (!servers.length) {
     return null
   }
 
@@ -104,7 +101,10 @@ function SidebarServerList({
           </p>
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-neutral-400">Detailed</span>
-            <SidebarDetailedToggle detailed={detailed} onToggle={toggleDetailed} />
+            <SidebarDetailedToggle
+              detailed={detailed}
+              onToggle={toggleDetailed}
+            />
           </div>
         </div>
       ) : (
@@ -133,7 +133,9 @@ function SidebarServerList({
               >
                 <span className="relative shrink-0">
                   <Server className="size-4" />
-                  <SimpleTooltip content={SERVER_STATUS_TOOLTIPS[server.status]}>
+                  <SimpleTooltip
+                    content={SERVER_STATUS_TOOLTIPS[server.status]}
+                  >
                     <span
                       className={cn(
                         "absolute -right-0.5 -bottom-0.5 size-1.5 cursor-help rounded-full ring-2 ring-white dark:ring-base",
@@ -243,126 +245,126 @@ export function AppSidebar({
           !isResizing && "lg:transition-[width,transform]"
         )}
       >
-      <div
-        className={cn(
-          "flex items-center gap-2 p-4",
-          compact && "justify-center px-2"
-        )}
-      >
-        <MonitorLogo />
-        {!compact ? (
-          <p className="text-2xl font-bold tracking-wide text-black dark:text-white">
-            Monitor
-          </p>
-        ) : null}
-        <button
-          type="button"
-          aria-label="Close sidebar"
-          onClick={onMobileClose}
-          className="ml-auto flex size-8 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-700 lg:hidden dark:hover:bg-monitor-gray-200 dark:hover:text-white"
+        <div
+          className={cn(
+            "flex items-center gap-2 p-4",
+            compact && "justify-center px-2"
+          )}
         >
-          <X className="size-4" />
-        </button>
-      </div>
-
-      <nav className="relative flex min-h-0 flex-1 flex-col gap-1 overflow-hidden px-2">
-        <SimpleTooltip
-          content={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
+          <MonitorLogo />
+          {!compact ? (
+            <p className="text-2xl font-bold tracking-wide text-black dark:text-white">
+              Monitor
+            </p>
+          ) : null}
           <button
             type="button"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            onClick={onToggleCollapsed}
-            className="absolute -top-7 -right-3 z-10 hidden size-6 cursor-help items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:bg-neutral-100 hover:text-neutral-600 lg:flex dark:border-monitor-gray-300 dark:bg-monitor-gray-100 dark:text-neutral-400 dark:hover:bg-monitor-gray-200 dark:hover:text-white"
+            aria-label="Close sidebar"
+            onClick={onMobileClose}
+            className="ml-auto flex size-8 items-center justify-center rounded-sm text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-700 lg:hidden dark:hover:bg-monitor-gray-200 dark:hover:text-white"
           >
-            <ChevronLeft
-              className={cn(
-                "size-3.5 transition-transform",
-                collapsed && "rotate-180"
-              )}
-            />
+            <X className="size-4" />
           </button>
-        </SimpleTooltip>
-        {navItems.map(({ to, label, icon: Icon, exact }) => {
-          const link = (
-            <Link
-              to={to}
-              onClick={handleNavigate}
-              activeOptions={{ exact }}
-              className={cn(
-                "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
-                "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
-                compact && "justify-center px-0",
-                compact && "cursor-help"
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              {!compact ? <span className="truncate">{label}</span> : null}
-            </Link>
-          )
+        </div>
 
-          return compact ? (
-            <SimpleTooltip key={to} content={label}>
-              {link}
+        <nav className="relative flex min-h-0 flex-1 flex-col gap-1 overflow-hidden px-2">
+          <SimpleTooltip
+            content={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <button
+              type="button"
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={onToggleCollapsed}
+              className="absolute -top-7 -right-3 z-10 hidden size-6 cursor-help items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:bg-neutral-100 hover:text-neutral-600 lg:flex dark:border-monitor-gray-300 dark:bg-monitor-gray-100 dark:text-neutral-400 dark:hover:bg-monitor-gray-200 dark:hover:text-white"
+            >
+              <ChevronLeft
+                className={cn(
+                  "size-3.5 transition-transform",
+                  collapsed && "rotate-180"
+                )}
+              />
+            </button>
+          </SimpleTooltip>
+          {navItems.map(({ to, label, icon: Icon, exact }) => {
+            const link = (
+              <Link
+                to={to}
+                onClick={handleNavigate}
+                activeOptions={{ exact }}
+                className={cn(
+                  "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
+                  "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
+                  compact && "justify-center px-0",
+                  compact && "cursor-help"
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                {!compact ? <span className="truncate">{label}</span> : null}
+              </Link>
+            )
+
+            return compact ? (
+              <SimpleTooltip key={to} content={label}>
+                {link}
+              </SimpleTooltip>
+            ) : (
+              <span key={to}>{link}</span>
+            )
+          })}
+          <SidebarServerList compact={compact} onNavigate={handleNavigate} />
+        </nav>
+
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          onPointerDown={onResizeStart}
+          className="absolute top-0 right-0 z-20 hidden h-full w-1 cursor-col-resize touch-none hover:bg-neutral-300/80 active:bg-neutral-400/80 lg:block dark:hover:bg-monitor-gray-300/80 dark:active:bg-monitor-gray-400/80"
+        />
+
+        <div
+          className={cn(
+            "flex flex-col gap-2 border-t border-sidebar-border p-4",
+            compact && "items-center px-2"
+          )}
+        >
+          {!compact ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-neutral-500">Theme</span>
+              <ThemeSwitcher />
+            </div>
+          ) : (
+            <ThemeSwitcher />
+          )}
+          {!compact ? (
+            <p className="truncate text-xs text-neutral-500">{user.email}</p>
+          ) : null}
+          {compact ? (
+            <SimpleTooltip content={SIDEBAR_TOOLTIPS.signOut}>
+              <Button
+                type="button"
+                variant="default"
+                size="icon-sm"
+                disabled={isLoggingOut}
+                onClick={onLogout}
+                className="w-full cursor-help"
+              >
+                {isLoggingOut ? <Spinner /> : <LogOut className="size-3.5" />}
+              </Button>
             </SimpleTooltip>
           ) : (
-            <span key={to}>{link}</span>
-          )
-        })}
-        <SidebarServerList compact={compact} onNavigate={handleNavigate} />
-      </nav>
-
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize sidebar"
-        onPointerDown={onResizeStart}
-        className="absolute top-0 right-0 z-20 hidden h-full w-1 cursor-col-resize touch-none hover:bg-neutral-300/80 active:bg-neutral-400/80 lg:block dark:hover:bg-monitor-gray-300/80 dark:active:bg-monitor-gray-400/80"
-      />
-
-      <div
-        className={cn(
-          "flex flex-col gap-2 border-t border-sidebar-border p-4",
-          compact && "items-center px-2"
-        )}
-      >
-        {!compact ? (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-neutral-500">Theme</span>
-            <ThemeSwitcher />
-          </div>
-        ) : (
-          <ThemeSwitcher />
-        )}
-        {!compact ? (
-          <p className="truncate text-xs text-neutral-500">{user.email}</p>
-        ) : null}
-        {compact ? (
-          <SimpleTooltip content={SIDEBAR_TOOLTIPS.signOut}>
             <Button
               type="button"
               variant="default"
-              size="icon-sm"
               disabled={isLoggingOut}
               onClick={onLogout}
-              className="w-full cursor-help"
             >
-              {isLoggingOut ? <Spinner /> : <LogOut className="size-3.5" />}
+              {isLoggingOut ? <Spinner /> : null}
+              Sign out
             </Button>
-          </SimpleTooltip>
-        ) : (
-          <Button
-            type="button"
-            variant="default"
-            disabled={isLoggingOut}
-            onClick={onLogout}
-          >
-            {isLoggingOut ? <Spinner /> : null}
-            Sign out
-          </Button>
-        )}
-      </div>
-    </aside>
+          )}
+        </div>
+      </aside>
     </>
   )
 }

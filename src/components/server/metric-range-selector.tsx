@@ -56,7 +56,10 @@ function MetricRangeSelector({ value, onChange }: MetricRangeSelectorProps) {
         })}
       </div>
 
-      <Select value={value} onValueChange={(next) => onChange(next as MetricTimeRange)}>
+      <Select
+        value={value}
+        onValueChange={(next) => onChange(next as MetricTimeRange)}
+      >
         <SelectTrigger
           size="sm"
           className="min-w-[9.5rem] border-neutral-200 bg-white dark:border-monitor-gray-300 dark:bg-monitor-gray-100"

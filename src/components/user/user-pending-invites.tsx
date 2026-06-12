@@ -2,9 +2,8 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnDef,
-  type SortingState,
 } from "@tanstack/react-table"
+import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { useState } from "react"
 import { Callout } from "@/components/callout"
 import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
@@ -13,7 +12,10 @@ import { DataTable } from "@/components/ui/data-table"
 import { useUserInvites } from "@/hooks/use-user-invites"
 import type { UserPendingInvite } from "@/lib/api/user/invites"
 import { formatDate, formatDateWithRelative } from "@/lib/formatter"
-import { INVITE_EXPIRY_TOOLTIP, SERVER_ROLE_TOOLTIPS } from "@/lib/tooltips/copy"
+import {
+  INVITE_EXPIRY_TOOLTIP,
+  SERVER_ROLE_TOOLTIPS,
+} from "@/lib/tooltips/copy"
 
 function formatRole(role: string): string {
   return role.charAt(0) + role.slice(1).toLowerCase()
@@ -29,10 +31,7 @@ const columns: ColumnDef<UserPendingInvite>[] = [
   {
     accessorKey: "role",
     header: () => (
-      <TableHeaderTooltip
-        label="Role"
-        tooltip={SERVER_ROLE_TOOLTIPS.VIEWER}
-      />
+      <TableHeaderTooltip label="Role" tooltip={SERVER_ROLE_TOOLTIPS.VIEWER} />
     ),
     cell: ({ row }) => (
       <SimpleTooltip content={SERVER_ROLE_TOOLTIPS.VIEWER}>
@@ -83,7 +82,7 @@ function UserPendingInvites() {
   const { data: invites, isPending, error } = useUserInvites()
 
   const table = useReactTable({
-    data: invites ?? [],
+    data: invites,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -109,11 +108,11 @@ function UserPendingInvites() {
         </div>
       ) : null}
 
-      {invites?.length === 0 ? (
+      {invites.length === 0 ? (
         <p className="text-neutral-500">No pending invites.</p>
       ) : null}
 
-      {invites && invites.length > 0 ? <DataTable table={table} /> : null}
+      {invites.length > 0 ? <DataTable table={table} /> : null}
     </div>
   )
 }

@@ -22,7 +22,7 @@ function MetricStatCard({
         </p>
         <p
           className={cn(
-            "font-mono text-3xl font-semibold tabular-nums text-foreground",
+            "font-mono text-3xl font-semibold text-foreground tabular-nums",
             valueClassName
           )}
         >

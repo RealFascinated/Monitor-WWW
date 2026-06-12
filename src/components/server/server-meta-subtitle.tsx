@@ -127,7 +127,11 @@ function MetaChip({ item }: { item: MetaItem }) {
   )
 }
 
-function ServerMetaSubtitle({ server, prefix, className }: ServerMetaSubtitleProps) {
+function ServerMetaSubtitle({
+  server,
+  prefix,
+  className,
+}: ServerMetaSubtitleProps) {
   const items = buildMetaItems(server)
 
   if (items.length === 0 && !prefix) {

@@ -24,17 +24,17 @@ import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { useServersStore } from "@/stores/servers-store"
-import {
-  MAX_SERVER_NAME_LENGTH,
-  validateServerName,
-} from "@/lib/server-name"
+import { MAX_SERVER_NAME_LENGTH, validateServerName } from "@/lib/server-name"
 
 type RenameServerDialogProps = {
   serverId: number
   currentName: string
 }
 
-function RenameServerDialog({ serverId, currentName }: RenameServerDialogProps) {
+function RenameServerDialog({
+  serverId,
+  currentName,
+}: RenameServerDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)

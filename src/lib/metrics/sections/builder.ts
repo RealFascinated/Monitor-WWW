@@ -60,7 +60,10 @@ class MetricsSectionBuilder {
     })
   }
 
-  group(input: GroupInput, buildChildren: (group: MetricsSectionGroupBuilder) => void) {
+  group(
+    input: GroupInput,
+    buildChildren: (group: MetricsSectionGroupBuilder) => void
+  ) {
     const groupBuilder = new MetricsSectionGroupBuilder()
     buildChildren(groupBuilder)
     const children = groupBuilder.build()

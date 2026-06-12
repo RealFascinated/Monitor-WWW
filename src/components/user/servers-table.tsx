@@ -43,15 +43,9 @@ const unknownStatClassName = "text-neutral-500"
 function ServersTable() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sorting, setSorting] = useState<SortingState>([])
-  const {
-    data: servers,
-    isPending,
-    error,
-  } = useUserServers()
+  const { data: servers, isPending, error } = useUserServers()
 
-  const hasOwnedServers = servers.some(
-    (server) => server.role === "OWNER"
-  )
+  const hasOwnedServers = servers.some((server) => server.role === "OWNER")
 
   const columns = useMemo<ColumnDef<ServerResponse>[]>(() => {
     const baseColumns: ColumnDef<ServerResponse>[] = [
@@ -79,9 +73,7 @@ function ServersTable() {
             tooltip="Whether the Monitor Agent is reporting metrics for this server."
           />
         ),
-        cell: ({ row }) => (
-          <ServerStatusBadge status={row.original.status} />
-        ),
+        cell: ({ row }) => <ServerStatusBadge status={row.original.status} />,
       },
       {
         accessorKey: "uptimeSeconds",
@@ -94,8 +86,7 @@ function ServersTable() {
         cell: ({ row }) => {
           const formatted = formatUptime(row.original.uptimeSeconds)
           const detailed = formatUptimeDetailed(row.original.uptimeSeconds)
-          const tooltip =
-            detailed ?? pendingOnlyTooltip(row.original.status)
+          const tooltip = detailed ?? pendingOnlyTooltip(row.original.status)
           const className = cn(
             row.original.uptimeSeconds == null && unknownStatClassName
           )
@@ -158,9 +149,7 @@ function ServersTable() {
       {
         id: "memory",
         accessorFn: (row) =>
-          row.memUsage != null && row.memMax
-            ? row.memUsage / row.memMax
-            : null,
+          row.memUsage != null && row.memMax ? row.memUsage / row.memMax : null,
         header: () => (
           <TableHeaderTooltip
             label="Memory"
@@ -260,7 +249,7 @@ function ServersTable() {
   }, [hasOwnedServers])
 
   const table = useReactTable({
-    data: servers ?? [],
+    data: servers,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -297,7 +286,7 @@ function ServersTable() {
         <CreateServerDialog />
       </div>
 
-      {servers && servers.length > 0 ? (
+      {servers.length > 0 ? (
         <div className="relative max-w-sm">
           <Search
             aria-hidden
@@ -327,11 +316,11 @@ function ServersTable() {
         </div>
       ) : null}
 
-      {servers?.length === 0 ? (
+      {servers.length === 0 ? (
         <p className="text-neutral-500">No servers registered yet.</p>
       ) : null}
 
-      {servers && servers.length > 0 && filteredRowCount === 0 ? (
+      {servers.length > 0 && filteredRowCount === 0 ? (
         <p className="text-neutral-500">No servers match your search.</p>
       ) : null}
 

@@ -84,7 +84,9 @@ function ServerAgentSetupDialog({
               <DialogTitle>Install the Monitor Agent</DialogTitle>
               <DialogDescription>
                 Configure the agent on{" "}
-                <span className="font-medium text-foreground">{serverName}</span>{" "}
+                <span className="font-medium text-foreground">
+                  {serverName}
+                </span>{" "}
                 with the new ingest token below.
               </DialogDescription>
             </DialogHeader>
@@ -116,7 +118,10 @@ function ServerAgentSetupDialog({
                 {apiError}
               </Callout>
             ) : (
-              <Callout type="warning" title="This invalidates any previous token">
+              <Callout
+                type="warning"
+                title="This invalidates any previous token"
+              >
                 Generating a new ingest token revokes the previous one. Only do
                 this if you have not configured the agent yet, or you need to
                 replace a lost token.

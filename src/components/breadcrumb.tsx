@@ -37,7 +37,10 @@ function Breadcrumb({ items, className }: BreadcrumbProps) {
         {items.map((item, index) => (
           <Fragment key={`${item.label}-${index}`}>
             {index > 0 ? (
-              <li aria-hidden className="inline-flex items-center text-neutral-400">
+              <li
+                aria-hidden
+                className="inline-flex items-center text-neutral-400"
+              >
                 <ChevronRight className="size-3 shrink-0" />
               </li>
             ) : null}

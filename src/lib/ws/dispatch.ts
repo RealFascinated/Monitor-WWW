@@ -22,9 +22,7 @@ export function applyWebSocketMessage(
   switch (message.command) {
     case WebSocketCommand.SERVER_UPDATE:
     case WebSocketCommand.SERVER_CREATED:
-      useServersStore
-        .getState()
-        .upsertServer(message.data as ServerResponse)
+      useServersStore.getState().upsertServer(message.data as ServerResponse)
       break
     case WebSocketCommand.SERVER_DELETED: {
       const { serverId } = message.data as ServerIdData

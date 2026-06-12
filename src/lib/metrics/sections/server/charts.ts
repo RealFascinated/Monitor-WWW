@@ -10,11 +10,7 @@ import {
   TEMPERATURE_THRESHOLDS,
 } from "@/lib/metrics/chart-thresholds"
 import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
-import {
-  chartSeries,
-  hasAnyValues,
-  hasSeriesData,
-} from "@/lib/metrics/series"
+import { chartSeries, hasAnyValues, hasSeriesData } from "@/lib/metrics/series"
 import type { ChartSeries } from "@/lib/metrics/series"
 import type { ChartYRange } from "@/lib/metrics/uplot-theme"
 import {
@@ -131,7 +127,8 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
     },
     {
       title: "ETA until full",
-      description: "Estimated time until the disk fills, based on recent growth.",
+      description:
+        "Estimated time until the disk fills, based on recent growth.",
       series: [chartSeries("ETA", disk.etaUntilFull)],
       valueFormatter: formatDurationSeconds,
     },
@@ -289,7 +286,8 @@ function zfsPoolCharts(pool: ZfsPoolMetrics): MetricChartConfig[] {
   return [
     {
       title: "Capacity",
-      description: "Pool capacity, fragmentation, and scrub/resilver scan progress.",
+      description:
+        "Pool capacity, fragmentation, and scrub/resilver scan progress.",
       series: [
         chartSeries("Capacity", pool.capacityPercent),
         chartSeries("Fragmentation", pool.fragmentationPercent),

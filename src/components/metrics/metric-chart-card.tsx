@@ -1,12 +1,7 @@
 import { memo, useMemo } from "react"
 
 import { SimpleTooltip } from "@/components/simple-tooltip"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MetricChart } from "@/components/metrics/metric-chart"
 import { useChartHydration } from "@/hooks/use-chart-hydration"
 import { formatChartTimestamp } from "@/lib/formatter"
@@ -112,10 +107,7 @@ function MetricChartCard({
                   : "Latest value"
 
                 return (
-                  <SimpleTooltip
-                    key={entry.label}
-                    content={valueTooltip}
-                  >
+                  <SimpleTooltip key={entry.label} content={valueTooltip}>
                     <span className="inline-flex cursor-help items-center gap-1.5 text-xs">
                       <span
                         aria-hidden
@@ -129,7 +121,7 @@ function MetricChartCard({
                           {entry.label}
                         </span>
                       ) : null}
-                      <span className="font-mono text-sm font-medium tabular-nums text-foreground">
+                      <span className="font-mono text-sm font-medium text-foreground tabular-nums">
                         {formatted}
                       </span>
                     </span>

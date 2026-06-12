@@ -16,9 +16,7 @@ export function chartSeries(
   return { label, values: values ?? null, negate: options?.negate }
 }
 
-export function hasAnyValues(
-  ...fields: (MetricValues | undefined)[]
-): boolean {
+export function hasAnyValues(...fields: (MetricValues | undefined)[]): boolean {
   for (const field of fields) {
     if (hasValues(field)) {
       return true
@@ -103,9 +101,10 @@ export function buildMultiSeriesData(
   return { data, labels, negated }
 }
 
-export function stackAlignedData(
+export function stackAlignedData(data: uPlot.AlignedData): {
   data: uPlot.AlignedData
-): { data: uPlot.AlignedData; bands: uPlot.Band[] } {
+  bands: uPlot.Band[]
+} {
   const pointCount = data[0].length
   const accum = new Array<number>(pointCount).fill(0)
   const stackedSeries: (number | null)[][] = []

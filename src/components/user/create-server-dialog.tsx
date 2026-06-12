@@ -22,10 +22,7 @@ import { createServer } from "@/lib/api/user/servers"
 import type { CreatedServerResponse } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { useServersStore } from "@/stores/servers-store"
-import {
-  MAX_SERVER_NAME_LENGTH,
-  validateServerName,
-} from "@/lib/server-name"
+import { MAX_SERVER_NAME_LENGTH, validateServerName } from "@/lib/server-name"
 
 function CreateServerDialog() {
   const [open, setOpen] = useState(false)
@@ -135,8 +132,8 @@ function CreateServerDialog() {
               <DialogTitle>Create server</DialogTitle>
               <DialogDescription>
                 Register a new server to monitor. After creation you will
-                receive an ingest token and install instructions for the
-                Monitor Agent.
+                receive an ingest token and install instructions for the Monitor
+                Agent.
               </DialogDescription>
             </DialogHeader>
 

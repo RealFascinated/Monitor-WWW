@@ -60,10 +60,11 @@ export const useAccessStore = create<AccessState>((set, get) => ({
   },
 
   addPendingInvite: (serverId, invite) => {
-    const access = get().accessByServerId[serverId]
-    if (!access) {
+    const { accessByServerId } = get()
+    if (!(serverId in accessByServerId)) {
       return
     }
+    const access = accessByServerId[serverId]
     if (access.pendingInvites.some((row) => row.inviteId === invite.inviteId)) {
       return
     }
@@ -79,10 +80,11 @@ export const useAccessStore = create<AccessState>((set, get) => ({
   },
 
   removePendingInvite: (serverId, inviteId) => {
-    const access = get().accessByServerId[serverId]
-    if (!access) {
+    const { accessByServerId } = get()
+    if (!(serverId in accessByServerId)) {
       return
     }
+    const access = accessByServerId[serverId]
     set((state) => ({
       accessByServerId: {
         ...state.accessByServerId,

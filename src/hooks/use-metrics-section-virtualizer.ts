@@ -1,5 +1,11 @@
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 
 import {
   METRIC_SECTION_HEADER_HEIGHT,
@@ -85,12 +91,12 @@ function useMetricsSectionVirtualizer(
   const virtualizer = useWindowVirtualizer({
     count: leaves.length,
     estimateSize: (index) =>
-      METRIC_SECTION_HEADER_HEIGHT + leaves[index]!.contentMinHeight,
+      METRIC_SECTION_HEADER_HEIGHT + leaves[index].contentMinHeight,
     overscan: 2,
     gap: METRICS_SECTION_GAP,
     scrollMargin,
     scrollPaddingStart: METRICS_SECTION_SCROLL_PADDING,
-    getItemKey: (index) => leaves[index]!.id,
+    getItemKey: (index) => leaves[index].id,
     onChange: (instance) => {
       const items = instance.getVirtualItems()
       if (items.length === 0) {
@@ -99,7 +105,7 @@ function useMetricsSectionVirtualizer(
 
       const scrollLine =
         (instance.scrollOffset ?? 0) + METRICS_SECTION_SCROLL_PADDING
-      let activeIndex = items[0]!.index
+      let activeIndex = items[0].index
 
       for (const item of items) {
         if (item.start <= scrollLine + 1) {
@@ -107,8 +113,8 @@ function useMetricsSectionVirtualizer(
         }
       }
 
-      if (items[0]!.start > scrollLine && items[0]!.index > 0) {
-        activeIndex = items[0]!.index - 1
+      if (items[0].start > scrollLine && items[0].index > 0) {
+        activeIndex = items[0].index - 1
       }
 
       const nextId = leaves[activeIndex]?.id

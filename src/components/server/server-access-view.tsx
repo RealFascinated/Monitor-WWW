@@ -3,9 +3,8 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
-  type ColumnDef,
-  type SortingState,
 } from "@tanstack/react-table"
+import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 
@@ -14,10 +13,7 @@ import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
 import { InviteMemberDialog } from "@/components/server/invite-member-dialog"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
-import {
-  removeServerMember,
-  revokeServerInvite,
-} from "@/lib/api/user/access"
+import { removeServerMember, revokeServerInvite } from "@/lib/api/user/access"
 import type {
   PendingServerInvite,
   ServerAccessListResponse,
@@ -26,7 +22,10 @@ import type { ServerRole } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { useAccessStore } from "@/stores/access-store"
 import { formatDate, formatDateWithRelative } from "@/lib/formatter"
-import { INVITE_EXPIRY_TOOLTIP, SERVER_ROLE_TOOLTIPS } from "@/lib/tooltips/copy"
+import {
+  INVITE_EXPIRY_TOOLTIP,
+  SERVER_ROLE_TOOLTIPS,
+} from "@/lib/tooltips/copy"
 
 type ServerAccessViewProps = {
   serverId: number
@@ -46,14 +45,12 @@ function formatRole(role: string): string {
   return role.charAt(0) + role.slice(1).toLowerCase()
 }
 
-function RoleTag({ role }: { role: string }) {
-  const tooltip =
-    SERVER_ROLE_TOOLTIPS[role as keyof typeof SERVER_ROLE_TOOLTIPS] ??
-    formatRole(role)
+function RoleTag({ role }: { role: ServerRole | "OWNER" }) {
+  const tooltip = SERVER_ROLE_TOOLTIPS[role]
 
   return (
     <SimpleTooltip content={tooltip}>
-      <span className="cursor-help px-2 py-1 text-xs font-bold text-neutral-500 bg-neutral-100 dark:bg-monitor-gray-100">
+      <span className="cursor-help bg-neutral-100 px-2 py-1 text-xs font-bold text-neutral-500 dark:bg-monitor-gray-100">
         {formatRole(role)}
       </span>
     </SimpleTooltip>

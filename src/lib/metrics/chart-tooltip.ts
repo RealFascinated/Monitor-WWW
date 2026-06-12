@@ -128,7 +128,9 @@ export function createCursorTooltipHandler({
   }
 }
 
-export function createChartTooltipElement(theme: ResolvedTheme): HTMLDivElement {
+export function createChartTooltipElement(
+  theme: ResolvedTheme
+): HTMLDivElement {
   const tooltip = document.createElement("div")
   const isDark = theme === "dark"
   tooltip.className = [
@@ -147,15 +149,9 @@ export function destroyChartTooltipElement(tooltip: HTMLDivElement) {
   tooltip.remove()
 }
 
-export function dismissChartInteraction(
-  chart: uPlot,
-  tooltip: HTMLDivElement
-) {
+export function dismissChartInteraction(chart: uPlot, tooltip: HTMLDivElement) {
   tooltip.style.display = "none"
-  chart.setCursor(
-    { left: HIDDEN_CURSOR_POS, top: HIDDEN_CURSOR_POS },
-    true
-  )
+  chart.setCursor({ left: HIDDEN_CURSOR_POS, top: HIDDEN_CURSOR_POS }, true)
   chart.setSelect({ left: 0, top: 0, width: 0, height: 0 }, false)
 }
 

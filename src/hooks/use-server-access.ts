@@ -5,7 +5,9 @@ export function useServerAccess(serverId: number) {
   const isPending = useAccessStore(
     (state) => state.loadingByServerId[serverId] ?? false
   )
-  const error = useAccessStore((state) => state.errorByServerId[serverId] ?? null)
+  const error = useAccessStore(
+    (state) => state.errorByServerId[serverId] ?? null
+  )
 
   return {
     data: access,
