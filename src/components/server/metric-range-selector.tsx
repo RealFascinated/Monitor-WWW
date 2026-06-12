@@ -8,7 +8,6 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
 import {
@@ -22,16 +21,24 @@ import { cn } from "@/lib/utils"
 type MetricRangeSelectorProps = {
   value: MetricTimeRange
   onChange: (value: MetricTimeRange) => void
+  className?: string
 }
 
-function MetricRangeSelector({ value, onChange }: MetricRangeSelectorProps) {
+function MetricRangeSelector({
+  value,
+  onChange,
+  className,
+}: MetricRangeSelectorProps) {
+  const activeOption = getMetricRangeOption(value)
+  const isQuickPick = METRIC_RANGE_QUICK_PICKS.includes(value)
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div
-        className="inline-flex max-w-full items-center overflow-x-auto rounded-sm border border-neutral-200 bg-white p-0.5 dark:border-monitor-gray-300 dark:bg-monitor-gray-100"
-        role="group"
-        aria-label="Quick time ranges"
-      >
+    <div
+      className={cn("flex min-w-0 flex-1 items-center gap-px", className)}
+      role="group"
+      aria-label="Time range"
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-px overflow-x-auto scrollbar-none sm:flex-initial sm:overflow-visible">
         {METRIC_RANGE_QUICK_PICKS.map((range) => {
           const option = getMetricRangeOption(range)
           const isActive = value === range
@@ -43,10 +50,10 @@ function MetricRangeSelector({ value, onChange }: MetricRangeSelectorProps) {
                 onClick={() => onChange(range)}
                 aria-pressed={isActive}
                 className={cn(
-                  "cursor-help rounded-sm px-2.5 py-1 text-xs font-medium transition-colors",
+                  "flex h-7 shrink-0 cursor-pointer items-center justify-center rounded-sm px-2.5 text-xs font-medium transition-colors",
                   isActive
-                    ? "bg-monitor text-white dark:bg-monitor-100"
-                    : "text-muted-foreground hover:bg-neutral-100 hover:text-foreground dark:hover:bg-monitor-gray-200 dark:hover:text-white"
+                    ? "bg-white text-monitor shadow-sm dark:bg-monitor-gray-300 dark:text-warning"
+                    : "text-muted-foreground hover:bg-white/70 hover:text-foreground dark:hover:bg-monitor-gray-300/60 dark:hover:text-white"
                 )}
               >
                 {option.shortLabel}
@@ -62,13 +69,23 @@ function MetricRangeSelector({ value, onChange }: MetricRangeSelectorProps) {
       >
         <SelectTrigger
           size="sm"
-          className="min-w-[9.5rem] border-neutral-200 bg-white dark:border-monitor-gray-300 dark:bg-monitor-gray-100"
-          aria-label="Time range"
+          aria-label={
+            isQuickPick ? "More time ranges" : `Time range: ${activeOption.label}`
+          }
+          className={cn(
+            "h-7 shrink-0 gap-1 rounded-sm border-0 bg-transparent px-2 shadow-none focus-visible:ring-1",
+            isQuickPick
+              ? "text-muted-foreground hover:bg-white/70 hover:text-foreground dark:hover:bg-monitor-gray-300/60 dark:hover:text-white"
+              : "bg-white text-monitor shadow-sm dark:bg-monitor-gray-300 dark:text-warning"
+          )}
         >
-          <CalendarRange className="size-3.5 text-muted-foreground" />
-          <SelectValue placeholder="Time range" />
+          {isQuickPick ? (
+            <CalendarRange className="size-3.5" />
+          ) : (
+            <span className="font-medium">{activeOption.shortLabel}</span>
+          )}
         </SelectTrigger>
-        <SelectContent align="end" className="min-w-[11rem]">
+        <SelectContent align="end" position="popper" className="min-w-44">
           {METRIC_RANGE_GROUPS.map((group) => {
             const options = METRIC_RANGE_OPTIONS.filter(
               (option) => option.group === group.id
