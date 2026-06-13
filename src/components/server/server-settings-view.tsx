@@ -2,6 +2,8 @@ import { useNavigate } from "@tanstack/react-router"
 
 import { ServerAccessView } from "@/components/server/server-access-view"
 import { ServerIngestTokenSection } from "@/components/server/server-ingest-token-section"
+import { SettingsPageContent } from "@/components/settings/settings-page-content"
+import { SettingsSectionHeader } from "@/components/settings/settings-section-header"
 import { DeleteServerButton } from "@/components/user/delete-server-button"
 import { RenameServerForm } from "@/components/user/rename-server-form"
 import type { ServerAccessListResponse } from "@/lib/api/user/access"
@@ -13,21 +15,6 @@ type ServerSettingsViewProps = {
   access: ServerAccessListResponse
 }
 
-function SettingsSectionHeader({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <h2 className="text-xl font-bold dark:text-white">{title}</h2>
-      <p className="text-xs font-bold text-muted-foreground">{description}</p>
-    </div>
-  )
-}
-
 function ServerSettingsView({
   serverId,
   server,
@@ -37,7 +24,7 @@ function ServerSettingsView({
   const isOwner = server.role === "OWNER"
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8">
+    <SettingsPageContent>
       {isOwner ? (
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
@@ -55,9 +42,13 @@ function ServerSettingsView({
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
             title="Monitor Agent"
-            description="Rotate the ingest token and install the agent on your host."
+            description="Connection status, ingest token, and install instructions."
           />
-          <ServerIngestTokenSection serverId={serverId} />
+          <ServerIngestTokenSection
+            serverId={serverId}
+            status={server.status}
+            agentVersion={server.agentVersion}
+          />
         </section>
       ) : null}
 
@@ -94,7 +85,7 @@ function ServerSettingsView({
           </div>
         </section>
       ) : null}
-    </div>
+    </SettingsPageContent>
   )
 }
 

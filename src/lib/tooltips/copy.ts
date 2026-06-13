@@ -44,9 +44,12 @@ export const SIDEBAR_TOOLTIPS = {
   signOut: "Sign out of your account.",
   adminMetrics:
     "Platform-wide admin metrics for fleet, ingest, and HTTP traffic.",
+  adminSettings: "Platform-wide settings for authentication and registration.",
 } as const
 
 export const SETTINGS_TOOLTIPS = {
+  registrationEnabled:
+    "Allow new users to create accounts via the public registration page.",
   ingestToken:
     "Authenticates the Monitor Agent on this host. Shown once after rotation — copy it before closing.",
   rotateIngestToken:

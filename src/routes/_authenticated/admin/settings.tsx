@@ -2,42 +2,36 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 
-import { AdminMetricsHeader } from "@/components/admin/admin-metrics-header"
-import { AdminMetricsView } from "@/components/admin/admin-metrics-view"
+import { AdminSettingsHeader } from "@/components/admin/admin-settings-header"
+import { AdminSettingsView } from "@/components/admin/admin-settings-view"
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
-import { adminMetricsQueryOptions } from "@/lib/api/admin/metrics.queries"
+import { adminSettingsQueryOptions } from "@/lib/api/admin/settings.queries"
 import { useAuth } from "@/lib/auth"
 import { ApiClientError } from "@/lib/auth/api"
 import { pageTitle } from "@/lib/page-title"
-import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
-const adminMetricsSearchSchema = metricRangeSearchSchema("24h")
-
-export const Route = createFileRoute("/_authenticated/admin/metrics")({
+export const Route = createFileRoute("/_authenticated/admin/settings")({
   ssr: false,
-  validateSearch: adminMetricsSearchSchema,
-  loaderDeps: ({ search: { range } }) => ({ range }),
-  loader: ({ context: { queryClient }, deps: { range } }) => {
-    return queryClient.ensureQueryData(adminMetricsQueryOptions(range))
+  loader: ({ context: { queryClient } }) => {
+    return queryClient.ensureQueryData(adminSettingsQueryOptions())
   },
   head: () => ({
-    meta: [{ title: pageTitle("Admin Metrics") }],
+    meta: [{ title: pageTitle("Admin Settings") }],
   }),
-  component: AdminMetricsPage,
+  component: AdminSettingsPage,
 })
 
-function AdminMetricsPage() {
+function AdminSettingsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { range } = Route.useSearch()
 
   const {
-    data: metrics,
+    data: settings,
     isPending,
     error,
   } = useQuery({
-    ...adminMetricsQueryOptions(range),
+    ...adminSettingsQueryOptions(),
     enabled: user?.role === "ADMIN",
   })
 
@@ -55,15 +49,15 @@ function AdminMetricsPage() {
     error instanceof ApiClientError
       ? error.message
       : error
-        ? "Failed to load admin metrics"
+        ? "Failed to load admin settings"
         : null
 
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
-      <AdminMetricsHeader range={range} />
+      <AdminSettingsHeader />
 
       {errorMessage ? (
-        <Callout type="danger" title="Could not load metrics">
+        <Callout type="danger" title="Could not load settings">
           {errorMessage}
         </Callout>
       ) : null}
@@ -71,12 +65,12 @@ function AdminMetricsPage() {
       {isPending && !errorMessage ? (
         <div className="flex items-center gap-2 text-neutral-500">
           <Spinner />
-          <span>Loading metrics…</span>
+          <span>Loading settings…</span>
         </div>
       ) : null}
 
-      {metrics && !errorMessage ? (
-        <AdminMetricsView metrics={metrics} />
+      {settings && !errorMessage ? (
+        <AdminSettingsView settings={settings} />
       ) : null}
     </section>
   )

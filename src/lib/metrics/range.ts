@@ -16,7 +16,7 @@ export const METRIC_RANGE_LOOKBACK_SECONDS: Record<MetricTimeRange, number> = {
   "2y": 63_072_000,
 }
 
-const METRIC_RANGES: MetricTimeRange[] = [
+export const METRIC_RANGES = [
   "1h",
   "3h",
   "6h",
@@ -29,7 +29,7 @@ const METRIC_RANGES: MetricTimeRange[] = [
   "3mo",
   "1y",
   "2y",
-]
+] as const satisfies readonly MetricTimeRange[]
 
 export type MetricRangeGroup = "hours" | "days" | "weeks" | "months" | "years"
 

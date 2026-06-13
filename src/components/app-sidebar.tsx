@@ -6,6 +6,7 @@ import {
   LogOut,
   Mail,
   Server,
+  Settings,
   X,
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
@@ -79,17 +80,27 @@ function SidebarDetailedToggle({
   )
 }
 
-function SidebarAdminSection({
+function SidebarAdminLink({
   compact,
   onNavigate,
+  to,
+  search,
+  icon: Icon,
+  label,
+  tooltip,
 }: {
   compact: boolean
   onNavigate?: () => void
+  to: "/admin/metrics" | "/admin/settings"
+  search?: { range: "24h" }
+  icon: typeof Gauge
+  label: string
+  tooltip: string
 }) {
   const link = (
     <Link
-      to="/admin/metrics"
-      search={{ range: "24h" }}
+      to={to}
+      search={search}
       onClick={onNavigate}
       className={cn(
         "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
@@ -98,11 +109,25 @@ function SidebarAdminSection({
         compact && "cursor-help"
       )}
     >
-      <Gauge className="size-4 shrink-0" />
-      {!compact ? <span className="truncate">Metrics</span> : null}
+      <Icon className="size-4 shrink-0" />
+      {!compact ? <span className="truncate">{label}</span> : null}
     </Link>
   )
 
+  if (compact) {
+    return <SimpleTooltip content={tooltip}>{link}</SimpleTooltip>
+  }
+
+  return link
+}
+
+function SidebarAdminSection({
+  compact,
+  onNavigate,
+}: {
+  compact: boolean
+  onNavigate?: () => void
+}) {
   return (
     <div className="flex shrink-0 flex-col">
       {!compact ? (
@@ -112,13 +137,24 @@ function SidebarAdminSection({
       ) : (
         <div className="my-2 shrink-0 border-t border-sidebar-border" />
       )}
-      {compact ? (
-        <SimpleTooltip content={SIDEBAR_TOOLTIPS.adminMetrics}>
-          {link}
-        </SimpleTooltip>
-      ) : (
-        link
-      )}
+
+      <SidebarAdminLink
+        compact={compact}
+        onNavigate={onNavigate}
+        to="/admin/settings"
+        icon={Settings}
+        label="Settings"
+        tooltip={SIDEBAR_TOOLTIPS.adminSettings}
+      />
+      <SidebarAdminLink
+        compact={compact}
+        onNavigate={onNavigate}
+        to="/admin/metrics"
+        search={{ range: "24h" }}
+        icon={Gauge}
+        label="Metrics"
+        tooltip={SIDEBAR_TOOLTIPS.adminMetrics}
+      />
     </div>
   )
 }

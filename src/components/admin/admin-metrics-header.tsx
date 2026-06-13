@@ -21,10 +21,10 @@ function AdminMetricsHeader({ range }: AdminMetricsHeaderProps) {
         ]}
       />
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <Gauge className="size-5 shrink-0 text-muted-foreground" />
+          <div className="flex min-w-0 items-center gap-2">
+            <Gauge className="size-4 shrink-0 text-monitor dark:text-warning" />
             <h1 className="text-xl">Admin Metrics</h1>
           </div>
 

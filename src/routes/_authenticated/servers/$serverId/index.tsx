@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { z } from "zod"
 
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
@@ -10,25 +9,9 @@ import { ServerMetricsView } from "@/components/server/server-metrics-view"
 import { useUserServer } from "@/hooks/use-user-server"
 import { userServerMetricsQueryOptions } from "@/lib/api/user/metrics.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
-const serverMetricsSearchSchema = z.object({
-  range: z
-    .enum([
-      "1h",
-      "3h",
-      "6h",
-      "12h",
-      "24h",
-      "3d",
-      "7d",
-      "2w",
-      "1mo",
-      "3mo",
-      "1y",
-      "2y",
-    ])
-    .default("7d"),
-})
+const serverMetricsSearchSchema = metricRangeSearchSchema("7d")
 
 export const Route = createFileRoute("/_authenticated/servers/$serverId/")({
   validateSearch: serverMetricsSearchSchema,

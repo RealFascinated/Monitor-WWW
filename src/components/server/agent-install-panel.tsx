@@ -1,7 +1,6 @@
-import { Check, Copy } from "lucide-react"
+import { AlertTriangle, Check, Copy } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -117,22 +116,35 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <CopyableField
-        id="ingest-token"
-        label="Ingest token"
-        value={ingestToken}
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3">
+        <CopyableField
+          id="ingest-token"
+          label="Ingest token"
+          value={ingestToken}
+        />
+
+        <div className="flex items-start gap-2 rounded-sm border border-warning-300 bg-warning-50 px-3 py-2 text-xs text-warning-800 dark:border-warning-800 dark:bg-warning-900/30 dark:text-warning-200">
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+          <span>
+            Shown once — copy it now. If you lose it, rotate the ingest token
+            again to issue a new one.
+          </span>
+        </div>
+      </div>
+
+      <div
+        className="h-px bg-neutral-200 dark:bg-monitor-gray-300"
+        role="separator"
       />
 
-      <Callout type="warning" title="Save your ingest token">
-        This token is shown only once. Copy it now — you will need it to
-        configure the agent. If you lose it, rotate the ingest token in server
-        settings to issue a new one.
-      </Callout>
-
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         <Label>Install method</Label>
-        <div className="flex flex-wrap gap-1.5">
+        <div
+          className="inline-flex flex-wrap items-stretch gap-0.5 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100/80 p-0.5 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60"
+          role="toolbar"
+          aria-label="Install method"
+        >
           {INSTALL_METHODS.map((option) => {
             const note =
               METHOD_NOTES[option.value] ??
@@ -143,11 +155,12 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
                 <Button
                   type="button"
                   size="sm"
-                  variant={method === option.value ? "highlighted" : "outline"}
+                  variant="ghost"
                   className={cn(
-                    "h-7 cursor-help px-2.5 text-xs",
-                    method !== option.value &&
-                      "text-neutral-600 dark:text-neutral-400"
+                    "h-7 cursor-help rounded-sm border-0 px-2.5 text-xs",
+                    method === option.value
+                      ? "bg-white text-foreground shadow-sm dark:bg-monitor-gray-300/80"
+                      : "text-neutral-600 hover:bg-white/70 dark:text-neutral-400 dark:hover:bg-monitor-gray-300/60"
                   )}
                   onClick={() => setMethod(option.value)}
                 >
@@ -157,11 +170,11 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
             )
           })}
         </div>
-      </div>
 
-      {methodNote ? (
-        <p className="text-xs text-neutral-500">{methodNote}</p>
-      ) : null}
+        {methodNote ? (
+          <p className="text-xs text-neutral-500">{methodNote}</p>
+        ) : null}
+      </div>
 
       {unraidSteps ? (
         <div className="flex flex-col gap-2">
