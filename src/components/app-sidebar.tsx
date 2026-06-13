@@ -5,12 +5,13 @@ import {
   Gauge,
   LogOut,
   Mail,
+  Search,
   Server,
   Settings,
   X,
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
-import { memo, useEffect, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
@@ -19,13 +20,17 @@ import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { filterServerIdsBySearch } from "@/components/user/server-table-columns"
 import { useSidebarDetailedMode } from "@/hooks/use-sidebar-detailed-mode"
 import {
   useServerFolderLayout,
   useServerIds,
 } from "@/hooks/use-server-folder-layout"
 import { useUserServer } from "@/hooks/use-user-server"
+import { useUserServers } from "@/hooks/use-user-servers"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
+import { serversById } from "@/lib/api/user/servers.queries"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import type { ServerStatus } from "@/lib/api/user/servers"
 import type { User } from "@/lib/auth/types"
@@ -333,12 +338,39 @@ function SidebarServerList({
   compact: boolean
   onNavigate?: () => void
 }) {
+  const [searchQuery, setSearchQuery] = useState("")
   const serverIds = useServerIds()
   const { byFolder, ungroupedIds } = useServerFolderLayout()
   const { data: folders = EMPTY_FOLDERS } = useQuery(
     userServerFoldersQueryOptions()
   )
+  const { data: servers = [] } = useUserServers()
+  const serversMap = useMemo(() => serversById(servers), [servers])
   const { detailed, toggleDetailed } = useSidebarDetailedMode()
+  const search = searchQuery.trim()
+
+  const filteredServerIds = useMemo(
+    () => filterServerIdsBySearch(serverIds, searchQuery, serversMap),
+    [serverIds, searchQuery, serversMap]
+  )
+
+  const filteredUngroupedIds = useMemo(
+    () => filterServerIdsBySearch(ungroupedIds, searchQuery, serversMap),
+    [ungroupedIds, searchQuery, serversMap]
+  )
+
+  const filteredFolders = useMemo(
+    () =>
+      folders.map((folder) => ({
+        folder,
+        serverIds: filterServerIdsBySearch(
+          byFolder.get(folder.name) ?? [],
+          searchQuery,
+          serversMap
+        ),
+      })),
+    [folders, byFolder, searchQuery, serversMap]
+  )
 
   const folderNamesKey = [
     ...folders.map((folder) => folder.name),
@@ -369,6 +401,31 @@ function SidebarServerList({
     })
   }, [folderNamesKey, folders])
 
+  useEffect(() => {
+    if (!search) {
+      return
+    }
+
+    setExpandedFolders((current) => {
+      const next = new Set(current)
+      let changed = false
+
+      for (const { folder, serverIds: ids } of filteredFolders) {
+        if (ids.length > 0 && !next.has(folder.name)) {
+          next.add(folder.name)
+          changed = true
+        }
+      }
+
+      if (filteredUngroupedIds.length > 0 && !next.has(UNGROUPED_SIDEBAR_KEY)) {
+        next.add(UNGROUPED_SIDEBAR_KEY)
+        changed = true
+      }
+
+      return changed ? next : current
+    })
+  }, [search, filteredFolders, filteredUngroupedIds])
+
   function toggleFolder(folderName: string) {
     setExpandedFolders((current) => {
       const next = new Set(current)
@@ -387,32 +444,65 @@ function SidebarServerList({
 
   const hasFolders = folders.length > 0
   const showGroupedSidebar = hasFolders && !compact
+  const visibleFolders =
+    search === ""
+      ? filteredFolders
+      : filteredFolders.filter(({ serverIds: ids }) => ids.length > 0)
+  const showUngrouped =
+    search === "" || filteredUngroupedIds.length > 0
+  const hasSearchResults =
+    search === "" ||
+    (showGroupedSidebar
+      ? visibleFolders.some(({ serverIds: ids }) => ids.length > 0) ||
+        filteredUngroupedIds.length > 0
+      : filteredServerIds.length > 0)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {!compact ? (
-        <div className="mt-3 mb-1 flex shrink-0 items-center justify-between gap-2 px-2">
-          <p className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
-            Servers
-          </p>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-neutral-400">Detailed</span>
-            <SidebarDetailedToggle
-              detailed={detailed}
-              onToggle={toggleDetailed}
+        <>
+          <div className="mt-3 mb-0 flex shrink-0 items-center justify-between gap-2 px-2">
+            <p className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
+              Servers
+            </p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-neutral-400">Detailed</span>
+              <SidebarDetailedToggle
+                detailed={detailed}
+                onToggle={toggleDetailed}
+              />
+            </div>
+          </div>
+          <div className="relative my-2 shrink-0 px-2">
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 left-4 size-3.5 -translate-y-1/2 text-neutral-400"
+            />
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search servers…"
+              aria-label="Search servers"
+              className="h-7 pl-8 text-xs"
             />
           </div>
-        </div>
+        </>
       ) : (
         <div className="my-2 shrink-0 border-t border-sidebar-border" />
       )}
       <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
+        {!hasSearchResults ? (
+          <p className="px-2 py-1 text-xs text-muted-foreground">
+            No servers match your search.
+          </p>
+        ) : null}
         {showGroupedSidebar
-          ? folders.map((folder) => (
+          ? visibleFolders.map(({ folder, serverIds: ids }) => (
               <SidebarFolderGroup
                 key={folder.id}
                 folderName={folder.name}
-                serverIds={byFolder.get(folder.name) ?? []}
+                serverIds={ids}
                 compact={compact}
                 detailed={detailed}
                 expanded={expandedFolders.has(folder.name)}
@@ -421,10 +511,10 @@ function SidebarServerList({
               />
             ))
           : null}
-        {showGroupedSidebar ? (
+        {showGroupedSidebar && showUngrouped ? (
           <SidebarFolderGroup
             folderName={UNGROUPED_SIDEBAR_KEY}
-            serverIds={ungroupedIds}
+            serverIds={filteredUngroupedIds}
             compact={compact}
             detailed={detailed}
             expanded={expandedFolders.has(UNGROUPED_SIDEBAR_KEY)}
@@ -432,7 +522,7 @@ function SidebarServerList({
             onNavigate={onNavigate}
           />
         ) : null}
-        {(compact || !hasFolders ? serverIds : []).map((serverId) => (
+        {(compact || !hasFolders ? filteredServerIds : []).map((serverId) => (
           <SidebarServerItem
             key={serverId}
             serverId={serverId}

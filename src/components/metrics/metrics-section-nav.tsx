@@ -74,14 +74,6 @@ const navItemClassName = (isActive: boolean, depth: number) =>
       : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
   )
 
-function sectionNavTooltip(section: MetricsSectionLeaf): string {
-  if (section.description) {
-    return `${section.title} — ${section.description}`
-  }
-
-  return section.title
-}
-
 function NavLeafButton({
   section,
   isActive,
@@ -111,17 +103,9 @@ function NavLeafButton({
       className={navItemClassName(isActive, depth)}
       style={depth > 0 ? { paddingLeft: `${8 + depth * 16}px` } : undefined}
     >
-      {section.navPercentTooltip ? (
-        <span className="min-w-0 flex-1 truncate">
-          {metricsSectionNavLabel(section)}
-        </span>
-      ) : (
-        <SimpleTooltip content={sectionNavTooltip(section)}>
-          <span className="min-w-0 flex-1 cursor-help truncate">
-            {metricsSectionNavLabel(section)}
-          </span>
-        </SimpleTooltip>
-      )}
+      <span className="min-w-0 flex-1 truncate">
+        {metricsSectionNavLabel(section)}
+      </span>
       {section.navPercent != null && section.navPercentTooltip ? (
         <SimpleTooltip content={section.navPercentTooltip}>
           <span className="cursor-help">{percent}</span>

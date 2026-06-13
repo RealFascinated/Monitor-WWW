@@ -230,9 +230,9 @@ function ServersTable() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         {hasContent ? (
-          <div className="relative max-w-sm min-w-0 flex-1">
+          <div className="relative w-full min-w-0 sm:max-w-sm sm:flex-1">
             <Search
               aria-hidden
               className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400"
@@ -243,13 +243,13 @@ function ServersTable() {
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search servers…"
               aria-label="Search servers"
-              className="pl-9"
+              className="pl-9 text-base sm:text-sm"
             />
           </div>
         ) : (
-          <div className="flex-1" />
+          <div className="hidden flex-1 sm:block" />
         )}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:shrink-0">
           {showEditMode ? (
             <Button
               type="button"
