@@ -37,6 +37,11 @@ export type HostMetrics = {
   runningProcesses?: MetricValues
   ctxSwitchesPerSecond?: MetricValues
   interruptsPerSecond?: MetricValues
+  fdOpen?: MetricValues
+  fdMax?: MetricValues
+  fdUsagePct?: MetricValues
+  oomKillsTotal?: MetricValues
+  oomKillsPerSecond?: MetricValues
   cpuClockMhz?: MetricValues
   cpuPowerWatts?: MetricValues
 }
@@ -79,6 +84,8 @@ export type GpuMetrics = {
   deviceId: string
   vendor: string
   usagePercent?: MetricValues
+  encoderUsagePercent?: MetricValues
+  decoderUsagePercent?: MetricValues
   memoryUsedBytes?: MetricValues
   memoryTotalBytes?: MetricValues
   temperatureCelsius?: MetricValues

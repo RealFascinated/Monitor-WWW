@@ -18,7 +18,6 @@ export type OverviewMetrics = {
   databaseSizeBytes?: MetricValues
   users?: MetricValues
   usersNew24h?: MetricValues
-  websocketConnections?: MetricValues
 }
 
 export type FleetMetrics = {

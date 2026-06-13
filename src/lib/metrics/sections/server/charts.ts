@@ -9,6 +9,7 @@ import {
   PERCENT_THRESHOLDS,
   TEMPERATURE_THRESHOLDS,
 } from "@/lib/metrics/chart-thresholds"
+import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
 import type { MetricChartConfig } from "@/lib/metrics/chart-config"
 import { chartSeries } from "@/lib/metrics/series"
 import {
@@ -26,6 +27,19 @@ import {
 } from "@/lib/formatter"
 
 const PERCENT_Y_RANGE = { max: 100 } as const
+
+function loadAverageThresholds(
+  coreCount: number
+): ChartThreshold[] | undefined {
+  if (coreCount < 1) {
+    return undefined
+  }
+
+  return [
+    { value: coreCount, level: "warning" },
+    { value: coreCount * 2, level: "critical" },
+  ]
+}
 
 function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
   return [
@@ -141,6 +155,18 @@ function gpuCharts(gpu: GpuMetrics): MetricChartConfig[] {
       title: "Usage",
       description: "GPU core utilization.",
       series: [chartSeries("Usage", gpu.usagePercent)],
+      valueFormatter: formatPercentValue,
+      yRange: PERCENT_Y_RANGE,
+      thresholds: PERCENT_THRESHOLDS,
+    },
+    {
+      title: "Encode/decode",
+      description:
+        "Video encoder and decoder utilization on supported GPUs (for example NVENC/NVDEC on NVIDIA).",
+      series: [
+        chartSeries("Encoder", gpu.encoderUsagePercent),
+        chartSeries("Decoder", gpu.decoderUsagePercent),
+      ],
       valueFormatter: formatPercentValue,
       yRange: PERCENT_Y_RANGE,
       thresholds: PERCENT_THRESHOLDS,
@@ -276,6 +302,18 @@ function hostCpuCharts(
       thresholds: PERCENT_THRESHOLDS,
     },
     {
+      title: "Load average",
+      description:
+        "Runnable and blocked tasks averaged over 1, 5, and 15 minutes. Compare to logical CPU count — sustained load near or above core count indicates saturation.",
+      series: [
+        chartSeries("1 min", host.load1),
+        chartSeries("5 min", host.load5),
+        chartSeries("15 min", host.load15),
+      ],
+      valueFormatter: formatNumber,
+      thresholds: loadAverageThresholds(cpuCores?.length ?? 0),
+    },
+    {
       title: "Per-core usage",
       description: "Utilization per logical CPU core.",
       series: (cpuCores ?? []).map((core) =>
@@ -355,6 +393,34 @@ function hostProcessCharts(
       series: [
         chartSeries("Context switches/s", host.ctxSwitchesPerSecond),
         chartSeries("Interrupts/s", host.interruptsPerSecond),
+      ],
+      valueFormatter: formatCount,
+    },
+    {
+      title: "File descriptors",
+      description:
+        "System-wide open file descriptors vs the kernel limit. High usage can block new connections and file opens.",
+      series: [
+        chartSeries("Open", host.fdOpen),
+        chartSeries("Max", host.fdMax),
+      ],
+      valueFormatter: formatCount,
+    },
+    {
+      title: "FD usage",
+      description: "Open file descriptors as a percentage of the system limit.",
+      series: [chartSeries("Usage", host.fdUsagePct)],
+      valueFormatter: formatPercentValue,
+      yRange: PERCENT_Y_RANGE,
+      thresholds: PERCENT_THRESHOLDS,
+    },
+    {
+      title: "OOM kills",
+      description:
+        "Out-of-memory killer events. Total is cumulative; rate is kills per second.",
+      series: [
+        chartSeries("Total", host.oomKillsTotal),
+        chartSeries("Kills/s", host.oomKillsPerSecond),
       ],
       valueFormatter: formatCount,
     },

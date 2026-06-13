@@ -41,8 +41,15 @@ export function formatPercent(value: number | null): string {
   return formatPercentValue(value)
 }
 
+function formatDecimal(value: number, maximumFractionDigits: number): string {
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits,
+    minimumFractionDigits: 0,
+  }).format(value)
+}
+
 export function formatPercentValue(value: number, fractionDigits = 1): string {
-  return `${value.toFixed(fractionDigits)}%`
+  return `${formatDecimal(value, fractionDigits)}%`
 }
 
 export function formatUptimePercent30d(value: number | null): string {
@@ -64,7 +71,7 @@ export function formatBytes(value: number, fractionDigits?: number): string {
   }
 
   const decimals = fractionDigits ?? (size >= 10 || unitIndex === 0 ? 0 : 1)
-  return `${size.toFixed(decimals)} ${units[unitIndex]}`
+  return `${formatDecimal(size, decimals)} ${units[unitIndex]}`
 }
 
 export function formatMemoryBytes(value: number): string {
@@ -87,7 +94,7 @@ export function formatNetworkRate(bytesPerSecond: number): string {
   }
 
   const decimals = size >= 10 || unitIndex === 0 ? 0 : 1
-  return `${size.toFixed(decimals)} ${units[unitIndex]}`
+  return `${formatDecimal(size, decimals)} ${units[unitIndex]}`
 }
 
 export function formatCount(value: number): string {
@@ -101,9 +108,7 @@ export function formatPerMinute(value: number): string {
 }
 
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat(undefined, {
-    maximumFractionDigits: 1,
-  }).format(value)
+  return formatDecimal(value, 1)
 }
 
 export function formatMegahertz(value: number): string {

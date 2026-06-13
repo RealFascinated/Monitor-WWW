@@ -111,8 +111,7 @@ function overviewHasData(
     overview.activeSessions,
     overview.databaseSizeBytes,
     overview.users,
-    overview.usersNew24h,
-    overview.websocketConnections
+    overview.usersNew24h
   )
 }
 
@@ -202,12 +201,6 @@ function overviewCharts(overview: OverviewMetrics): MetricChartConfig[] {
       title: "Active sessions",
       description: "Signed-in user sessions that have not expired.",
       series: [chartSeries("Sessions", overview.activeSessions)],
-      valueFormatter: formatCount,
-    },
-    {
-      title: "WebSocket connections",
-      description: "Open real-time connections to the server list feed.",
-      series: [chartSeries("WebSockets", overview.websocketConnections)],
       valueFormatter: formatCount,
     },
     {
