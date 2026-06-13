@@ -115,7 +115,7 @@ function SidebarAdminLink({
         "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
         "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
         compact && "justify-center px-0",
-        compact && "cursor-help"
+        compact && "cursor-pointer"
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -201,7 +201,7 @@ const SidebarServerItem = memo(function SidebarServerItem({
         "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
         nested && !compact && "pl-4",
         compact
-          ? "min-h-7 cursor-help items-center justify-center gap-3 px-0 py-1"
+          ? "min-h-7 cursor-pointer items-center justify-center gap-3 px-0 py-1"
           : detailed
             ? "items-center gap-2 px-2 py-1"
             : "min-h-7 items-center gap-3 px-2 py-1"
@@ -648,7 +648,7 @@ export function AppSidebar({
                   "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
                   "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
                   compact && "justify-center px-0",
-                  compact && "cursor-help"
+                  compact && "cursor-pointer"
                 )}
               >
                 <Icon className="size-4 shrink-0" />

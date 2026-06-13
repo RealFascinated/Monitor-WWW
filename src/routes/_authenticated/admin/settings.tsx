@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { createFileRoute } from "@tanstack/react-router"
 
 import { AdminSettingsHeader } from "@/components/admin/admin-settings-header"
 import { AdminSettingsView } from "@/components/admin/admin-settings-view"
 import { Callout } from "@/components/callout"
-import { Spinner } from "@/components/spinner"
+import { LoadingState } from "@/components/loading-state"
 import { adminSettingsQueryOptions } from "@/lib/api/admin/settings.queries"
-import { useAuth } from "@/lib/auth"
 import { ApiClientError } from "@/lib/auth/api"
 import { pageTitle } from "@/lib/page-title"
 
@@ -23,27 +21,11 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 })
 
 function AdminSettingsPage() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-
   const {
     data: settings,
     isPending,
     error,
-  } = useQuery({
-    ...adminSettingsQueryOptions(),
-    enabled: user?.role === "ADMIN",
-  })
-
-  useEffect(() => {
-    if (user && user.role !== "ADMIN") {
-      void navigate({ to: "/" })
-    }
-  }, [user, navigate])
-
-  if (!user || user.role !== "ADMIN") {
-    return null
-  }
+  } = useQuery(adminSettingsQueryOptions())
 
   const errorMessage =
     error instanceof ApiClientError
@@ -63,10 +45,7 @@ function AdminSettingsPage() {
       ) : null}
 
       {isPending && !errorMessage ? (
-        <div className="flex items-center gap-2 text-neutral-500">
-          <Spinner />
-          <span>Loading settings…</span>
-        </div>
+        <LoadingState message="Loading settings…" />
       ) : null}
 
       {settings && !errorMessage ? (

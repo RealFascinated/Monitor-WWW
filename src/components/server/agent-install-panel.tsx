@@ -1,6 +1,7 @@
-import { AlertTriangle, Check, Copy } from "lucide-react"
+import { Check, Copy } from "lucide-react"
 import { useState } from "react"
 
+import { Callout } from "@/components/callout"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -11,6 +12,7 @@ import {
   isCommandInstallMethod,
 } from "@/lib/agent/install"
 import type { AgentInstallMethod } from "@/lib/agent/install"
+import { copyToClipboard } from "@/lib/clipboard"
 import { cn } from "@/lib/utils"
 
 const INSTALL_METHODS: {
@@ -50,9 +52,17 @@ function CopyableField({
   value: string
 }) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState<string | null>(null)
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(value)
+    setCopyError(null)
+    const didCopy = await copyToClipboard(value)
+
+    if (!didCopy) {
+      setCopyError("Could not copy to clipboard. Check browser permissions or use HTTPS.")
+      return
+    }
+
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -71,7 +81,7 @@ function CopyableField({
       <div className="flex gap-2">
         <pre
           id={id}
-          className="min-w-0 flex-1 overflow-x-auto rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2 font-mono text-xs dark:border-monitor-gray-300 dark:bg-monitor-gray-100"
+          className="min-w-0 flex-1 overflow-x-auto rounded-sm border border-border bg-muted px-3 py-2 font-mono text-xs"
         >
           {value}
         </pre>
@@ -85,6 +95,11 @@ function CopyableField({
           {copied ? "Copied" : "Copy"}
         </Button>
       </div>
+      {copyError ? (
+        <Callout type="danger" title="Copy failed">
+          {copyError}
+        </Callout>
+      ) : null}
     </div>
   )
 }
@@ -92,6 +107,7 @@ function CopyableField({
 function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
   const [method, setMethod] = useState<AgentInstallMethod>("linux")
   const [copiedCommand, setCopiedCommand] = useState(false)
+  const [copyCommandError, setCopyCommandError] = useState<string | null>(null)
 
   const isCommandMethod = isCommandInstallMethod(method)
   const installContent = isCommandMethod
@@ -110,7 +126,16 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
       return
     }
 
-    await navigator.clipboard.writeText(installContent)
+    setCopyCommandError(null)
+    const didCopy = await copyToClipboard(installContent)
+
+    if (!didCopy) {
+      setCopyCommandError(
+        "Could not copy to clipboard. Check browser permissions or use HTTPS."
+      )
+      return
+    }
+
     setCopiedCommand(true)
     setTimeout(() => setCopiedCommand(false), 2000)
   }
@@ -124,24 +149,18 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
           value={ingestToken}
         />
 
-        <div className="flex items-start gap-2 rounded-sm border border-warning-300 bg-warning-50 px-3 py-2 text-xs text-warning-800 dark:border-warning-800 dark:bg-warning-900/30 dark:text-warning-200">
-          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          <span>
-            Shown once — copy it now. If you lose it, rotate the ingest token
-            again to issue a new one.
-          </span>
-        </div>
+        <Callout type="warning" title="Shown once">
+          Copy the ingest token now. If you lose it, rotate the ingest token
+          again to issue a new one.
+        </Callout>
       </div>
 
-      <div
-        className="h-px bg-neutral-200 dark:bg-monitor-gray-300"
-        role="separator"
-      />
+      <div className="h-px bg-border" role="separator" />
 
       <div className="flex flex-col gap-3">
         <Label>Install method</Label>
         <div
-          className="inline-flex flex-wrap items-stretch gap-0.5 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100/80 p-0.5 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60"
+          className="inline-flex flex-wrap items-stretch gap-0.5 overflow-hidden rounded-sm border border-border bg-muted/80 p-0.5"
           role="toolbar"
           aria-label="Install method"
         >
@@ -157,10 +176,10 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
                   size="sm"
                   variant="ghost"
                   className={cn(
-                    "h-7 cursor-help rounded-sm border-0 px-2.5 text-xs",
+                    "h-7 cursor-pointer rounded-sm border-0 px-2.5 text-xs",
                     method === option.value
-                      ? "bg-white text-foreground shadow-sm dark:bg-monitor-gray-300/80"
-                      : "text-neutral-600 hover:bg-white/70 dark:text-neutral-400 dark:hover:bg-monitor-gray-300/60"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-background/70"
                   )}
                   onClick={() => setMethod(option.value)}
                 >
@@ -172,14 +191,14 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
         </div>
 
         {methodNote ? (
-          <p className="text-xs text-neutral-500">{methodNote}</p>
+          <p className="text-xs text-muted-foreground">{methodNote}</p>
         ) : null}
       </div>
 
       {unraidSteps ? (
         <div className="flex flex-col gap-2">
           <Label>Install steps</Label>
-          <ol className="list-decimal space-y-2 pl-5 text-sm text-neutral-600 dark:text-neutral-400">
+          <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             {unraidSteps.map((step) => (
               <li key={step}>{step}</li>
             ))}
@@ -200,9 +219,14 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
               {copiedCommand ? "Copied" : "Copy"}
             </Button>
           </div>
+          {copyCommandError ? (
+            <Callout type="danger" title="Copy failed">
+              {copyCommandError}
+            </Callout>
+          ) : null}
           <pre
             id="install-command"
-            className="max-h-64 overflow-auto rounded-sm border border-neutral-200 bg-neutral-50 p-3 font-mono text-xs whitespace-pre-wrap dark:border-monitor-gray-300 dark:bg-monitor-gray-100"
+            className="max-h-64 overflow-auto rounded-sm border border-border bg-muted p-3 font-mono text-xs whitespace-pre-wrap"
           >
             {installContent}
           </pre>

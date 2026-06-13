@@ -12,10 +12,10 @@ const calloutVariants = cva(
         warning:
           "border-warning-300 bg-warning-50 dark:border-warning-800 dark:bg-warning-900/30",
         danger:
-          "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/30",
-        info: "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30",
+          "border-destructive/30 bg-destructive/10 dark:border-destructive/40 dark:bg-destructive/15",
+        info: "border-chart-2/30 bg-chart-2/10 dark:border-chart-2/40 dark:bg-chart-2/15",
         success:
-          "border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/30",
+          "border-success/30 bg-success/10 dark:border-success/40 dark:bg-success/15",
       },
     },
     defaultVariants: {
@@ -28,9 +28,9 @@ const titleVariants = cva("text-sm font-bold", {
   variants: {
     type: {
       warning: "text-warning-800 dark:text-warning-300",
-      danger: "text-red-800 dark:text-red-300",
-      info: "text-blue-800 dark:text-blue-300",
-      success: "text-green-800 dark:text-green-300",
+      danger: "text-destructive",
+      info: "text-chart-2",
+      success: "text-success",
     },
   },
   defaultVariants: {
@@ -42,9 +42,9 @@ const bodyVariants = cva("text-sm", {
   variants: {
     type: {
       warning: "text-warning-700 dark:text-warning-200",
-      danger: "text-red-700 dark:text-red-200",
-      info: "text-blue-700 dark:text-blue-200",
-      success: "text-green-700 dark:text-green-200",
+      danger: "text-destructive/90",
+      info: "text-foreground",
+      success: "text-foreground",
     },
   },
   defaultVariants: {

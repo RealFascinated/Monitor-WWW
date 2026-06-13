@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedInvitesRouteRouteImport } from './routes/_authenticated/invites/route'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedInvitesIndexRouteImport } from './routes/_authenticated/invites/index'
 import { Route as AuthenticatedInvitesAcceptRouteImport } from './routes/_authenticated/invites/accept'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
@@ -47,6 +48,11 @@ const AuthenticatedInvitesRouteRoute =
     path: '/invites',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedInvitesIndexRoute =
   AuthenticatedInvitesIndexRouteImport.update({
     id: '/',
@@ -61,15 +67,15 @@ const AuthenticatedInvitesAcceptRoute =
   } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
-    id: '/admin/settings',
-    path: '/admin/settings',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminMetricsRoute =
   AuthenticatedAdminMetricsRouteImport.update({
-    id: '/admin/metrics',
-    path: '/admin/metrics',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/metrics',
+    path: '/metrics',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedServersServerIdRouteRoute =
   AuthenticatedServersServerIdRouteRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/invites': typeof AuthenticatedInvitesRouteRouteWithChildren
   '/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/': typeof AuthenticatedIndexRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/invites': typeof AuthenticatedInvitesRouteRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/admin'
     | '/invites'
     | '/servers/$serverId'
     | '/admin/metrics'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/register'
+    | '/admin'
     | '/'
     | '/admin/metrics'
     | '/admin/settings'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/register'
+    | '/_authenticated/admin'
     | '/_authenticated/invites'
     | '/_authenticated/'
     | '/_authenticated/servers/$serverId'
@@ -213,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvitesRouteRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/invites/': {
       id: '/_authenticated/invites/'
       path: '/'
@@ -229,17 +248,17 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
-      path: '/admin/settings'
+      path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/metrics': {
       id: '/_authenticated/admin/metrics'
-      path: '/admin/metrics'
+      path: '/metrics'
       fullPath: '/admin/metrics'
       preLoaderRoute: typeof AuthenticatedAdminMetricsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/servers/$serverId': {
       id: '/_authenticated/servers/$serverId'
@@ -264,6 +283,22 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+}
+
+const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
+  {
+    AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
+    AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  }
+
+const AuthenticatedAdminRouteRouteWithChildren =
+  AuthenticatedAdminRouteRoute._addFileChildren(
+    AuthenticatedAdminRouteRouteChildren,
+  )
 
 interface AuthenticatedInvitesRouteRouteChildren {
   AuthenticatedInvitesAcceptRoute: typeof AuthenticatedInvitesAcceptRoute
@@ -300,20 +335,18 @@ const AuthenticatedServersServerIdRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedInvitesRouteRoute: typeof AuthenticatedInvitesRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedServersServerIdRouteRoute: typeof AuthenticatedServersServerIdRouteRouteWithChildren
-  AuthenticatedAdminMetricsRoute: typeof AuthenticatedAdminMetricsRoute
-  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedInvitesRouteRoute: AuthenticatedInvitesRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedServersServerIdRouteRoute:
     AuthenticatedServersServerIdRouteRouteWithChildren,
-  AuthenticatedAdminMetricsRoute: AuthenticatedAdminMetricsRoute,
-  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

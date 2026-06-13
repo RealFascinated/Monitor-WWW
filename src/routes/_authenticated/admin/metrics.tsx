@@ -1,14 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { createFileRoute } from "@tanstack/react-router"
 
 import { AdminMetricsHeader } from "@/components/admin/admin-metrics-header"
 import { AdminMetricsView } from "@/components/admin/admin-metrics-view"
 import { Callout } from "@/components/callout"
-import { Spinner } from "@/components/spinner"
+import { LoadingState } from "@/components/loading-state"
 import { adminMetricsQueryOptions } from "@/lib/api/admin/metrics.queries"
 import { useMetricRefreshInterval } from "@/hooks/use-metric-refresh-interval"
-import { useAuth } from "@/lib/auth"
 import { ApiClientError } from "@/lib/auth/api"
 import { pageTitle } from "@/lib/page-title"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
@@ -29,8 +27,6 @@ export const Route = createFileRoute("/_authenticated/admin/metrics")({
 })
 
 function AdminMetricsPage() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
   const { range } = Route.useSearch()
   const { refreshInterval, setRefreshInterval } = useMetricRefreshInterval()
 
@@ -40,20 +36,7 @@ function AdminMetricsPage() {
     isFetching,
     refetch,
     error,
-  } = useQuery({
-    ...adminMetricsQueryOptions(range, refreshInterval),
-    enabled: user?.role === "ADMIN",
-  })
-
-  useEffect(() => {
-    if (user && user.role !== "ADMIN") {
-      void navigate({ to: "/" })
-    }
-  }, [user, navigate])
-
-  if (!user || user.role !== "ADMIN") {
-    return null
-  }
+  } = useQuery(adminMetricsQueryOptions(range, refreshInterval))
 
   const errorMessage =
     error instanceof ApiClientError
@@ -79,10 +62,7 @@ function AdminMetricsPage() {
       ) : null}
 
       {isPending && !errorMessage ? (
-        <div className="flex items-center gap-2 text-neutral-500">
-          <Spinner />
-          <span>Loading metrics…</span>
-        </div>
+        <LoadingState message="Loading metrics…" />
       ) : null}
 
       {metrics && !errorMessage ? <AdminMetricsView metrics={metrics} /> : null}

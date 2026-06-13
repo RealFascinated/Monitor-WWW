@@ -25,7 +25,7 @@ type BreadcrumbProps = {
 }
 
 const breadcrumbLinkClassName =
-  "shrink-0 rounded-sm text-neutral-600 transition-colors hover:text-monitor focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-monitor dark:text-neutral-400 dark:hover:text-warning dark:focus-visible:ring-warning"
+  "shrink-0 rounded-sm text-muted-foreground transition-colors hover:text-monitor focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-monitor dark:hover:text-warning dark:focus-visible:ring-warning"
 
 function Breadcrumb({ items, className }: BreadcrumbProps) {
   return (
@@ -39,7 +39,7 @@ function Breadcrumb({ items, className }: BreadcrumbProps) {
             {index > 0 ? (
               <li
                 aria-hidden
-                className="inline-flex items-center text-neutral-400"
+                className="inline-flex items-center text-muted-foreground/60"
               >
                 <ChevronRight className="size-3 shrink-0" />
               </li>
@@ -48,7 +48,7 @@ function Breadcrumb({ items, className }: BreadcrumbProps) {
               {item.current ? (
                 <span
                   aria-current="page"
-                  className="shrink-0 text-black dark:text-white"
+                  className="shrink-0 text-foreground"
                 >
                   {item.label}
                 </span>

@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
+import { LoadingState } from "@/components/loading-state"
 import { Callout } from "@/components/callout"
-import { Spinner } from "@/components/spinner"
 import { ServerAgentSetupDialog } from "@/components/server/server-agent-setup-dialog"
 import { ServerMetricsHeader } from "@/components/server/server-metrics-header"
 import { ServerMetricsView } from "@/components/server/server-metrics-view"
@@ -88,10 +88,7 @@ function ServerMetricsPage() {
         ) : null}
 
         {isPending && !errorMessage ? (
-          <div className="flex items-center gap-2 text-neutral-500">
-            <Spinner />
-            <span>Loading metrics…</span>
-          </div>
+          <LoadingState message="Loading metrics…" />
         ) : null}
 
         {metrics && !errorMessage ? (

@@ -10,9 +10,9 @@ import {
   SelectTrigger,
 } from "@/components/ui/select"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
+import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
 import {
   METRIC_REFRESH_INTERVAL_OPTIONS,
-  type MetricRefreshInterval,
   getMetricRefreshIntervalOption,
 } from "@/lib/metrics/refresh-interval"
 import {
@@ -122,7 +122,7 @@ function MetricRangeSelector({
       </Select>
 
       <div
-        className="my-1 w-px shrink-0 bg-neutral-200 dark:bg-monitor-gray-300"
+        className="my-1 w-px shrink-0 bg-border"
         aria-hidden
       />
 

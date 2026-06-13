@@ -13,6 +13,7 @@ export type {
 export { ApiClientError, apiFetch } from "@/lib/auth/api"
 export { AuthProvider, useAuth } from "@/lib/auth/context"
 export { fetchCurrentUser, getMe } from "@/lib/auth/session"
+export { requireAdmin } from "@/lib/auth/require-admin"
 export { validateCredentials } from "@/lib/auth/validation"
 
 export type AuthResult = { error: string } | { user: User }

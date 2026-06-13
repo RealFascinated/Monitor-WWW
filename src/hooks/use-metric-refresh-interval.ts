@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 
-import {
-  type MetricRefreshInterval,
-  parseMetricRefreshInterval,
-} from "@/lib/metrics/refresh-interval"
+import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
+import { parseMetricRefreshInterval } from "@/lib/metrics/refresh-interval"
 
 const METRIC_REFRESH_INTERVAL_STORAGE_KEY = "metric-refresh-interval"
 

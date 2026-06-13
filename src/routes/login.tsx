@@ -1,8 +1,8 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 
+import { LoadingState } from "@/components/loading-state"
 import { AuthForm } from "@/components/auth-form"
-import { Spinner } from "@/components/spinner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import {
   Card,
@@ -32,11 +32,7 @@ function LoginPage() {
   }, [isLoading, user, navigate])
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-background">
-        <Spinner />
-      </div>
-    )
+    return <LoadingState message="Checking session…" centered />
   }
 
   return (

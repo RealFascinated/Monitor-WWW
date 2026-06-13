@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { Callout } from "@/components/callout"
-import { Spinner } from "@/components/spinner"
+import { LoadingState } from "@/components/loading-state"
 import { ServerSettingsHeader } from "@/components/server/server-settings-header"
 import { ServerSettingsView } from "@/components/server/server-settings-view"
 import { useServerAccess } from "@/hooks/use-server-access"
@@ -52,10 +52,7 @@ function ServerSettingsPage() {
       ) : null}
 
       {isPending && !errorMessage ? (
-        <div className="flex items-center gap-2 text-neutral-500">
-          <Spinner />
-          <span>Loading settings…</span>
-        </div>
+        <LoadingState message="Loading settings…" />
       ) : null}
 
       {!errorMessage && access && server ? (

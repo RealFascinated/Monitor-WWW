@@ -11,9 +11,10 @@ import { useEffect, useState } from "react"
 import type { CSSProperties } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { LoadingState } from "@/components/loading-state"
 import { MonitorLogo } from "@/components/monitor-logo"
+import { NotFoundView } from "@/components/not-found-view"
 import { useSidebarWidth } from "@/hooks/use-sidebar-width"
-import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { userInvitesQueryOptions } from "@/lib/api/user/invites.queries"
 import { userServersQueryOptions } from "@/lib/api/user/servers.queries"
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
+  notFoundComponent: () => <NotFoundView embedded />,
 })
 
 function AuthenticatedLayout() {
@@ -73,11 +75,7 @@ function AuthenticatedLayout() {
   }, [mobileSidebarOpen])
 
   if (isLoading || !user) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-background">
-        <Spinner />
-      </div>
-    )
+    return <LoadingState message="Checking session…" centered />
   }
 
   async function handleLogout() {

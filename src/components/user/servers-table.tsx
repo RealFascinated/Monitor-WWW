@@ -11,7 +11,7 @@ import {
 } from "@/components/user/server-table-columns"
 import { ServersFolderTable } from "@/components/user/servers-folder-table"
 import { Callout } from "@/components/callout"
-import { Spinner } from "@/components/spinner"
+import { LoadingState } from "@/components/loading-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -287,12 +287,7 @@ function ServersTable() {
         </Callout>
       ) : null}
 
-      {isLoading ? (
-        <div className="flex items-center gap-2 text-neutral-500">
-          <Spinner />
-          <span>Loading servers…</span>
-        </div>
-      ) : null}
+      {isLoading ? <LoadingState message="Loading servers…" /> : null}
 
       {!isLoading && serverIds.length === 0 && folders.length === 0 ? (
         <p className="text-neutral-500">No servers registered yet.</p>

@@ -4,15 +4,22 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router"
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
-import { TanStackDevtools } from "@tanstack/react-devtools"
+import type { ComponentType } from "react"
+import { lazy, Suspense } from "react"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { NotFoundView } from "@/components/not-found-view"
 import { AuthProvider } from "@/lib/auth"
 import { APP_NAME } from "@/lib/page-title"
 import { ThemeProvider } from "@/lib/theme"
 import { themeInitScript } from "@/lib/theme/script"
 import appCss from "../styles.css?url"
+
+const Devtools: ComponentType = import.meta.env.DEV
+  ? lazy(() =>
+      import("@/components/devtools").then((m) => ({ default: m.Devtools }))
+    )
+  : () => null
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
@@ -42,12 +49,7 @@ export const Route = createRootRouteWithContext<{
       },
     ],
   }),
-  notFoundComponent: () => (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>404</h1>
-      <p className="text-neutral-500">The requested page could not be found.</p>
-    </main>
-  ),
+  notFoundComponent: () => <NotFoundView />,
   shellComponent: RootDocument,
 })
 
@@ -64,17 +66,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <AuthProvider>{children}</AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {import.meta.env.DEV ? (
+          <Suspense fallback={null}>
+            <Devtools />
+          </Suspense>
+        ) : null}
         <Scripts />
       </body>
     </html>

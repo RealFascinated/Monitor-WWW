@@ -6,8 +6,8 @@ import {
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { useState } from "react"
 import { Callout } from "@/components/callout"
+import { LoadingState } from "@/components/loading-state"
 import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
-import { Spinner } from "@/components/spinner"
 import { DataTable } from "@/components/ui/data-table"
 import { useUserInvites } from "@/hooks/use-user-invites"
 import type { UserPendingInvite } from "@/lib/api/user/invites"
@@ -102,10 +102,7 @@ function UserPendingInvites() {
       ) : null}
 
       {isPending && !errorMessage ? (
-        <div className="flex items-center gap-2 text-neutral-500">
-          <Spinner />
-          <span>Loading invites…</span>
-        </div>
+        <LoadingState message="Loading invites…" />
       ) : null}
 
       {invites.length === 0 ? (
