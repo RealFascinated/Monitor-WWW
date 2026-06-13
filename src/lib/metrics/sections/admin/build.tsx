@@ -9,16 +9,11 @@ import {
   Upload,
 } from "lucide-react"
 
-import { MetricChartGrid } from "@/components/metrics/metric-chart-grid"
 import type { AdminMetricsResponse } from "@/lib/api/admin/metrics"
-import {
-  countChartsWithData,
-  estimateChartsGridHeight,
-} from "@/lib/metrics/grid-height"
 import { createMetricsSectionBuilder } from "@/lib/metrics/sections/builder"
+import { addChartSection } from "@/lib/metrics/sections/chart-section"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
-  chartsHaveData,
   fleetCharts,
   fleetHasData,
   fleetOsCharts,
@@ -48,105 +43,81 @@ function buildAdminMetricSections(
   const fleet = metrics.fleet
 
   if (overview && overviewHasData(overview)) {
-    const charts = overviewCharts(overview)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "Overview",
-        icon: LayoutDashboard,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "Overview",
+      icon: LayoutDashboard,
+      charts: overviewCharts(overview),
+      timeGrid,
+    })
   }
 
   if (fleet && fleetHasData(fleet)) {
-    const charts = fleetCharts(fleet)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "Fleet",
-        icon: Server,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "Fleet",
+      icon: Server,
+      charts: fleetCharts(fleet),
+      timeGrid,
+    })
   }
 
   const osEntries = parseFleetOsEntries(fleet)
   if (osEntries.length > 0) {
-    const charts = fleetOsCharts(osEntries)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "OS breakdown",
-        icon: Monitor,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "OS breakdown",
+      icon: Monitor,
+      charts: fleetOsCharts(osEntries),
+      timeGrid,
+    })
   }
 
   const versionEntries = parseFleetVersionEntries(fleet)
   if (versionEntries.length > 0) {
-    const charts = fleetVersionCharts(versionEntries)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "Agent versions",
-        icon: Package,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "Agent versions",
+      icon: Package,
+      charts: fleetVersionCharts(versionEntries),
+      timeGrid,
+    })
   }
 
   const ingest = metrics.ingest
   if (ingest && ingestHasData(ingest)) {
-    const charts = ingestCharts(ingest)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "Ingest",
-        icon: Upload,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "Ingest",
+      icon: Upload,
+      charts: ingestCharts(ingest),
+      timeGrid,
+    })
   }
 
   const jvm = metrics.jvm
   if (jvm && jvmHasData(jvm)) {
-    const charts = jvmCharts(jvm)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "JVM",
-        icon: Coffee,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "JVM",
+      icon: Coffee,
+      charts: jvmCharts(jvm),
+      timeGrid,
+    })
   }
 
   const vm = metrics.vm
   if (vm && vmHasData(vm)) {
-    const charts = vmCharts(vm)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "VictoriaMetrics",
-        icon: Database,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "VictoriaMetrics",
+      icon: Database,
+      charts: vmCharts(vm),
+      timeGrid,
+    })
   }
 
   const httpEntries = parseHttpEntries(metrics.http)
   if (httpHasData(metrics.http)) {
-    const charts = httpCharts(httpEntries)
-    if (chartsHaveData(charts)) {
-      builder.leaf({
-        title: "HTTP",
-        icon: Globe,
-        contentMinHeight: estimateChartsGridHeight(countChartsWithData(charts)),
-        render: () => <MetricChartGrid timeGrid={timeGrid} charts={charts} />,
-      })
-    }
+    addChartSection(builder, {
+      title: "HTTP",
+      icon: Globe,
+      charts: httpCharts(httpEntries),
+      timeGrid,
+    })
   }
 
   return builder.build()

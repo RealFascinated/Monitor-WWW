@@ -1,12 +1,9 @@
 export const SERVER_DRAG_MIME = "application/x-monitor-server-id"
 export const FOLDER_DRAG_MIME = "application/x-monitor-folder-id"
 
-export function readDraggedServerId(
-  dataTransfer: DataTransfer
-): number | null {
+export function readDraggedServerId(dataTransfer: DataTransfer): number | null {
   const raw =
-    dataTransfer.getData(SERVER_DRAG_MIME) ||
-    dataTransfer.getData("text/plain")
+    dataTransfer.getData(SERVER_DRAG_MIME) || dataTransfer.getData("text/plain")
   if (!raw) {
     return null
   }
@@ -14,9 +11,7 @@ export function readDraggedServerId(
   return Number.isFinite(serverId) ? serverId : null
 }
 
-export function readDraggedFolderId(
-  dataTransfer: DataTransfer
-): number | null {
+export function readDraggedFolderId(dataTransfer: DataTransfer): number | null {
   const raw = dataTransfer.getData(FOLDER_DRAG_MIME)
   if (!raw) {
     return null

@@ -20,9 +20,8 @@ export function useMoveServerToFolder() {
     mutationFn: ({ serverId, folderName }: MoveServerToFolderInput) =>
       updateServerFolder(serverId, { folderName }),
     onMutate: ({ serverId, folderName }) => {
-      const servers = queryClient.getQueryData<ServerResponse[]>(
-        userServersQueryKey
-      )
+      const servers =
+        queryClient.getQueryData<ServerResponse[]>(userServersQueryKey)
       const previousFolderName =
         servers?.find((server) => server.serverId === serverId)?.folderName ??
         null
@@ -46,10 +45,7 @@ export function useMoveServerToFolder() {
         assignment.serverId,
         assignment.folderName
       )
-      invalidateServerFoldersIfNeeded(
-        queryClient,
-        assignment.folderName
-      )
+      invalidateServerFoldersIfNeeded(queryClient, assignment.folderName)
     },
   })
 }

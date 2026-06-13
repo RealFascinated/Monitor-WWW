@@ -47,23 +47,23 @@ function MetricChartCard({
 }: MetricChartCardProps) {
   const chartHeight = height ?? 200
   const { hydrated: isHydrated, containerRef } = useChartHydration()
-  const chartSeries = useMemo(
+  const displaySeries = useMemo(
     () => (mode === "stack" ? sortSeriesForStack(series) : series),
     [mode, series]
   )
   const built = useMemo(() => {
-    if (!isHydrated || !hasSeriesData(chartSeries)) {
+    if (!isHydrated || !hasSeriesData(displaySeries)) {
       return null
     }
 
     return buildMultiSeriesData(
       timeGrid.gridTimestamps,
       timeGrid.sourceTimestamps,
-      chartSeries
+      displaySeries
     )
-  }, [isHydrated, timeGrid, chartSeries])
+  }, [isHydrated, timeGrid, displaySeries])
   const { resolvedTheme } = useTheme()
-  const shouldShowCurrentValues = showCurrentValues ?? chartSeries.length <= 4
+  const shouldShowCurrentValues = showCurrentValues ?? displaySeries.length <= 4
   const latestTimestamp = timeGrid.gridTimestamps.at(-1)
   const latestTimestampLabel = latestTimestamp
     ? formatChartTimestamp(latestTimestamp)
@@ -97,7 +97,7 @@ function MetricChartCard({
           </div>
           {shouldShowCurrentValues ? (
             <div className="flex flex-wrap justify-end gap-x-3 gap-y-1.5">
-              {chartSeries.map((entry, index) => {
+              {displaySeries.map((entry, index) => {
                 const value = getLatestValue(entry.values)
                 if (value == null) {
                   return null
@@ -121,7 +121,7 @@ function MetricChartCard({
                           backgroundColor: getChartColor(index, resolvedTheme),
                         }}
                       />
-                      {chartSeries.length > 1 ? (
+                      {displaySeries.length > 1 ? (
                         <span className="text-muted-foreground">
                           {entry.label}
                         </span>

@@ -35,10 +35,12 @@ export function updateServerInCaches(
   server: ServerResponse
 ) {
   queryClient.setQueryData(userServerQueryKey(server.serverId), server)
-  queryClient.setQueryData<ServerResponse[]>(userServersQueryKey, (current) =>
-    current?.map((entry) =>
-      entry.serverId === server.serverId ? server : entry
-    ) ?? [server]
+  queryClient.setQueryData<ServerResponse[]>(
+    userServersQueryKey,
+    (current) =>
+      current?.map((entry) =>
+        entry.serverId === server.serverId ? server : entry
+      ) ?? [server]
   )
 }
 

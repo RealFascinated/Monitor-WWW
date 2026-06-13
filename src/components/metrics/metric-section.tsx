@@ -9,7 +9,6 @@ type MetricSectionProps = {
   title: string
   icon: LucideIcon
   description?: string
-  contentMinHeight: number
   render: () => ReactNode
 }
 
@@ -18,11 +17,15 @@ function MetricSection({
   title,
   icon: Icon,
   description,
-  contentMinHeight,
   render,
 }: MetricSectionProps) {
   return (
-    <section data-section-id={id} className="flex flex-col gap-4">
+    <section
+      data-section-id={id}
+      className={cn(
+        "flex scroll-mt-[calc(var(--metrics-header-offset)+1rem)] flex-col gap-4"
+      )}
+    >
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2.5">
           <span
@@ -44,9 +47,7 @@ function MetricSection({
           <p className="ml-3 text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      <div className="w-full" style={{ minHeight: contentMinHeight }}>
-        {render()}
-      </div>
+      <div className="w-full">{render()}</div>
     </section>
   )
 }

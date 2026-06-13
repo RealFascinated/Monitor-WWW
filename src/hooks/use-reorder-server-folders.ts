@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
-import {
-  reorderServerFolders,
-} from "@/lib/api/user/folders"
+import { reorderServerFolders } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 
 export function useReorderServerFolders() {
@@ -19,7 +17,9 @@ export function useReorderServerFolders() {
       ])
 
       if (previous) {
-        const foldersById = new Map(previous.map((folder) => [folder.id, folder]))
+        const foldersById = new Map(
+          previous.map((folder) => [folder.id, folder])
+        )
         const optimistic = folderIds.flatMap((folderId, position) => {
           const folder = foldersById.get(folderId)
           return folder ? [{ ...folder, position }] : []

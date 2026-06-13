@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button"
 import { SETTINGS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { deleteServer } from "@/lib/api/user/servers"
 import { serverAccessQueryKey } from "@/lib/api/user/access.queries"
-import {
-  removeServerFromCaches,
-} from "@/lib/api/user/servers.queries"
+import { removeServerFromCaches } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
 
 type DeleteServerButtonProps = {

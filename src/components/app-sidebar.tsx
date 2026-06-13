@@ -20,7 +20,10 @@ import { Spinner } from "@/components/spinner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import { useSidebarDetailedMode } from "@/hooks/use-sidebar-detailed-mode"
-import { useServerFolderLayout, useServerIds } from "@/hooks/use-server-folder-layout"
+import {
+  useServerFolderLayout,
+  useServerIds,
+} from "@/hooks/use-server-folder-layout"
 import { useUserServer } from "@/hooks/use-user-server"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"

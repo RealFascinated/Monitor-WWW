@@ -20,17 +20,17 @@ import { renameServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServersQueryKey } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
-import {
-  MAX_FOLDER_NAME_LENGTH,
-  validateFolderName,
-} from "@/lib/folder-name"
+import { MAX_FOLDER_NAME_LENGTH, validateFolderName } from "@/lib/folder-name"
 
 type RenameFolderDialogProps = {
   folderId: number
   currentName: string
 }
 
-function RenameFolderDialog({ folderId, currentName }: RenameFolderDialogProps) {
+function RenameFolderDialog({
+  folderId,
+  currentName,
+}: RenameFolderDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)

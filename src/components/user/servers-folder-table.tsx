@@ -16,10 +16,7 @@ import {
   ServerTableRowProvider,
 } from "@/components/user/server-table-row"
 import { DataTable } from "@/components/ui/data-table"
-import {
-  FOLDER_DRAG_MIME,
-  readDraggedServerId,
-} from "@/lib/servers/drag"
+import { FOLDER_DRAG_MIME, readDraggedServerId } from "@/lib/servers/drag"
 import { cn } from "@/lib/utils"
 
 type ServersFolderTableProps = {
@@ -77,8 +74,7 @@ function ServersFolderTableInner({
     folderId != null &&
     draggingFolderId !== folderId &&
     isDropTarget
-  const isServerDropTarget =
-    editMode && canAcceptServerDrop && isDropTarget
+  const isServerDropTarget = editMode && canAcceptServerDrop && isDropTarget
   const showDropTarget = isFolderDropTarget || isServerDropTarget
   const isDraggingFolder =
     editMode && folderId != null && draggingFolderId === folderId
@@ -163,8 +159,7 @@ function ServersFolderTableInner({
       return
     }
 
-    const serverId =
-      readDraggedServerId(event.dataTransfer) ?? draggingServerId
+    const serverId = readDraggedServerId(event.dataTransfer) ?? draggingServerId
     if (serverId == null || !canAcceptServerDrop) {
       return
     }
@@ -196,7 +191,7 @@ function ServersFolderTableInner({
             type="button"
             draggable
             aria-label={`Reorder folder ${title}`}
-            className="flex shrink-0 cursor-grab items-center text-neutral-400 active:cursor-grabbing hover:text-neutral-600 dark:hover:text-neutral-300"
+            className="flex shrink-0 cursor-grab items-center text-neutral-400 hover:text-neutral-600 active:cursor-grabbing dark:hover:text-neutral-300"
             onDragStart={(event) => {
               event.dataTransfer.effectAllowed = "move"
               event.dataTransfer.setData(FOLDER_DRAG_MIME, String(folderId))

@@ -10,7 +10,6 @@ type MetricsSectionLeaf = {
   navPercentTooltip?: string
   icon: LucideIcon
   description?: string
-  contentMinHeight: number
   render: () => ReactNode
 }
 

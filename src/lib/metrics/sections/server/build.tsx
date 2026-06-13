@@ -13,37 +13,23 @@ import {
   Cog,
 } from "lucide-react"
 
-import { MetricChartGrid } from "@/components/metrics/metric-chart-grid"
 import type { ServerMetricsResponse } from "@/lib/api/user/metrics"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { TEMPERATURE_THRESHOLDS } from "@/lib/metrics/chart-thresholds"
 import { createMetricsSectionBuilder } from "@/lib/metrics/sections/builder"
-import {
-  countChartsWithData,
-  DISK_SECTION_CHART_COUNT,
-  estimateChartsGridHeight,
-  GPU_SECTION_CHART_COUNT,
-  NETWORK_SECTION_CHART_COUNT,
-  OVERVIEW_SECTION_MIN_HEIGHT,
-  ZFS_POOL_SECTION_CHART_COUNT,
-} from "@/lib/metrics/grid-height"
+import { addChartSection } from "@/lib/metrics/sections/chart-section"
 import { metricSectionId } from "@/lib/metrics/sections/id"
 import { getLatestValue, chartSeries } from "@/lib/metrics/series"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
-  chartsHaveData,
   containerCharts,
   diskCharts,
-  diskHasData,
   gpuCharts,
-  gpuHasData,
   hostCpuCharts,
   hostMemoryCharts,
   hostProcessCharts,
   networkCharts,
-  networkHasData,
   zfsPoolCharts,
-  zfsPoolHasData,
 } from "@/lib/metrics/sections/server/charts"
 import {
   OverviewStats,
@@ -69,57 +55,33 @@ function buildServerMetricSections(
     builder.leaf({
       title: "Overview",
       icon: LayoutDashboard,
-      contentMinHeight: OVERVIEW_SECTION_MIN_HEIGHT,
       render: () => <OverviewStats serverId={metrics.id} />,
     })
   }
 
-  const cpuCharts = hostCpuCharts(host, metrics.cpuCores)
-  if (chartsHaveData(cpuCharts)) {
-    builder.leaf({
-      title: "CPU",
-      icon: Cpu,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(cpuCharts)
-      ),
-      render: () => <MetricChartGrid timeGrid={timeGrid} charts={cpuCharts} />,
-    })
-  }
+  addChartSection(builder, {
+    title: "CPU",
+    icon: Cpu,
+    charts: hostCpuCharts(host, metrics.cpuCores),
+    timeGrid,
+  })
 
-  const memoryCharts = hostMemoryCharts(host)
-  if (chartsHaveData(memoryCharts)) {
-    builder.leaf({
-      title: "Memory",
-      icon: MemoryStick,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(memoryCharts)
-      ),
-      render: () => (
-        <MetricChartGrid timeGrid={timeGrid} charts={memoryCharts} />
-      ),
-    })
-  }
+  addChartSection(builder, {
+    title: "Memory",
+    icon: MemoryStick,
+    charts: hostMemoryCharts(host),
+    timeGrid,
+  })
 
-  const processCharts = hostProcessCharts(host)
-  if (chartsHaveData(processCharts)) {
-    builder.leaf({
-      title: "Processes",
-      icon: Cog,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(processCharts)
-      ),
-      render: () => (
-        <MetricChartGrid timeGrid={timeGrid} charts={processCharts} />
-      ),
-    })
-  }
+  addChartSection(builder, {
+    title: "Processes",
+    icon: Cog,
+    charts: hostProcessCharts(host),
+    timeGrid,
+  })
 
   builder.group({ id: "disks", title: "Disk", icon: HardDrive }, (group) => {
     for (const disk of metrics.disks ?? []) {
-      if (!diskHasData(disk)) {
-        continue
-      }
-
       const usedBytes = getLatestValue(disk.usedBytes)
       const totalBytes = getLatestValue(disk.totalBytes)
       const navPercentTooltip =
@@ -129,17 +91,15 @@ function buildServerMetricSections(
             ? formatMemoryBytes(usedBytes)
             : undefined
 
-      group.leaf({
+      addChartSection(group, {
         id: metricSectionId(`disk-${disk.disk}`),
         title: `Disk ${disk.disk}`,
         navLabel: disk.disk,
         navPercent: getLatestValue(disk.usagePercent),
         navPercentTooltip,
         icon: HardDrive,
-        contentMinHeight: estimateChartsGridHeight(DISK_SECTION_CHART_COUNT),
-        render: () => (
-          <MetricChartGrid timeGrid={timeGrid} charts={diskCharts(disk)} />
-        ),
+        charts: diskCharts(disk),
+        timeGrid,
       })
     }
   })
@@ -148,185 +108,141 @@ function buildServerMetricSections(
     { id: "networks", title: "Network", icon: Network },
     (group) => {
       for (const network of metrics.networks ?? []) {
-        if (!networkHasData(network)) {
-          continue
-        }
-
-        group.leaf({
+        addChartSection(group, {
           id: metricSectionId(`network-${network.interface}`),
           title: `Network ${network.interface}`,
           navLabel: network.interface,
           icon: Network,
-          contentMinHeight: estimateChartsGridHeight(
-            NETWORK_SECTION_CHART_COUNT
-          ),
-          render: () => (
-            <MetricChartGrid
-              timeGrid={timeGrid}
-              charts={networkCharts(network)}
-            />
-          ),
+          charts: networkCharts(network),
+          timeGrid,
         })
       }
     }
   )
 
+  if ((metrics.tcpConnections ?? []).length > 0) {
+    addChartSection(builder, {
+      title: "TCP",
+      icon: Cable,
+      charts: [
+        {
+          title: "Connections by state",
+          description:
+            "TCP connections grouped by state (for example ESTABLISHED, TIME_WAIT).",
+          series: (metrics.tcpConnections ?? []).map((tcp) =>
+            chartSeries(tcp.state, tcp.connections)
+          ),
+          valueFormatter: formatCount,
+          showCurrentValues: false,
+        },
+      ],
+      timeGrid,
+    })
+  }
+
   builder.group({ id: "gpus", title: "GPU", icon: Gpu }, (group) => {
     for (const gpu of metrics.gpus ?? []) {
-      if (!gpuHasData(gpu)) {
-        continue
-      }
-
-      group.leaf({
+      addChartSection(group, {
         id: metricSectionId(`${gpu.gpu}-${gpu.deviceId}`),
         title: gpu.gpu,
         navLabel: gpu.gpu,
         icon: Gpu,
         description: `${gpu.vendor} · ${gpu.deviceId}`,
-        contentMinHeight: estimateChartsGridHeight(GPU_SECTION_CHART_COUNT),
-        render: () => (
-          <MetricChartGrid timeGrid={timeGrid} charts={gpuCharts(gpu)} />
-        ),
+        charts: gpuCharts(gpu),
+        timeGrid,
       })
     }
   })
 
-  const containerChartConfigs = containerCharts(metrics.containers)
-  if (chartsHaveData(containerChartConfigs)) {
-    builder.leaf({
-      title: "Docker",
-      icon: Container,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(containerChartConfigs)
-      ),
-      render: () => (
-        <MetricChartGrid timeGrid={timeGrid} charts={containerChartConfigs} />
-      ),
-    })
-  }
+  addChartSection(builder, {
+    title: "Docker",
+    icon: Container,
+    charts: containerCharts(metrics.containers),
+    timeGrid,
+  })
 
   if ((metrics.temperatures ?? []).length > 0) {
-    const temperatureCharts = [
-      {
-        title: "Sensors",
-        description: "Hardware temperature readings from system sensors.",
-        series: (metrics.temperatures ?? []).map((sensor) =>
-          chartSeries(sensor.sensor, sensor.temperatureCelsius)
-        ),
-        valueFormatter: formatCelsius,
-        thresholds: TEMPERATURE_THRESHOLDS,
-        showCurrentValues: false,
-      },
-    ]
-
-    builder.leaf({
+    addChartSection(builder, {
       title: "Temperature",
       icon: Thermometer,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(temperatureCharts)
-      ),
-      render: () => (
-        <MetricChartGrid timeGrid={timeGrid} charts={temperatureCharts} />
-      ),
+      charts: [
+        {
+          title: "Sensors",
+          description: "Hardware temperature readings from system sensors.",
+          series: (metrics.temperatures ?? []).map((sensor) =>
+            chartSeries(sensor.sensor, sensor.temperatureCelsius)
+          ),
+          valueFormatter: formatCelsius,
+          thresholds: TEMPERATURE_THRESHOLDS,
+          showCurrentValues: false,
+        },
+      ],
+      timeGrid,
     })
   }
 
   builder.group(
     { id: "zfs", title: "ZFS", icon: Disc, showChildCount: false },
     (zfs) => {
-    if (metrics.zfsArc) {
-      const zfsArcCharts = [
-        {
-          title: "ARC size",
-          description:
-            "ZFS adaptive replacement cache size vs target, max, and min limits.",
-          series: [
-            chartSeries("Size", metrics.zfsArc.sizeBytes),
-            chartSeries("Target", metrics.zfsArc.targetBytes),
-            chartSeries("Max", metrics.zfsArc.maxBytes),
-            chartSeries("Min", metrics.zfsArc.minBytes),
+      if (metrics.zfsArc) {
+        addChartSection(zfs, {
+          title: "ARC",
+          icon: Disc,
+          charts: [
+            {
+              title: "ARC size",
+              description:
+                "ZFS adaptive replacement cache size vs target, max, and min limits.",
+              series: [
+                chartSeries("Size", metrics.zfsArc.sizeBytes),
+                chartSeries("Target", metrics.zfsArc.targetBytes),
+                chartSeries("Max", metrics.zfsArc.maxBytes),
+                chartSeries("Min", metrics.zfsArc.minBytes),
+              ],
+              valueFormatter: formatMemoryBytes,
+            },
+            {
+              title: "ARC composition",
+              description: "Data, metadata, and L2ARC cache breakdown.",
+              series: [
+                chartSeries("Data", metrics.zfsArc.dataBytes),
+                chartSeries("Metadata", metrics.zfsArc.metadataBytes),
+                chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
+              ],
+              valueFormatter: formatMemoryBytes,
+            },
+            {
+              title: "ARC efficiency",
+              description: "Cache hit ratio and misses per second.",
+              series: [
+                chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
+                chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
+              ],
+              valueFormatter: formatNumber,
+            },
           ],
-          valueFormatter: formatMemoryBytes,
-        },
-        {
-          title: "ARC composition",
-          description: "Data, metadata, and L2ARC cache breakdown.",
-          series: [
-            chartSeries("Data", metrics.zfsArc.dataBytes),
-            chartSeries("Metadata", metrics.zfsArc.metadataBytes),
-            chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
-          ],
-          valueFormatter: formatMemoryBytes,
-        },
-        {
-          title: "ARC efficiency",
-          description: "Cache hit ratio and misses per second.",
-          series: [
-            chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
-            chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
-          ],
-          valueFormatter: formatNumber,
-        },
-      ]
-
-      zfs.leaf({
-        title: "ARC",
-        icon: Disc,
-        contentMinHeight: estimateChartsGridHeight(
-          countChartsWithData(zfsArcCharts)
-        ),
-        render: () => (
-          <MetricChartGrid timeGrid={timeGrid} charts={zfsArcCharts} />
-        ),
-      })
-    }
-
-    zfs.group({ id: "zfs-pools", title: "Pools", icon: Database }, (group) => {
-      for (const pool of metrics.zfsPools ?? []) {
-        if (!zfsPoolHasData(pool)) {
-          continue
-        }
-
-        group.leaf({
-          id: metricSectionId(`zfs-pool-${pool.pool}`),
-          title: `ZFS pool ${pool.pool}`,
-          navLabel: pool.pool,
-          icon: Database,
-          description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
-          contentMinHeight: estimateChartsGridHeight(
-            ZFS_POOL_SECTION_CHART_COUNT
-          ),
-          render: () => (
-            <MetricChartGrid timeGrid={timeGrid} charts={zfsPoolCharts(pool)} />
-          ),
+          timeGrid,
         })
       }
-    })
-  })
 
-  if ((metrics.tcpConnections ?? []).length > 0) {
-    const tcpCharts = [
-      {
-        title: "Connections by state",
-        description:
-          "TCP connections grouped by state (for example ESTABLISHED, TIME_WAIT).",
-        series: (metrics.tcpConnections ?? []).map((tcp) =>
-          chartSeries(tcp.state, tcp.connections)
-        ),
-        valueFormatter: formatCount,
-        showCurrentValues: false,
-      },
-    ]
-
-    builder.leaf({
-      title: "TCP",
-      icon: Cable,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(tcpCharts)
-      ),
-      render: () => <MetricChartGrid timeGrid={timeGrid} charts={tcpCharts} />,
-    })
-  }
+      zfs.group(
+        { id: "zfs-pools", title: "Pools", icon: Database },
+        (group) => {
+          for (const pool of metrics.zfsPools ?? []) {
+            addChartSection(group, {
+              id: metricSectionId(`zfs-pool-${pool.pool}`),
+              title: `ZFS pool ${pool.pool}`,
+              navLabel: pool.pool,
+              icon: Database,
+              description: `Health: ${pool.health} · Scan: ${pool.scanState}`,
+              charts: zfsPoolCharts(pool),
+              timeGrid,
+            })
+          }
+        }
+      )
+    }
+  )
 
   return builder.build()
 }

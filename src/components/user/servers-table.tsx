@@ -42,11 +42,7 @@ function ServersTable() {
 
   const serverIds = useServerIds()
   const { byFolder, ungroupedIds } = useServerFolderLayout()
-  const {
-    data: servers = [],
-    isPending,
-    error,
-  } = useUserServers()
+  const { data: servers = [], isPending, error } = useUserServers()
   const serversMap = useMemo(() => serversById(servers), [servers])
   const { data: folders = EMPTY_FOLDERS, isPending: foldersPending } = useQuery(
     userServerFoldersQueryOptions()
@@ -95,8 +91,7 @@ function ServersTable() {
   const canOrganize = folders.length > 0 && serverIds.length > 0
   const canReorderFolders = folders.length > 1
 
-  const draggingServerId =
-    draggingRowId != null ? Number(draggingRowId) : null
+  const draggingServerId = draggingRowId != null ? Number(draggingRowId) : null
   const draggedServerFolderName =
     draggingServerId != null
       ? (serversMap[draggingServerId].folderName ?? null)
@@ -212,8 +207,7 @@ function ServersTable() {
       onDropTargetChange: setActiveDropTargetKey,
       onMoveServer: handleMoveServer,
       onReorderFolder: handleReorderFolder,
-      getServerName: (serverId: number) =>
-        serversMap[serverId].serverName,
+      getServerName: (serverId: number) => serversMap[serverId].serverName,
     }),
     [
       editMode,
@@ -238,7 +232,7 @@ function ServersTable() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         {hasContent ? (
-          <div className="relative min-w-0 max-w-sm flex-1">
+          <div className="relative max-w-sm min-w-0 flex-1">
             <Search
               aria-hidden
               className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400"

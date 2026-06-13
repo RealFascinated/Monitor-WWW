@@ -110,10 +110,7 @@ function ServerIngestTokenSection({
             </div>
 
             <p className="flex items-start gap-2 text-xs text-warning-700 dark:text-warning-300">
-              <AlertTriangle
-                className="mt-0.5 size-3.5 shrink-0"
-                aria-hidden
-              />
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
               <span>
                 Rotating revokes the current token. Update the agent
                 configuration on your host with the new one.

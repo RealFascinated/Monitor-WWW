@@ -81,9 +81,7 @@ function AdminMetricsPage() {
         </div>
       ) : null}
 
-      {metrics && !errorMessage ? (
-        <AdminMetricsView metrics={metrics} />
-      ) : null}
+      {metrics && !errorMessage ? <AdminMetricsView metrics={metrics} /> : null}
     </section>
   )
 }

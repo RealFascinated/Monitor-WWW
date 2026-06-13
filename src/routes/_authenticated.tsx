@@ -126,11 +126,7 @@ function AuthenticatedLayout() {
           >
             <Menu className="size-4" />
           </Button>
-          <Link
-            to="/"
-            aria-label="Servers"
-            className="flex items-center gap-3"
-          >
+          <Link to="/" aria-label="Servers" className="flex items-center gap-3">
             <MonitorLogo />
             <p className="text-lg font-bold dark:text-white">Monitor</p>
           </Link>

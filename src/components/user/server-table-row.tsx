@@ -32,7 +32,9 @@ export function ServerTableRowProvider({
 function useServerTableRow() {
   const server = useContext(ServerTableRowContext)
   if (!server) {
-    throw new Error("useServerTableRow must be used within ServerTableRowProvider")
+    throw new Error(
+      "useServerTableRow must be used within ServerTableRowProvider"
+    )
   }
   return server
 }
@@ -41,10 +43,7 @@ export function ServerTableRowCells({ row }: { row: Row<ServerTableRow> }) {
   const server = useServerTableRow()
 
   return row.getVisibleCells().map((cell) => (
-    <TableCell
-      key={cell.id}
-      className={cell.column.columnDef.meta?.className}
-    >
+    <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
       {cell.column.columnDef.meta?.renderServer?.(server)}
     </TableCell>
   ))

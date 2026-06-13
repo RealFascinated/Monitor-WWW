@@ -15,7 +15,6 @@ type LeafInput = {
   navPercentTooltip?: string
   icon: LucideIcon
   description?: string
-  contentMinHeight: number
   render: () => ReactNode
 }
 
@@ -36,7 +35,6 @@ function createLeaf(input: LeafInput): MetricsSectionLeaf {
     navPercentTooltip: input.navPercentTooltip,
     icon: input.icon,
     description: input.description,
-    contentMinHeight: input.contentMinHeight,
     render: input.render,
   }
 }

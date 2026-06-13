@@ -104,9 +104,7 @@ function DataTable<TData>({
         {table.getRowModel().rows.map((row) => (
           <TableRow
             key={row.id}
-            className={cn(
-              rowDrag?.draggingRowId === row.id && "opacity-40"
-            )}
+            className={cn(rowDrag?.draggingRowId === row.id && "opacity-40")}
           >
             {rowDrag ? (
               <TableCell className="w-0 px-2">
@@ -114,7 +112,7 @@ function DataTable<TData>({
                   type="button"
                   draggable
                   aria-label={`Move ${rowDrag.getServerLabel(row)}`}
-                  className="flex cursor-grab items-center text-neutral-400 active:cursor-grabbing hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="flex cursor-grab items-center text-neutral-400 hover:text-neutral-600 active:cursor-grabbing dark:hover:text-neutral-300"
                   onDragStart={(event) => {
                     const serverId = rowDrag.getServerId(row)
                     event.dataTransfer.effectAllowed = "move"

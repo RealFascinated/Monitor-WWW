@@ -17,8 +17,7 @@ import {
   formatPerMinute,
   formatPercentValue,
 } from "@/lib/formatter"
-import type { MetricChartConfig } from "@/lib/metrics/sections/server/charts"
-import { chartsHaveData } from "@/lib/metrics/sections/server/charts"
+import type { MetricChartConfig } from "@/lib/metrics/chart-config"
 import {
   chartSeries,
   getLatestValue,
@@ -399,9 +398,8 @@ function httpCharts(entries: HttpMetricsEntry[]): MetricChartConfig[] {
   ]
 }
 
-export type { MetricChartConfig }
+export type { MetricChartConfig } from "@/lib/metrics/chart-config"
 export {
-  chartsHaveData,
   fleetCharts,
   fleetHasData,
   fleetOsCharts,

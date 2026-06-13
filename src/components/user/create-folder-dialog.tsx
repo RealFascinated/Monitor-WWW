@@ -19,10 +19,7 @@ import { Label } from "@/components/ui/label"
 import { createServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { ApiClientError } from "@/lib/auth/api"
-import {
-  MAX_FOLDER_NAME_LENGTH,
-  validateFolderName,
-} from "@/lib/folder-name"
+import { MAX_FOLDER_NAME_LENGTH, validateFolderName } from "@/lib/folder-name"
 
 function CreateFolderDialog() {
   const [open, setOpen] = useState(false)

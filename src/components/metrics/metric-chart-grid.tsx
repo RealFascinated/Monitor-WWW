@@ -1,5 +1,5 @@
 import { MetricChartCard } from "@/components/metrics/metric-chart-card"
-import type { MetricChartConfig } from "@/lib/metrics/sections/server/charts"
+import type { MetricChartConfig } from "@/lib/metrics/chart-config"
 import { hasSeriesData } from "@/lib/metrics/series"
 import type { MetricsTimeGrid } from "@/lib/metrics/timestamps"
 

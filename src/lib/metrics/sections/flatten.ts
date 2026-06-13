@@ -21,28 +21,6 @@ function flattenMetricSectionLeaves(
   return leaves
 }
 
-function findParentGroupId(
-  nodes: MetricsSectionNode[],
-  leafId: string
-): string | undefined {
-  for (const node of nodes) {
-    if (!isMetricsSectionGroup(node)) {
-      continue
-    }
-
-    if (node.children.some((child) => child.id === leafId)) {
-      return node.id
-    }
-
-    const nested = findParentGroupId(node.children, leafId)
-    if (nested) {
-      return nested
-    }
-  }
-
-  return undefined
-}
-
 function collectGroupIds(nodes: MetricsSectionNode[]): string[] {
   const groupIds: string[] = []
 
@@ -63,9 +41,4 @@ function metricsSectionIdsKey(nodes: MetricsSectionNode[]): string {
     .join("|")
 }
 
-export {
-  collectGroupIds,
-  findParentGroupId,
-  flattenMetricSectionLeaves,
-  metricsSectionIdsKey,
-}
+export { collectGroupIds, flattenMetricSectionLeaves, metricsSectionIdsKey }

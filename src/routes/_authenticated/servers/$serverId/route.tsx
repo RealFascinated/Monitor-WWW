@@ -7,9 +7,7 @@ export const Route = createFileRoute("/_authenticated/servers/$serverId")({
   ssr: false,
   loader: ({ context, params }) => {
     const serverId = Number(params.serverId)
-    return context.queryClient.ensureQueryData(
-      userServerQueryOptions(serverId)
-    )
+    return context.queryClient.ensureQueryData(userServerQueryOptions(serverId))
   },
   head: ({ loaderData }) => ({
     meta: [{ title: serverPageTitle(loaderData) }],

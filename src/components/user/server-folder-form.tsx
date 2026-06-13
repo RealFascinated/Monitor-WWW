@@ -9,10 +9,7 @@ import { Label } from "@/components/ui/label"
 import { useMoveServerToFolder } from "@/hooks/use-move-server-to-folder"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
 import { ApiClientError } from "@/lib/auth/api"
-import {
-  MAX_FOLDER_NAME_LENGTH,
-  validateFolderName,
-} from "@/lib/folder-name"
+import { MAX_FOLDER_NAME_LENGTH, validateFolderName } from "@/lib/folder-name"
 
 type ServerFolderFormProps = {
   serverId: number
