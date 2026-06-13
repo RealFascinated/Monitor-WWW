@@ -39,14 +39,6 @@ export const SERVER_ROLE_TOOLTIPS: Record<ServerRole | "OWNER", string> = {
   VIEWER: "Read-only access to this server's metrics and settings view.",
 }
 
-export const SIDEBAR_TOOLTIPS = {
-  detailedMode: "Show CPU and RAM usage under each server name in the sidebar.",
-  signOut: "Sign out of your account.",
-  adminMetrics:
-    "Platform-wide admin metrics for fleet, ingest, and HTTP traffic.",
-  adminSettings: "Platform-wide settings for authentication and registration.",
-} as const
-
 export const SETTINGS_TOOLTIPS = {
   registrationEnabled:
     "Allow new users to create accounts via the public registration page.",

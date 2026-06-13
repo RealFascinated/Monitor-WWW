@@ -1,4 +1,4 @@
-export const MAX_SERVER_NAME_LENGTH = 20
+export const MAX_SERVER_NAME_LENGTH = 64
 
 export function validateServerName(name: string): string | null {
   const trimmed = name.trim()

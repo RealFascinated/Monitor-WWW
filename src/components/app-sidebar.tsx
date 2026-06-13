@@ -34,7 +34,7 @@ import { serversById } from "@/lib/api/user/servers.queries"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import type { ServerStatus } from "@/lib/api/user/servers"
 import type { User } from "@/lib/auth/types"
-import { SERVER_STATUS_TOOLTIPS, SIDEBAR_TOOLTIPS } from "@/lib/tooltips/copy"
+import { SERVER_STATUS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { cn } from "@/lib/utils"
 
 const MOBILE_SIDEBAR_WIDTH = 280
@@ -68,28 +68,26 @@ function SidebarDetailedToggle({
   onToggle: () => void
 }) {
   return (
-    <SimpleTooltip content={SIDEBAR_TOOLTIPS.detailedMode}>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={detailed}
-        aria-label="Detailed mode"
-        onClick={onToggle}
+    <button
+      type="button"
+      role="switch"
+      aria-checked={detailed}
+      aria-label="Detailed mode"
+      onClick={onToggle}
+      className={cn(
+        "relative h-5 w-9 shrink-0 rounded-full transition-colors",
+        detailed
+          ? "bg-monitor dark:bg-warning"
+          : "bg-neutral-200 dark:bg-monitor-gray-300"
+      )}
+    >
+      <span
         className={cn(
-          "relative h-5 w-9 shrink-0 cursor-help rounded-full transition-colors",
-          detailed
-            ? "bg-monitor dark:bg-warning"
-            : "bg-neutral-200 dark:bg-monitor-gray-300"
+          "absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow-sm transition-transform",
+          detailed && "translate-x-4"
         )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow-sm transition-transform",
-            detailed && "translate-x-4"
-          )}
-        />
-      </button>
-    </SimpleTooltip>
+      />
+    </button>
   )
 }
 
@@ -100,7 +98,6 @@ function SidebarAdminLink({
   search,
   icon: Icon,
   label,
-  tooltip,
 }: {
   compact: boolean
   onNavigate?: () => void
@@ -108,7 +105,6 @@ function SidebarAdminLink({
   search?: { range: "24h" }
   icon: typeof Gauge
   label: string
-  tooltip: string
 }) {
   const link = (
     <Link
@@ -128,7 +124,7 @@ function SidebarAdminLink({
   )
 
   if (compact) {
-    return <SimpleTooltip content={tooltip}>{link}</SimpleTooltip>
+    return <SimpleTooltip content={label}>{link}</SimpleTooltip>
   }
 
   return link
@@ -157,7 +153,6 @@ function SidebarAdminSection({
         to="/admin/settings"
         icon={Settings}
         label="Settings"
-        tooltip={SIDEBAR_TOOLTIPS.adminSettings}
       />
       <SidebarAdminLink
         compact={compact}
@@ -166,7 +161,6 @@ function SidebarAdminSection({
         search={{ range: "24h" }}
         icon={Gauge}
         label="Metrics"
-        tooltip={SIDEBAR_TOOLTIPS.adminMetrics}
       />
     </div>
   )
@@ -196,65 +190,67 @@ const SidebarServerItem = memo(function SidebarServerItem({
 
   const serverTooltip = `${server.serverName} — ${SERVER_STATUS_TOOLTIPS[server.status]}`
 
-  return (
-    <SimpleTooltip content={serverTooltip}>
-      <Link
-        to="/servers/$serverId"
-        params={{ serverId: String(server.serverId) }}
-        search={{ range: "7d" }}
-        onClick={onNavigate}
-        className={cn(
-          "flex w-full shrink-0 cursor-help rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
-          "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
-          nested && !compact && "pl-4",
-          compact
-            ? "min-h-7 items-center justify-center gap-3 px-0 py-1"
-            : detailed
-              ? "items-center gap-2 px-2 py-1"
-              : "min-h-7 items-center gap-3 px-2 py-1"
-        )}
-      >
-        <span className="relative shrink-0">
-          <Server className="size-4" />
-          <SimpleTooltip content={SERVER_STATUS_TOOLTIPS[server.status]}>
-            <span
-              className={cn(
-                "absolute -right-0.5 -bottom-0.5 size-1.5 cursor-help rounded-full ring-2 ring-white dark:ring-base",
-                statusDotStyles[server.status]
-              )}
-            />
-          </SimpleTooltip>
+  const link = (
+    <Link
+      to="/servers/$serverId"
+      params={{ serverId: String(server.serverId) }}
+      search={{ range: "7d" }}
+      onClick={onNavigate}
+      className={cn(
+        "flex w-full shrink-0 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
+        "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
+        nested && !compact && "pl-4",
+        compact
+          ? "min-h-7 cursor-help items-center justify-center gap-3 px-0 py-1"
+          : detailed
+            ? "items-center gap-2 px-2 py-1"
+            : "min-h-7 items-center gap-3 px-2 py-1"
+      )}
+    >
+      <span className="relative shrink-0">
+        <Server className="size-4" />
+        <span
+          className={cn(
+            "absolute -right-0.5 -bottom-0.5 size-1.5 rounded-full ring-2 ring-white dark:ring-base",
+            statusDotStyles[server.status]
+          )}
+        />
+      </span>
+      {!compact ? (
+        <span
+          className={cn(
+            "flex min-w-0 flex-1 flex-col",
+            detailed ? "gap-0 leading-tight" : "gap-0.5"
+          )}
+        >
+          <span className="truncate leading-tight">{server.serverName}</span>
+          {detailed ? (
+            <span className="truncate text-[11px] leading-tight text-neutral-400">
+              CPU{" "}
+              <CpuPercent
+                value={server.cpuPercent}
+                status={server.status}
+                className="font-medium"
+              />{" "}
+              · RAM{" "}
+              <MemoryPercent
+                usage={server.memUsage}
+                max={server.memMax}
+                status={server.status}
+                className="font-medium"
+              />
+            </span>
+          ) : null}
         </span>
-        {!compact ? (
-          <span
-            className={cn(
-              "flex min-w-0 flex-1 flex-col",
-              detailed ? "gap-0 leading-tight" : "gap-0.5"
-            )}
-          >
-            <span className="truncate leading-tight">{server.serverName}</span>
-            {detailed ? (
-              <span className="truncate text-[11px] leading-tight text-neutral-400">
-                CPU{" "}
-                <CpuPercent
-                  value={server.cpuPercent}
-                  status={server.status}
-                  className="font-medium"
-                />{" "}
-                · RAM{" "}
-                <MemoryPercent
-                  usage={server.memUsage}
-                  max={server.memMax}
-                  status={server.status}
-                  className="font-medium"
-                />
-              </span>
-            ) : null}
-          </span>
-        ) : null}
-      </Link>
-    </SimpleTooltip>
+      ) : null}
+    </Link>
   )
+
+  if (compact) {
+    return <SimpleTooltip content={serverTooltip}>{link}</SimpleTooltip>
+  }
+
+  return link
 })
 
 const SidebarFolderGroup = memo(function SidebarFolderGroup({
@@ -629,23 +625,19 @@ export function AppSidebar({
         </div>
 
         <nav className="relative flex min-h-0 flex-1 flex-col gap-1 overflow-hidden px-2">
-          <SimpleTooltip
-            content={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          <button
+            type="button"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={onToggleCollapsed}
+            className="absolute -top-7 -right-3 z-10 hidden size-6 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:bg-neutral-100 hover:text-neutral-600 lg:flex dark:border-monitor-gray-300 dark:bg-monitor-gray-100 dark:text-neutral-400 dark:hover:bg-monitor-gray-200 dark:hover:text-white"
           >
-            <button
-              type="button"
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              onClick={onToggleCollapsed}
-              className="absolute -top-7 -right-3 z-10 hidden size-6 cursor-help items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:bg-neutral-100 hover:text-neutral-600 lg:flex dark:border-monitor-gray-300 dark:bg-monitor-gray-100 dark:text-neutral-400 dark:hover:bg-monitor-gray-200 dark:hover:text-white"
-            >
-              <ChevronLeft
-                className={cn(
-                  "size-3.5 transition-transform",
-                  collapsed && "rotate-180"
-                )}
-              />
-            </button>
-          </SimpleTooltip>
+            <ChevronLeft
+              className={cn(
+                "size-3.5 transition-transform",
+                collapsed && "rotate-180"
+              )}
+            />
+          </button>
           {navItems.map(({ to, label, icon: Icon, exact }) => {
             const link = (
               <Link
@@ -707,18 +699,17 @@ export function AppSidebar({
             <p className="truncate text-xs text-neutral-500">{user.email}</p>
           ) : null}
           {compact ? (
-            <SimpleTooltip content={SIDEBAR_TOOLTIPS.signOut}>
-              <Button
-                type="button"
-                variant="default"
-                size="icon-sm"
-                disabled={isLoggingOut}
-                onClick={onLogout}
-                className="w-full cursor-help"
-              >
-                {isLoggingOut ? <Spinner /> : <LogOut className="size-3.5" />}
-              </Button>
-            </SimpleTooltip>
+            <Button
+              type="button"
+              variant="default"
+              size="icon-sm"
+              aria-label="Sign out"
+              disabled={isLoggingOut}
+              onClick={onLogout}
+              className="w-full"
+            >
+              {isLoggingOut ? <Spinner /> : <LogOut className="size-3.5" />}
+            </Button>
           ) : (
             <Button
               type="button"
