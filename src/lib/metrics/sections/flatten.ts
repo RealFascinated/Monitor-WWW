@@ -11,7 +11,7 @@ function flattenMetricSectionLeaves(
 
   for (const node of nodes) {
     if (isMetricsSectionGroup(node)) {
-      leaves.push(...node.children)
+      leaves.push(...flattenMetricSectionLeaves(node.children))
       continue
     }
 
@@ -33,13 +33,28 @@ function findParentGroupId(
     if (node.children.some((child) => child.id === leafId)) {
       return node.id
     }
+
+    const nested = findParentGroupId(node.children, leafId)
+    if (nested) {
+      return nested
+    }
   }
 
   return undefined
 }
 
 function collectGroupIds(nodes: MetricsSectionNode[]): string[] {
-  return nodes.filter(isMetricsSectionGroup).map((group) => group.id)
+  const groupIds: string[] = []
+
+  for (const node of nodes) {
+    if (!isMetricsSectionGroup(node)) {
+      continue
+    }
+
+    groupIds.push(node.id, ...collectGroupIds(node.children))
+  }
+
+  return groupIds
 }
 
 function metricsSectionIdsKey(nodes: MetricsSectionNode[]): string {

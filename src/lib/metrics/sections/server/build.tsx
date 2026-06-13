@@ -231,56 +231,57 @@ function buildServerMetricSections(
     })
   }
 
-  if (metrics.zfsArc) {
-    const zfsArcCharts = [
-      {
-        title: "ARC size",
-        description:
-          "ZFS adaptive replacement cache size vs target, max, and min limits.",
-        series: [
-          chartSeries("Size", metrics.zfsArc.sizeBytes),
-          chartSeries("Target", metrics.zfsArc.targetBytes),
-          chartSeries("Max", metrics.zfsArc.maxBytes),
-          chartSeries("Min", metrics.zfsArc.minBytes),
-        ],
-        valueFormatter: formatMemoryBytes,
-      },
-      {
-        title: "ARC composition",
-        description: "Data, metadata, and L2ARC cache breakdown.",
-        series: [
-          chartSeries("Data", metrics.zfsArc.dataBytes),
-          chartSeries("Metadata", metrics.zfsArc.metadataBytes),
-          chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
-        ],
-        valueFormatter: formatMemoryBytes,
-      },
-      {
-        title: "ARC efficiency",
-        description: "Cache hit ratio and misses per second.",
-        series: [
-          chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
-          chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
-        ],
-        valueFormatter: formatNumber,
-      },
-    ]
-
-    builder.leaf({
-      title: "ZFS ARC",
-      icon: Disc,
-      contentMinHeight: estimateChartsGridHeight(
-        countChartsWithData(zfsArcCharts)
-      ),
-      render: () => (
-        <MetricChartGrid timeGrid={timeGrid} charts={zfsArcCharts} />
-      ),
-    })
-  }
-
   builder.group(
-    { id: "zfs-pools", title: "ZFS pool", icon: Database },
-    (group) => {
+    { id: "zfs", title: "ZFS", icon: Disc, showChildCount: false },
+    (zfs) => {
+    if (metrics.zfsArc) {
+      const zfsArcCharts = [
+        {
+          title: "ARC size",
+          description:
+            "ZFS adaptive replacement cache size vs target, max, and min limits.",
+          series: [
+            chartSeries("Size", metrics.zfsArc.sizeBytes),
+            chartSeries("Target", metrics.zfsArc.targetBytes),
+            chartSeries("Max", metrics.zfsArc.maxBytes),
+            chartSeries("Min", metrics.zfsArc.minBytes),
+          ],
+          valueFormatter: formatMemoryBytes,
+        },
+        {
+          title: "ARC composition",
+          description: "Data, metadata, and L2ARC cache breakdown.",
+          series: [
+            chartSeries("Data", metrics.zfsArc.dataBytes),
+            chartSeries("Metadata", metrics.zfsArc.metadataBytes),
+            chartSeries("L2ARC", metrics.zfsArc.l2arcSizeBytes),
+          ],
+          valueFormatter: formatMemoryBytes,
+        },
+        {
+          title: "ARC efficiency",
+          description: "Cache hit ratio and misses per second.",
+          series: [
+            chartSeries("Hit ratio", metrics.zfsArc.hitRatio),
+            chartSeries("Misses/s", metrics.zfsArc.missesPerSecond),
+          ],
+          valueFormatter: formatNumber,
+        },
+      ]
+
+      zfs.leaf({
+        title: "ARC",
+        icon: Disc,
+        contentMinHeight: estimateChartsGridHeight(
+          countChartsWithData(zfsArcCharts)
+        ),
+        render: () => (
+          <MetricChartGrid timeGrid={timeGrid} charts={zfsArcCharts} />
+        ),
+      })
+    }
+
+    zfs.group({ id: "zfs-pools", title: "Pools", icon: Database }, (group) => {
       for (const pool of metrics.zfsPools ?? []) {
         if (!zfsPoolHasData(pool)) {
           continue
@@ -300,8 +301,8 @@ function buildServerMetricSections(
           ),
         })
       }
-    }
-  )
+    })
+  })
 
   if ((metrics.tcpConnections ?? []).length > 0) {
     const tcpCharts = [

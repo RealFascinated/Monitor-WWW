@@ -23,47 +23,29 @@ type GroupInput = {
   id: string
   title: string
   icon: LucideIcon
+  showChildCount?: boolean
+}
+
+function createLeaf(input: LeafInput): MetricsSectionLeaf {
+  return {
+    kind: "leaf",
+    id: input.id ?? metricSectionId(input.title),
+    title: input.title,
+    navLabel: input.navLabel,
+    navPercent: input.navPercent,
+    navPercentTooltip: input.navPercentTooltip,
+    icon: input.icon,
+    description: input.description,
+    contentMinHeight: input.contentMinHeight,
+    render: input.render,
+  }
 }
 
 class MetricsSectionGroupBuilder {
-  private children: MetricsSectionLeaf[] = []
-
-  leaf(input: LeafInput) {
-    this.children.push({
-      kind: "leaf",
-      id: input.id ?? metricSectionId(input.title),
-      title: input.title,
-      navLabel: input.navLabel,
-      navPercent: input.navPercent,
-      navPercentTooltip: input.navPercentTooltip,
-      icon: input.icon,
-      description: input.description,
-      contentMinHeight: input.contentMinHeight,
-      render: input.render,
-    })
-  }
-
-  build(): MetricsSectionLeaf[] {
-    return this.children
-  }
-}
-
-class MetricsSectionBuilder {
   private nodes: MetricsSectionNode[] = []
 
   leaf(input: LeafInput) {
-    this.nodes.push({
-      kind: "leaf",
-      id: input.id ?? metricSectionId(input.title),
-      title: input.title,
-      navLabel: input.navLabel,
-      navPercent: input.navPercent,
-      navPercentTooltip: input.navPercentTooltip,
-      icon: input.icon,
-      description: input.description,
-      contentMinHeight: input.contentMinHeight,
-      render: input.render,
-    })
+    this.nodes.push(createLeaf(input))
   }
 
   group(
@@ -78,8 +60,37 @@ class MetricsSectionBuilder {
       return
     }
 
-    if (children.length === 1) {
-      this.nodes.push(children[0])
+    this.nodes.push({
+      kind: "group",
+      id: input.id,
+      title: input.title,
+      icon: input.icon,
+      showChildCount: input.showChildCount,
+      children,
+    })
+  }
+
+  build(): MetricsSectionNode[] {
+    return this.nodes
+  }
+}
+
+class MetricsSectionBuilder {
+  private nodes: MetricsSectionNode[] = []
+
+  leaf(input: LeafInput) {
+    this.nodes.push(createLeaf(input))
+  }
+
+  group(
+    input: GroupInput,
+    buildChildren: (group: MetricsSectionGroupBuilder) => void
+  ) {
+    const groupBuilder = new MetricsSectionGroupBuilder()
+    buildChildren(groupBuilder)
+    const children = groupBuilder.build()
+
+    if (children.length === 0) {
       return
     }
 
@@ -88,6 +99,7 @@ class MetricsSectionBuilder {
       id: input.id,
       title: input.title,
       icon: input.icon,
+      showChildCount: input.showChildCount,
       children,
     })
   }

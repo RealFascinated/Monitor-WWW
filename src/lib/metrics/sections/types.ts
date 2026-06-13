@@ -19,7 +19,8 @@ type MetricsSectionGroup = {
   id: string
   title: string
   icon: LucideIcon
-  children: MetricsSectionLeaf[]
+  showChildCount?: boolean
+  children: MetricsSectionNode[]
 }
 
 type MetricsSectionNode = MetricsSectionLeaf | MetricsSectionGroup
