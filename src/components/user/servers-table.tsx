@@ -17,16 +17,15 @@ import { Input } from "@/components/ui/input"
 import {
   useServerFolderLayout,
   useServerIds,
-  useServerRolesKey,
-  useServerSearchIndexKey,
 } from "@/hooks/use-server-folder-layout"
 import { useMoveServerToFolder } from "@/hooks/use-move-server-to-folder"
 import { useReorderServerFolders } from "@/hooks/use-reorder-server-folders"
+import { useUserServers } from "@/hooks/use-user-servers"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
+import { serversById } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
 import { computeReorderedFolderIds } from "@/lib/servers/drag"
-import { useServersStore } from "@/stores/servers-store"
 
 const EMPTY_FOLDERS: ServerFolderResponse[] = []
 
@@ -43,31 +42,31 @@ function ServersTable() {
 
   const serverIds = useServerIds()
   const { byFolder, ungroupedIds } = useServerFolderLayout()
-  const searchIndexKey = useServerSearchIndexKey()
-  const rolesKey = useServerRolesKey()
-  const isPending = useServersStore((state) => state.isLoading)
-  const error = useServersStore((state) => state.error)
+  const {
+    data: servers = [],
+    isPending,
+    error,
+  } = useUserServers()
+  const serversMap = useMemo(() => serversById(servers), [servers])
   const { data: folders = EMPTY_FOLDERS, isPending: foldersPending } = useQuery(
     userServerFoldersQueryOptions()
   )
   const moveServer = useMoveServerToFolder()
   const reorderFolders = useReorderServerFolders()
 
-  const hasOwnedServers = useMemo(() => {
-    const state = useServersStore.getState()
-    return state.serverIds.some(
-      (serverId) => state.servers[serverId].role === "OWNER"
-    )
-  }, [rolesKey])
+  const hasOwnedServers = useMemo(
+    () => servers.some((server) => server.role === "OWNER"),
+    [servers]
+  )
 
   const columns = useMemo(
-    () => getServerTableColumns(hasOwnedServers),
-    [hasOwnedServers]
+    () => getServerTableColumns(hasOwnedServers, serversMap),
+    [hasOwnedServers, serversMap]
   )
 
   const filteredUngroupedIds = useMemo(
-    () => filterServerIdsBySearch(ungroupedIds, searchQuery),
-    [ungroupedIds, searchQuery, searchIndexKey]
+    () => filterServerIdsBySearch(ungroupedIds, searchQuery, serversMap),
+    [ungroupedIds, searchQuery, serversMap]
   )
 
   const folderSections = useMemo(
@@ -76,10 +75,11 @@ function ServersTable() {
         folder,
         serverIds: filterServerIdsBySearch(
           byFolder.get(folder.name) ?? [],
-          searchQuery
+          searchQuery,
+          serversMap
         ),
       })),
-    [folders, byFolder, searchQuery, searchIndexKey]
+    [folders, byFolder, searchQuery, serversMap]
   )
 
   const visibleSectionCount =
@@ -89,7 +89,7 @@ function ServersTable() {
     searchQuery.trim() === "" &&
     folderSections.some((section) => section.serverIds.length === 0)
 
-  const errorMessage = error ?? null
+  const errorMessage = error instanceof Error ? error.message : null
   const isLoading = (isPending || foldersPending) && !errorMessage
   const hasContent = serverIds.length > 0 || folders.length > 0
   const canOrganize = folders.length > 0 && serverIds.length > 0
@@ -97,11 +97,10 @@ function ServersTable() {
 
   const draggingServerId =
     draggingRowId != null ? Number(draggingRowId) : null
-  const draggedServerFolderName = useServersStore((state) =>
+  const draggedServerFolderName =
     draggingServerId != null
-      ? (state.servers[draggingServerId].folderName ?? null)
+      ? (serversMap[draggingServerId].folderName ?? null)
       : null
-  )
 
   function canAcceptServerDrop(targetFolderName: string | null) {
     return draggedServerFolderName !== targetFolderName
@@ -142,8 +141,7 @@ function ServersTable() {
 
   const handleMoveServer = useCallback(
     (serverId: number, folderName: string | null) => {
-      const server = useServersStore.getState().servers[serverId]
-      const currentFolder = server.folderName ?? null
+      const currentFolder = serversMap[serverId].folderName ?? null
       if (currentFolder === folderName) {
         return
       }
@@ -164,7 +162,7 @@ function ServersTable() {
         }
       )
     },
-    [moveServer]
+    [moveServer, serversMap]
   )
 
   const handleReorderFolder = useCallback(
@@ -214,6 +212,8 @@ function ServersTable() {
       onDropTargetChange: setActiveDropTargetKey,
       onMoveServer: handleMoveServer,
       onReorderFolder: handleReorderFolder,
+      getServerName: (serverId: number) =>
+        serversMap[serverId].serverName,
     }),
     [
       editMode,
@@ -227,6 +227,7 @@ function ServersTable() {
       handleFolderDragEnd,
       handleMoveServer,
       handleReorderFolder,
+      serversMap,
     ]
   )
 

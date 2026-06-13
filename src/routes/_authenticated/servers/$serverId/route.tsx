@@ -1,13 +1,15 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router"
 
+import { userServerQueryOptions } from "@/lib/api/user/servers.queries"
 import { serverPageTitle } from "@/lib/page-title"
-import { useServersStore } from "@/stores/servers-store"
 
 export const Route = createFileRoute("/_authenticated/servers/$serverId")({
   ssr: false,
-  loader: async ({ params }) => {
+  loader: ({ context, params }) => {
     const serverId = Number(params.serverId)
-    return useServersStore.getState().ensureServer(serverId)
+    return context.queryClient.ensureQueryData(
+      userServerQueryOptions(serverId)
+    )
   },
   head: ({ loaderData }) => ({
     meta: [{ title: serverPageTitle(loaderData) }],

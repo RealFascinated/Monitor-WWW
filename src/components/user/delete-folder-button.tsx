@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/dialog"
 import { deleteServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
+import { userServersQueryKey } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
-import { setFolderNameOnServers } from "@/lib/servers/folder-store"
 
 type DeleteFolderButtonProps = {
   folderId: number
@@ -32,7 +32,7 @@ function DeleteFolderButton({ folderId, folderName }: DeleteFolderButtonProps) {
   const mutation = useMutation({
     mutationFn: () => deleteServerFolder(folderId),
     onSuccess: () => {
-      setFolderNameOnServers(folderName, null)
+      void queryClient.invalidateQueries({ queryKey: userServersQueryKey })
       queryClient.setQueryData<ServerFolderResponse[]>(
         ["user", "server-folders"],
         (current) => current?.filter((entry) => entry.id !== folderId) ?? []

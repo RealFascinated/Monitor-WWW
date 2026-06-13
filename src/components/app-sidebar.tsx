@@ -182,6 +182,10 @@ const SidebarServerItem = memo(function SidebarServerItem({
 }) {
   const { data: server } = useUserServer(serverId)
 
+  if (!server) {
+    return null
+  }
+
   const serverTooltip = `${server.serverName} — ${SERVER_STATUS_TOOLTIPS[server.status]}`
 
   return (

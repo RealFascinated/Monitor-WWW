@@ -23,6 +23,10 @@ function overviewHasData(
 
 function OverviewStats({ serverId }: { serverId: number }) {
   const { data: server } = useUserServer(serverId)
+  if (!server) {
+    return null
+  }
+
   const cpuUsage = server.cpuPercent ?? null
   const memUsage = server.memUsage ?? null
   const memTotal = server.memMax ?? null

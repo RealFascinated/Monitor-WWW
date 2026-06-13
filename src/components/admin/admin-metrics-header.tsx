@@ -7,9 +7,15 @@ import type { MetricTimeRange } from "@/lib/api/admin/metrics"
 
 type AdminMetricsHeaderProps = {
   range: MetricTimeRange
+  onRefresh: () => void
+  isRefreshing?: boolean
 }
 
-function AdminMetricsHeader({ range }: AdminMetricsHeaderProps) {
+function AdminMetricsHeader({
+  range,
+  onRefresh,
+  isRefreshing = false,
+}: AdminMetricsHeaderProps) {
   const navigate = useNavigate()
 
   return (
@@ -42,6 +48,8 @@ function AdminMetricsHeader({ range }: AdminMetricsHeaderProps) {
                   resetScroll: false,
                 })
               }}
+              onRefresh={onRefresh}
+              isRefreshing={isRefreshing}
             />
           </div>
         </div>

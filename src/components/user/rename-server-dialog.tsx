@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
 import { useState } from "react"
 
@@ -22,8 +22,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
+import { updateServerInCaches } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
-import { useServersStore } from "@/stores/servers-store"
 import { MAX_SERVER_NAME_LENGTH, validateServerName } from "@/lib/server-name"
 
 type RenameServerDialogProps = {
@@ -41,11 +41,13 @@ function RenameServerDialog({
   const [apiError, setApiError] = useState<string | null>(null)
   const inputId = `rename-server-name-${serverId}`
 
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationFn: (nextName: string) =>
       renameServer(serverId, { name: nextName }),
     onSuccess: (server) => {
-      useServersStore.getState().upsertServer(server)
+      updateServerInCaches(queryClient, server)
       setOpen(false)
       resetForm()
     },

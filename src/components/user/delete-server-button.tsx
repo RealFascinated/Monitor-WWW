@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -6,9 +6,11 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { SETTINGS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { deleteServer } from "@/lib/api/user/servers"
+import { serverAccessQueryKey } from "@/lib/api/user/access.queries"
+import {
+  removeServerFromCaches,
+} from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
-import { useAccessStore } from "@/stores/access-store"
-import { useServersStore } from "@/stores/servers-store"
 
 type DeleteServerButtonProps = {
   serverId: number
@@ -25,11 +27,13 @@ function DeleteServerButton({
 }: DeleteServerButtonProps) {
   const [error, setError] = useState<string | null>(null)
 
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationFn: () => deleteServer(serverId),
     onSuccess: async () => {
-      useServersStore.getState().removeServer(serverId)
-      useAccessStore.getState().clearAccess(serverId)
+      removeServerFromCaches(queryClient, serverId)
+      queryClient.removeQueries({ queryKey: serverAccessQueryKey(serverId) })
       onDeleted?.()
     },
     onError: (mutationError) => {

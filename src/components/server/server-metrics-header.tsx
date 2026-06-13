@@ -14,12 +14,16 @@ type ServerMetricsHeaderProps = {
   server: ServerResponse | undefined
   range: MetricTimeRange
   serverId: number
+  onRefresh: () => void
+  isRefreshing?: boolean
 }
 
 function ServerMetricsHeader({
   server,
   range,
   serverId,
+  onRefresh,
+  isRefreshing = false,
 }: ServerMetricsHeaderProps) {
   const navigate = useNavigate()
 
@@ -81,6 +85,8 @@ function ServerMetricsHeader({
                   resetScroll: false,
                 })
               }}
+              onRefresh={onRefresh}
+              isRefreshing={isRefreshing}
             />
           </div>
         </div>

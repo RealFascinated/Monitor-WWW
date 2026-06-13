@@ -1,22 +1,7 @@
-import { useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 
-import { useServersStore } from "@/stores/servers-store"
+import { userServersQueryOptions } from "@/lib/api/user/servers.queries"
 
 export function useUserServers() {
-  const serverIds = useServersStore((state) => state.serverIds)
-  const serversById = useServersStore((state) => state.servers)
-  const isLoading = useServersStore((state) => state.isLoading)
-  const error = useServersStore((state) => state.error)
-
-  const servers = useMemo(
-    () => serverIds.map((id) => serversById[id]).filter(Boolean),
-    [serverIds, serversById]
-  )
-
-  return {
-    data: servers,
-    isLoading,
-    isPending: isLoading,
-    error,
-  }
+  return useQuery(userServersQueryOptions())
 }

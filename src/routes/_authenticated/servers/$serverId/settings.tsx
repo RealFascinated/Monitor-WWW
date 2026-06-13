@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect } from "react"
 
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
@@ -7,17 +6,18 @@ import { ServerSettingsHeader } from "@/components/server/server-settings-header
 import { ServerSettingsView } from "@/components/server/server-settings-view"
 import { useServerAccess } from "@/hooks/use-server-access"
 import { useUserServer } from "@/hooks/use-user-server"
+import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { serverPageTitle } from "@/lib/page-title"
-import { useAccessStore } from "@/stores/access-store"
 
 export const Route = createFileRoute(
   "/_authenticated/servers/$serverId/settings"
 )({
-  loader: async ({ params }) => {
+  loader: ({ context, params }) => {
     const serverId = Number(params.serverId)
-    await useAccessStore.getState().fetchAccess(serverId)
-    return useAccessStore.getState().accessByServerId[serverId]
+    return context.queryClient.ensureQueryData(
+      serverAccessQueryOptions(serverId)
+    )
   },
   head: ({ matches }) => {
     const servers = matches.find(
@@ -37,17 +37,9 @@ function ServerSettingsPage() {
   const numericServerId = Number(serverId)
 
   const { data: access, isPending, error } = useServerAccess(numericServerId)
-
   const { data: server } = useUserServer(numericServerId)
 
-  useEffect(() => {
-    const stored = useAccessStore.getState().accessByServerId
-    if (!(numericServerId in stored) && !isPending && !error) {
-      void useAccessStore.getState().fetchAccess(numericServerId)
-    }
-  }, [numericServerId, isPending, error])
-
-  const errorMessage = error
+  const errorMessage = error instanceof Error ? error.message : null
 
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
@@ -66,7 +58,7 @@ function ServerSettingsPage() {
         </div>
       ) : null}
 
-      {!errorMessage ? (
+      {!errorMessage && access && server ? (
         <ServerSettingsView
           serverId={numericServerId}
           server={server}

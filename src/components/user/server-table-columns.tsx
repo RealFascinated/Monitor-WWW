@@ -23,7 +23,6 @@ import {
   pendingOnlyTooltip,
   SERVER_TABLE_COLUMN_TOOLTIPS,
 } from "@/lib/tooltips/copy"
-import { useServersStore } from "@/stores/servers-store"
 import { cn } from "@/lib/utils"
 
 export type ServerTableRow = {
@@ -31,10 +30,6 @@ export type ServerTableRow = {
 }
 
 const unknownStatClassName = "text-neutral-500"
-
-function getServer(serverId: number): ServerResponse | undefined {
-  return useServersStore.getState().servers[serverId]
-}
 
 function renderUptime(server: ServerResponse): ReactNode {
   const formatted = formatUptime(server.uptimeSeconds)
@@ -70,12 +65,15 @@ function renderUptime30d(server: ServerResponse): ReactNode {
 }
 
 export function getServerTableColumns(
-  hasOwnedServers: boolean
+  hasOwnedServers: boolean,
+  servers: Record<number, ServerResponse>
 ): ColumnDef<ServerTableRow>[] {
+  const getServer = (serverId: number) => servers[serverId]
+
   const baseColumns: ColumnDef<ServerTableRow>[] = [
     {
       accessorKey: "serverName",
-      accessorFn: (row) => getServer(row.serverId)?.serverName ?? "",
+      accessorFn: (row) => getServer(row.serverId).serverName,
       header: "Name",
       meta: {
         renderServer: (server) => (
@@ -94,7 +92,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "status",
-      accessorFn: (row) => getServer(row.serverId)?.status ?? "",
+      accessorFn: (row) => getServer(row.serverId).status,
       header: () => (
         <TableHeaderTooltip
           label="Status"
@@ -107,7 +105,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "uptimeSeconds",
-      accessorFn: (row) => getServer(row.serverId)?.uptimeSeconds ?? null,
+      accessorFn: (row) => getServer(row.serverId).uptimeSeconds ?? null,
       header: () => (
         <TableHeaderTooltip
           label="Uptime"
@@ -118,7 +116,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "uptimePercent30d",
-      accessorFn: (row) => getServer(row.serverId)?.uptimePercent30d ?? null,
+      accessorFn: (row) => getServer(row.serverId).uptimePercent30d ?? null,
       header: () => (
         <TableHeaderTooltip
           label="Uptime (30d)"
@@ -129,7 +127,7 @@ export function getServerTableColumns(
     },
     {
       id: "cpu",
-      accessorFn: (row) => getServer(row.serverId)?.cpuPercent ?? null,
+      accessorFn: (row) => getServer(row.serverId).cpuPercent ?? null,
       header: () => (
         <TableHeaderTooltip
           label="CPU"
@@ -146,7 +144,7 @@ export function getServerTableColumns(
       id: "memory",
       accessorFn: (row) => {
         const server = getServer(row.serverId)
-        return server?.memUsage != null && server.memMax
+        return server.memUsage != null && server.memMax
           ? server.memUsage / server.memMax
           : null
       },
@@ -170,7 +168,7 @@ export function getServerTableColumns(
       id: "disk",
       accessorFn: (row) => {
         const server = getServer(row.serverId)
-        return server?.diskUsage != null && server.diskMax
+        return server.diskUsage != null && server.diskMax
           ? server.diskUsage / server.diskMax
           : null
       },
@@ -192,7 +190,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "agentVersion",
-      accessorFn: (row) => getServer(row.serverId)?.agentVersion ?? "",
+      accessorFn: (row) => getServer(row.serverId).agentVersion ?? "",
       header: () => (
         <TableHeaderTooltip
           label="Agent"
@@ -205,7 +203,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "createdAt",
-      accessorFn: (row) => getServer(row.serverId)?.createdAt ?? "",
+      accessorFn: (row) => getServer(row.serverId).createdAt,
       header: () => (
         <TableHeaderTooltip
           label="Created"
@@ -255,14 +253,13 @@ export function getServerTableColumns(
 
 export function filterServerIdsBySearch(
   serverIds: number[],
-  searchQuery: string
+  searchQuery: string,
+  servers: Record<number, ServerResponse>
 ): number[] {
   const search = searchQuery.trim().toLowerCase()
   if (!search) {
     return serverIds
   }
-
-  const servers = useServersStore.getState().servers
 
   return serverIds.filter((serverId) => {
     const server = servers[serverId]

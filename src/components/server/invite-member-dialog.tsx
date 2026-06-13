@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Check, Copy, Plus } from "lucide-react"
 import { useState } from "react"
 
@@ -18,8 +18,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { inviteServerMember } from "@/lib/api/user/access"
 import type { ServerInviteCreatedResponse } from "@/lib/api/user/access"
+import { serverAccessQueryKey } from "@/lib/api/user/access.queries"
 import { ApiClientError } from "@/lib/auth/api"
-import { useAccessStore } from "@/stores/access-store"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -59,16 +59,14 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
     useState<ServerInviteCreatedResponse | null>(null)
   const [copied, setCopied] = useState(false)
 
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationFn: (request: { email: string }) =>
       inviteServerMember(serverId, request),
     onSuccess: async (invite) => {
-      useAccessStore.getState().addPendingInvite(serverId, {
-        inviteId: invite.inviteId,
-        email: invite.email,
-        role: invite.role,
-        expiresAt: invite.expiresAt,
-        createdAt: new Date().toISOString(),
+      await queryClient.invalidateQueries({
+        queryKey: serverAccessQueryKey(serverId),
       })
       setCreatedInvite(invite)
       setCopied(false)

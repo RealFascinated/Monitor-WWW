@@ -18,12 +18,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
+import { userServersQueryKey } from "@/lib/api/user/servers.queries"
 import { ApiClientError } from "@/lib/auth/api"
 import {
   MAX_FOLDER_NAME_LENGTH,
   validateFolderName,
 } from "@/lib/folder-name"
-import { setFolderNameOnServers } from "@/lib/servers/folder-store"
 
 type RenameFolderDialogProps = {
   folderId: number
@@ -41,7 +41,7 @@ function RenameFolderDialog({ folderId, currentName }: RenameFolderDialogProps) 
     mutationFn: (nextName: string) =>
       renameServerFolder(folderId, { name: nextName }),
     onSuccess: (folder) => {
-      setFolderNameOnServers(currentName, folder.name)
+      void queryClient.invalidateQueries({ queryKey: userServersQueryKey })
       queryClient.setQueryData<ServerFolderResponse[]>(
         ["user", "server-folders"],
         (current) =>

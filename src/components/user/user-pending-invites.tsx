@@ -79,7 +79,7 @@ const columns: ColumnDef<UserPendingInvite>[] = [
 
 function UserPendingInvites() {
   const [sorting, setSorting] = useState<SortingState>([])
-  const { data: invites, isPending, error } = useUserInvites()
+  const { data: invites = [], isPending, error } = useUserInvites()
 
   const table = useReactTable({
     data: invites,
@@ -91,7 +91,7 @@ function UserPendingInvites() {
     onSortingChange: setSorting,
   })
 
-  const errorMessage = error ?? null
+  const errorMessage = error instanceof Error ? error.message : null
 
   return (
     <div className="flex flex-col gap-3">

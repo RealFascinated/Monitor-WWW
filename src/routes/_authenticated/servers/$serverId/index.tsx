@@ -33,6 +33,8 @@ function ServerMetricsPage() {
   const {
     data: metrics,
     isPending,
+    isFetching,
+    refetch,
     error,
   } = useQuery(userServerMetricsQueryOptions(numericServerId, range))
 
@@ -51,10 +53,12 @@ function ServerMetricsPage() {
         server={server}
         range={range}
         serverId={numericServerId}
+        onRefresh={() => void refetch()}
+        isRefreshing={isFetching}
       />
 
       <div className="flex flex-col gap-6">
-        {server.status === "PENDING" && server.role === "OWNER" ? (
+        {server?.status === "PENDING" && server.role === "OWNER" ? (
           <Callout type="info" title="Waiting for the agent">
             <div className="flex flex-col gap-3">
               <p>

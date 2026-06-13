@@ -1,17 +1,7 @@
-import { useAccessStore } from "@/stores/access-store"
+import { useQuery } from "@tanstack/react-query"
+
+import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 
 export function useServerAccess(serverId: number) {
-  const access = useAccessStore((state) => state.accessByServerId[serverId])
-  const isPending = useAccessStore(
-    (state) => state.loadingByServerId[serverId] ?? false
-  )
-  const error = useAccessStore(
-    (state) => state.errorByServerId[serverId] ?? null
-  )
-
-  return {
-    data: access,
-    isPending,
-    error,
-  }
+  return useQuery(serverAccessQueryOptions(serverId))
 }

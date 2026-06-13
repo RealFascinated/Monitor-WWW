@@ -20,7 +20,6 @@ import {
   FOLDER_DRAG_MIME,
   readDraggedServerId,
 } from "@/lib/servers/drag"
-import { useServersStore } from "@/stores/servers-store"
 import { cn } from "@/lib/utils"
 
 type ServersFolderTableProps = {
@@ -46,6 +45,7 @@ type ServersFolderTableProps = {
   onDropTargetChange: (dropTargetKey: string | null) => void
   onMoveServer: (serverId: number, folderName: string | null) => void
   onReorderFolder: (draggedFolderId: number, targetFolderId: number) => void
+  getServerName: (serverId: number) => string
 }
 
 function ServersFolderTableInner({
@@ -69,6 +69,7 @@ function ServersFolderTableInner({
   onDropTargetChange,
   onMoveServer,
   onReorderFolder,
+  getServerName,
 }: ServersFolderTableProps) {
   const isFolderDropTarget =
     editMode &&
@@ -248,8 +249,7 @@ function ServersFolderTableInner({
                         : null,
                     getServerId: (row) => row.original.serverId,
                     getServerLabel: (row) =>
-                      useServersStore.getState().servers[row.original.serverId]
-                        .serverName,
+                      getServerName(row.original.serverId),
                     onDragStart: onServerDragStart,
                     onDragEnd: onServerDragEnd,
                   }

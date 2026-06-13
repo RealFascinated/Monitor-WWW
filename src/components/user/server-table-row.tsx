@@ -1,4 +1,5 @@
-import { createContext, useContext, type ReactNode } from "react"
+import { createContext, useContext } from "react"
+import type { ReactNode } from "react"
 import type { Row } from "@tanstack/react-table"
 
 import { TableCell } from "@/components/ui/table"
@@ -16,6 +17,10 @@ export function ServerTableRowProvider({
   children: ReactNode
 }) {
   const { data: server } = useUserServer(serverId)
+
+  if (!server) {
+    return null
+  }
 
   return (
     <ServerTableRowContext.Provider value={server}>

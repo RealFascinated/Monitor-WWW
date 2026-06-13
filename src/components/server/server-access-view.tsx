@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getCoreRowModel,
   getSortedRowModel,
@@ -14,13 +14,13 @@ import { InviteMemberDialog } from "@/components/server/invite-member-dialog"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { removeServerMember, revokeServerInvite } from "@/lib/api/user/access"
+import { serverAccessQueryKey } from "@/lib/api/user/access.queries"
 import type {
   PendingServerInvite,
   ServerAccessListResponse,
 } from "@/lib/api/user/access"
 import type { ServerRole } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
-import { useAccessStore } from "@/stores/access-store"
 import { formatDate, formatDateWithRelative } from "@/lib/formatter"
 import {
   INVITE_EXPIRY_TOOLTIP,
@@ -68,10 +68,14 @@ function RemoveMemberButton({
 }) {
   const [error, setError] = useState<string | null>(null)
 
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationFn: () => removeServerMember(serverId, memberUserId),
     onSuccess: async () => {
-      await useAccessStore.getState().fetchAccess(serverId)
+      await queryClient.invalidateQueries({
+        queryKey: serverAccessQueryKey(serverId),
+      })
     },
     onError: (mutationError) => {
       setError(
@@ -131,10 +135,14 @@ function RevokeInviteButton({
 }) {
   const [error, setError] = useState<string | null>(null)
 
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationFn: () => revokeServerInvite(serverId, inviteId),
     onSuccess: async () => {
-      useAccessStore.getState().removePendingInvite(serverId, inviteId)
+      await queryClient.invalidateQueries({
+        queryKey: serverAccessQueryKey(serverId),
+      })
     },
     onError: (mutationError) => {
       setError(

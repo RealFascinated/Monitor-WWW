@@ -6,6 +6,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router"
 import { Menu } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import type { CSSProperties } from "react"
 
@@ -14,12 +15,10 @@ import { MonitorLogo } from "@/components/monitor-logo"
 import { useSidebarWidth } from "@/hooks/use-sidebar-width"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
-import { useMonitorWebSocket } from "@/hooks/use-monitor-websocket"
+import { userInvitesQueryOptions } from "@/lib/api/user/invites.queries"
+import { userServersQueryOptions } from "@/lib/api/user/servers.queries"
 import { logout, useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
-import { useAccessStore } from "@/stores/access-store"
-import { useInvitesStore } from "@/stores/invites-store"
-import { useServersStore } from "@/stores/servers-store"
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -27,6 +26,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user, isLoading, setUser } = useAuth()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -52,11 +52,9 @@ function AuthenticatedLayout() {
     if (!user) {
       return
     }
-    void useServersStore.getState().fetchServers()
-    void useInvitesStore.getState().fetchInvites()
-  }, [user])
-
-  useMonitorWebSocket(Boolean(user))
+    void queryClient.prefetchQuery(userServersQueryOptions())
+    void queryClient.prefetchQuery(userInvitesQueryOptions())
+  }, [user, queryClient])
 
   useEffect(() => {
     setMobileSidebarOpen(false)
@@ -86,9 +84,7 @@ function AuthenticatedLayout() {
     setIsLoggingOut(true)
     try {
       await logout()
-      useServersStore.getState().reset()
-      useAccessStore.getState().reset()
-      useInvitesStore.getState().reset()
+      queryClient.clear()
       setUser(null)
       await navigate({ to: "/login" })
     } finally {

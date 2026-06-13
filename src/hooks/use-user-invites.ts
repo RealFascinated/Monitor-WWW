@@ -1,13 +1,7 @@
-import { useInvitesStore } from "@/stores/invites-store"
+import { useQuery } from "@tanstack/react-query"
+
+import { userInvitesQueryOptions } from "@/lib/api/user/invites.queries"
 
 export function useUserInvites() {
-  const invites = useInvitesStore((state) => state.invites)
-  const isPending = useInvitesStore((state) => state.isLoading)
-  const error = useInvitesStore((state) => state.error)
-
-  return {
-    data: invites,
-    isPending,
-    error,
-  }
+  return useQuery(userInvitesQueryOptions())
 }

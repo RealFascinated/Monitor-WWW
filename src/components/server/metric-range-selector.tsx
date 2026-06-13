@@ -1,4 +1,4 @@
-import { CalendarRange } from "lucide-react"
+import { CalendarRange, RefreshCw } from "lucide-react"
 
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import {
@@ -21,12 +21,16 @@ import { cn } from "@/lib/utils"
 type MetricRangeSelectorProps = {
   value: MetricTimeRange
   onChange: (value: MetricTimeRange) => void
+  onRefresh: () => void
+  isRefreshing?: boolean
   className?: string
 }
 
 function MetricRangeSelector({
   value,
   onChange,
+  onRefresh,
+  isRefreshing = false,
   className,
 }: MetricRangeSelectorProps) {
   const activeOption = getMetricRangeOption(value)
@@ -106,6 +110,27 @@ function MetricRangeSelector({
           })}
         </SelectContent>
       </Select>
+
+      <div
+        className="my-1 w-px shrink-0 bg-neutral-200 dark:bg-monitor-gray-300"
+        aria-hidden
+      />
+
+      <SimpleTooltip content="Refresh metrics">
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          aria-label="Refresh metrics"
+          className={cn(
+            "flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-monitor-gray-300/60 dark:hover:text-white"
+          )}
+        >
+          <RefreshCw
+            className={cn("size-3.5", isRefreshing && "animate-spin")}
+          />
+        </button>
+      </SimpleTooltip>
     </div>
   )
 }

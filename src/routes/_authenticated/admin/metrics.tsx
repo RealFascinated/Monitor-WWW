@@ -35,6 +35,8 @@ function AdminMetricsPage() {
   const {
     data: metrics,
     isPending,
+    isFetching,
+    refetch,
     error,
   } = useQuery({
     ...adminMetricsQueryOptions(range),
@@ -60,7 +62,11 @@ function AdminMetricsPage() {
 
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
-      <AdminMetricsHeader range={range} />
+      <AdminMetricsHeader
+        range={range}
+        onRefresh={() => void refetch()}
+        isRefreshing={isFetching}
+      />
 
       {errorMessage ? (
         <Callout type="danger" title="Could not load metrics">

@@ -42,7 +42,8 @@ function buildYScale(yRange?: ChartYRange, bidirectional = false): uPlot.Scale {
       range: (_self, dataMin, dataMax) => {
         const extent = Math.max(Math.abs(dataMin), Math.abs(dataMax), 1)
         const [, padded] = uPlot.rangeNum(-extent, extent, 0.1, true)
-        return [-padded, padded]
+        const max = padded ?? extent
+        return [-max, max]
       },
     }
   }
