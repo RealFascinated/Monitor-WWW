@@ -7,6 +7,7 @@ import { ServerAgentSetupDialog } from "@/components/server/server-agent-setup-d
 import { ServerMetricsHeader } from "@/components/server/server-metrics-header"
 import { ServerMetricsView } from "@/components/server/server-metrics-view"
 import { useUserServer } from "@/hooks/use-user-server"
+import { useMetricRefreshInterval } from "@/hooks/use-metric-refresh-interval"
 import { userServerMetricsQueryOptions } from "@/lib/api/user/metrics.queries"
 import { ApiClientError } from "@/lib/auth/api"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
@@ -29,6 +30,7 @@ function ServerMetricsPage() {
   const { serverId } = Route.useParams()
   const { range } = Route.useSearch()
   const numericServerId = Number(serverId)
+  const { refreshInterval, setRefreshInterval } = useMetricRefreshInterval()
 
   const {
     data: metrics,
@@ -36,7 +38,9 @@ function ServerMetricsPage() {
     isFetching,
     refetch,
     error,
-  } = useQuery(userServerMetricsQueryOptions(numericServerId, range))
+  } = useQuery(
+    userServerMetricsQueryOptions(numericServerId, range, refreshInterval)
+  )
 
   const { data: server } = useUserServer(numericServerId)
 
@@ -53,6 +57,8 @@ function ServerMetricsPage() {
         server={server}
         range={range}
         serverId={numericServerId}
+        refreshInterval={refreshInterval}
+        onRefreshIntervalChange={setRefreshInterval}
         onRefresh={() => void refetch()}
         isRefreshing={isFetching}
       />

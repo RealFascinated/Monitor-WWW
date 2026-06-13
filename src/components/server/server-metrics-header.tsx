@@ -8,12 +8,15 @@ import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
+import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
 
 type ServerMetricsHeaderProps = {
   server: ServerResponse | undefined
   range: MetricTimeRange
   serverId: number
+  refreshInterval: MetricRefreshInterval
+  onRefreshIntervalChange: (value: MetricRefreshInterval) => void
   onRefresh: () => void
   isRefreshing?: boolean
 }
@@ -22,6 +25,8 @@ function ServerMetricsHeader({
   server,
   range,
   serverId,
+  refreshInterval,
+  onRefreshIntervalChange,
   onRefresh,
   isRefreshing = false,
 }: ServerMetricsHeaderProps) {
@@ -40,7 +45,7 @@ function ServerMetricsHeader({
       />
 
       <div className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h1 className="text-xl">
               {server?.serverName ?? `Server ${serverId}`}
@@ -49,7 +54,7 @@ function ServerMetricsHeader({
           </div>
 
           <div
-            className="inline-flex shrink-0 items-stretch overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100/80 p-0.5 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60"
+            className="inline-flex w-full shrink-0 items-stretch overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100/80 p-0.5 sm:w-auto dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60"
             role="toolbar"
             aria-label="Server actions"
           >
@@ -85,6 +90,8 @@ function ServerMetricsHeader({
                   resetScroll: false,
                 })
               }}
+              refreshInterval={refreshInterval}
+              onRefreshIntervalChange={onRefreshIntervalChange}
               onRefresh={onRefresh}
               isRefreshing={isRefreshing}
             />

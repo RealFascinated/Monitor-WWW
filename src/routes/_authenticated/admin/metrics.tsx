@@ -7,6 +7,7 @@ import { AdminMetricsView } from "@/components/admin/admin-metrics-view"
 import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { adminMetricsQueryOptions } from "@/lib/api/admin/metrics.queries"
+import { useMetricRefreshInterval } from "@/hooks/use-metric-refresh-interval"
 import { useAuth } from "@/lib/auth"
 import { ApiClientError } from "@/lib/auth/api"
 import { pageTitle } from "@/lib/page-title"
@@ -31,6 +32,7 @@ function AdminMetricsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { range } = Route.useSearch()
+  const { refreshInterval, setRefreshInterval } = useMetricRefreshInterval()
 
   const {
     data: metrics,
@@ -39,7 +41,7 @@ function AdminMetricsPage() {
     refetch,
     error,
   } = useQuery({
-    ...adminMetricsQueryOptions(range),
+    ...adminMetricsQueryOptions(range, refreshInterval),
     enabled: user?.role === "ADMIN",
   })
 
@@ -64,6 +66,8 @@ function AdminMetricsPage() {
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
       <AdminMetricsHeader
         range={range}
+        refreshInterval={refreshInterval}
+        onRefreshIntervalChange={setRefreshInterval}
         onRefresh={() => void refetch()}
         isRefreshing={isFetching}
       />

@@ -11,6 +11,11 @@ import {
 } from "@/components/ui/select"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
 import {
+  METRIC_REFRESH_INTERVAL_OPTIONS,
+  type MetricRefreshInterval,
+  getMetricRefreshIntervalOption,
+} from "@/lib/metrics/refresh-interval"
+import {
   METRIC_RANGE_GROUPS,
   METRIC_RANGE_OPTIONS,
   METRIC_RANGE_QUICK_PICKS,
@@ -21,6 +26,8 @@ import { cn } from "@/lib/utils"
 type MetricRangeSelectorProps = {
   value: MetricTimeRange
   onChange: (value: MetricTimeRange) => void
+  refreshInterval: MetricRefreshInterval
+  onRefreshIntervalChange: (value: MetricRefreshInterval) => void
   onRefresh: () => void
   isRefreshing?: boolean
   className?: string
@@ -29,11 +36,14 @@ type MetricRangeSelectorProps = {
 function MetricRangeSelector({
   value,
   onChange,
+  refreshInterval,
+  onRefreshIntervalChange,
   onRefresh,
   isRefreshing = false,
   className,
 }: MetricRangeSelectorProps) {
   const activeOption = getMetricRangeOption(value)
+  const activeRefreshInterval = getMetricRefreshIntervalOption(refreshInterval)
   const isQuickPick = METRIC_RANGE_QUICK_PICKS.includes(value)
 
   return (
@@ -115,6 +125,31 @@ function MetricRangeSelector({
         className="my-1 w-px shrink-0 bg-neutral-200 dark:bg-monitor-gray-300"
         aria-hidden
       />
+
+      <Select
+        value={refreshInterval}
+        onValueChange={(next) =>
+          onRefreshIntervalChange(next as MetricRefreshInterval)
+        }
+      >
+        <SelectTrigger
+          size="sm"
+          aria-label={`Refresh interval: ${activeRefreshInterval.label}`}
+          className="h-7 shrink-0 gap-1 rounded-sm border-0 bg-transparent px-2 text-xs font-medium text-muted-foreground shadow-none hover:bg-white/70 hover:text-foreground focus-visible:ring-1 dark:hover:bg-monitor-gray-300/60 dark:hover:text-white"
+        >
+          <span>{activeRefreshInterval.shortLabel}</span>
+        </SelectTrigger>
+        <SelectContent align="end" position="popper" className="min-w-36">
+          <SelectGroup>
+            <SelectLabel>Refresh</SelectLabel>
+            {METRIC_REFRESH_INTERVAL_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
       <SimpleTooltip content="Refresh metrics">
         <button

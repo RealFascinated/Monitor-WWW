@@ -2,6 +2,10 @@ import { queryOptions } from "@tanstack/react-query"
 
 import { getUserServerMetrics } from "@/lib/api/user/metrics"
 import type { MetricTimeRange } from "@/lib/api/user/metrics"
+import {
+  type MetricRefreshInterval,
+  getMetricRefreshIntervalMs,
+} from "@/lib/metrics/refresh-interval"
 
 export const userServerMetricsQueryKey = {
   all: ["user", "servers"] as const,
@@ -13,11 +17,12 @@ export const userServerMetricsQueryKey = {
 
 export function userServerMetricsQueryOptions(
   serverId: number,
-  range: MetricTimeRange
+  range: MetricTimeRange,
+  refreshInterval: MetricRefreshInterval = "10s"
 ) {
   return queryOptions({
     queryKey: userServerMetricsQueryKey.detail(serverId, range),
     queryFn: () => getUserServerMetrics(serverId, range),
-    refetchInterval: 60_000,
+    refetchInterval: getMetricRefreshIntervalMs(refreshInterval),
   })
 }

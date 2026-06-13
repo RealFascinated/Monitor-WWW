@@ -4,15 +4,20 @@ import { Gauge } from "lucide-react"
 import { Breadcrumb } from "@/components/breadcrumb"
 import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import type { MetricTimeRange } from "@/lib/api/admin/metrics"
+import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
 
 type AdminMetricsHeaderProps = {
   range: MetricTimeRange
+  refreshInterval: MetricRefreshInterval
+  onRefreshIntervalChange: (value: MetricRefreshInterval) => void
   onRefresh: () => void
   isRefreshing?: boolean
 }
 
 function AdminMetricsHeader({
   range,
+  refreshInterval,
+  onRefreshIntervalChange,
   onRefresh,
   isRefreshing = false,
 }: AdminMetricsHeaderProps) {
@@ -28,14 +33,14 @@ function AdminMetricsHeader({
       />
 
       <div className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <Gauge className="size-4 shrink-0 text-monitor dark:text-warning" />
             <h1 className="text-xl">Admin Metrics</h1>
           </div>
 
           <div
-            className="inline-flex shrink-0 items-stretch overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100/80 p-0.5 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60"
+            className="inline-flex w-full shrink-0 items-stretch overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100/80 p-0.5 sm:w-auto dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60"
             role="toolbar"
             aria-label="Metrics range"
           >
@@ -48,6 +53,8 @@ function AdminMetricsHeader({
                   resetScroll: false,
                 })
               }}
+              refreshInterval={refreshInterval}
+              onRefreshIntervalChange={onRefreshIntervalChange}
               onRefresh={onRefresh}
               isRefreshing={isRefreshing}
             />

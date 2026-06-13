@@ -2,11 +2,18 @@ import { queryOptions } from "@tanstack/react-query"
 
 import { getAdminMetrics } from "@/lib/api/admin/metrics"
 import type { MetricTimeRange } from "@/lib/api/admin/metrics"
+import {
+  type MetricRefreshInterval,
+  getMetricRefreshIntervalMs,
+} from "@/lib/metrics/refresh-interval"
 
-export function adminMetricsQueryOptions(range: MetricTimeRange) {
+export function adminMetricsQueryOptions(
+  range: MetricTimeRange,
+  refreshInterval: MetricRefreshInterval = "10s"
+) {
   return queryOptions({
     queryKey: ["admin", "metrics", range],
     queryFn: () => getAdminMetrics(range),
-    refetchInterval: 60_000,
+    refetchInterval: getMetricRefreshIntervalMs(refreshInterval),
   })
 }
