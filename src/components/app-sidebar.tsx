@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import {
   ChevronLeft,
+  Gauge,
   LayoutDashboard,
   LogOut,
   Mail,
@@ -75,6 +76,50 @@ function SidebarDetailedToggle({
         />
       </button>
     </SimpleTooltip>
+  )
+}
+
+function SidebarAdminSection({
+  compact,
+  onNavigate,
+}: {
+  compact: boolean
+  onNavigate?: () => void
+}) {
+  const link = (
+    <Link
+      to="/admin/metrics"
+      search={{ range: "24h" }}
+      onClick={onNavigate}
+      className={cn(
+        "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
+        "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
+        compact && "justify-center px-0",
+        compact && "cursor-help"
+      )}
+    >
+      <Gauge className="size-4 shrink-0" />
+      {!compact ? <span className="truncate">Metrics</span> : null}
+    </Link>
+  )
+
+  return (
+    <div className="flex shrink-0 flex-col">
+      {!compact ? (
+        <p className="mt-3 mb-1 px-2 text-xs font-medium tracking-wide text-neutral-400 uppercase">
+          Admin
+        </p>
+      ) : (
+        <div className="my-2 shrink-0 border-t border-sidebar-border" />
+      )}
+      {compact ? (
+        <SimpleTooltip content={SIDEBAR_TOOLTIPS.adminMetrics}>
+          {link}
+        </SimpleTooltip>
+      ) : (
+        link
+      )}
+    </div>
   )
 }
 
@@ -318,6 +363,12 @@ export function AppSidebar({
               <span key={to}>{link}</span>
             )
           })}
+          {user.role === "ADMIN" ? (
+            <SidebarAdminSection
+              compact={compact}
+              onNavigate={handleNavigate}
+            />
+          ) : null}
           <SidebarServerList compact={compact} onNavigate={handleNavigate} />
         </nav>
 

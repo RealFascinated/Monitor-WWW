@@ -1,7 +1,4 @@
-import type {
-  MetricValues,
-  ServerMetricsResponse,
-} from "@/lib/api/user/metrics"
+import type { MetricValues } from "@/lib/api/user/metrics"
 import {
   METRIC_RANGE_LOOKBACK_SECONDS,
   parseMetricRange,
@@ -48,8 +45,14 @@ function isDenseGrid(apiTimestamps: number[], fullGrid: number[]): boolean {
   return apiTimestamps.length >= fullGrid.length * 0.9
 }
 
+export type MetricsTimeSeriesEnvelope = {
+  range: string
+  step: number | null
+  timestamps: number[] | null
+}
+
 export function buildMetricsTimeGrid(
-  metrics: ServerMetricsResponse
+  metrics: MetricsTimeSeriesEnvelope
 ): MetricsTimeGrid {
   const step = metrics.step && metrics.step > 0 ? metrics.step : 300
   const range = parseMetricRange(metrics.range)

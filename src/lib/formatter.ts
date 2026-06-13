@@ -96,6 +96,10 @@ export function formatCount(value: number): string {
   }).format(value)
 }
 
+export function formatPerMinute(value: number): string {
+  return `${formatCount(value)}/min`
+}
+
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 1,

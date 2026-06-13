@@ -42,6 +42,8 @@ export const SERVER_ROLE_TOOLTIPS: Record<ServerRole | "OWNER", string> = {
 export const SIDEBAR_TOOLTIPS = {
   detailedMode: "Show CPU and RAM usage under each server name in the sidebar.",
   signOut: "Sign out of your account.",
+  adminMetrics:
+    "Platform-wide admin metrics for fleet, ingest, and HTTP traffic.",
 } as const
 
 export const SETTINGS_TOOLTIPS = {
