@@ -41,10 +41,8 @@ export type HttpMetrics = Record<string, HttpMetricsEntry>
 
 export type IngestMetrics = {
   ingestAuthFailuresTotal?: MetricValues
-  ingestDurationSecondsCount?: MetricValues
-  ingestDurationSecondsSum?: MetricValues
-  ingestPayloadBytesCount?: MetricValues
-  ingestPayloadBytesSum?: MetricValues
+  ingestDurationSeconds?: MetricValues
+  ingestPayloadBytes?: MetricValues
   ingestsTotal?: MetricValues
 }
 
@@ -60,11 +58,9 @@ export type JvmMetrics = {
 
 export type VmMetrics = {
   vmQueriesTotal?: MetricValues
-  vmQueryDurationSecondsCount?: MetricValues
-  vmQueryDurationSecondsSum?: MetricValues
+  vmQueryDurationSeconds?: MetricValues
   vmQueryErrorsTotal?: MetricValues
-  vmWriteDurationSecondsCount?: MetricValues
-  vmWriteDurationSecondsSum?: MetricValues
+  vmWriteDurationSeconds?: MetricValues
   vmWriteErrorsTotal?: MetricValues
   vmWritesTotal?: MetricValues
 }

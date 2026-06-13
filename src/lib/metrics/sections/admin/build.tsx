@@ -19,7 +19,6 @@ import { createMetricsSectionBuilder } from "@/lib/metrics/sections/builder"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
   chartsHaveData,
-  createPlatformChartContext,
   fleetCharts,
   fleetHasData,
   fleetOsCharts,
@@ -47,7 +46,6 @@ function buildAdminMetricSections(
   const builder = createMetricsSectionBuilder()
   const overview = metrics.overview
   const fleet = metrics.fleet
-  const chartContext = createPlatformChartContext(metrics)
 
   if (overview && overviewHasData(overview)) {
     const charts = overviewCharts(overview)
@@ -101,7 +99,7 @@ function buildAdminMetricSections(
 
   const ingest = metrics.ingest
   if (ingest && ingestHasData(ingest)) {
-    const charts = ingestCharts(ingest, chartContext)
+    const charts = ingestCharts(ingest)
     if (chartsHaveData(charts)) {
       builder.leaf({
         title: "Ingest",
@@ -127,7 +125,7 @@ function buildAdminMetricSections(
 
   const vm = metrics.vm
   if (vm && vmHasData(vm)) {
-    const charts = vmCharts(vm, chartContext)
+    const charts = vmCharts(vm)
     if (chartsHaveData(charts)) {
       builder.leaf({
         title: "VictoriaMetrics",
@@ -138,9 +136,9 @@ function buildAdminMetricSections(
     }
   }
 
-  const httpEntries = parseHttpEntries(metrics.http, chartContext)
+  const httpEntries = parseHttpEntries(metrics.http)
   if (httpHasData(metrics.http)) {
-    const charts = httpCharts(httpEntries, chartContext)
+    const charts = httpCharts(httpEntries)
     if (chartsHaveData(charts)) {
       builder.leaf({
         title: "HTTP",

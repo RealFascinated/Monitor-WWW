@@ -1,5 +1,4 @@
 import type {
-  AdminMetricsResponse,
   FleetMetrics,
   FleetOsMetrics,
   FleetVersionMetrics,
@@ -10,7 +9,6 @@ import type {
   OverviewMetrics,
   VmMetrics,
 } from "@/lib/api/admin/metrics"
-import type { MetricValues } from "@/lib/api/user/metrics"
 import {
   formatCount,
   formatDurationSeconds,
@@ -19,11 +17,6 @@ import {
   formatPerMinute,
   formatPercentValue,
 } from "@/lib/formatter"
-import {
-  counterRatePerMinute,
-  histogramIntervalAverage,
-  resolveMetricStep,
-} from "@/lib/metrics/platform/transforms"
 import type { MetricChartConfig } from "@/lib/metrics/sections/server/charts"
 import { chartsHaveData } from "@/lib/metrics/sections/server/charts"
 import {
@@ -32,27 +25,6 @@ import {
   hasAnyValues,
   hasValues,
 } from "@/lib/metrics/series"
-
-export type PlatformChartContext = {
-  stepSeconds: number
-  timestamps: number[] | null
-}
-
-export function createPlatformChartContext(
-  metrics: AdminMetricsResponse
-): PlatformChartContext {
-  return {
-    stepSeconds: resolveMetricStep(metrics.step, metrics.timestamps),
-    timestamps: metrics.timestamps,
-  }
-}
-
-function counterPerMinute(
-  values: MetricValues,
-  context: PlatformChartContext
-): MetricValues {
-  return counterRatePerMinute(values, context.timestamps, context.stepSeconds)
-}
 
 function isFleetOsMetrics(value: unknown): value is FleetOsMetrics {
   return (
@@ -114,8 +86,7 @@ function parseFleetVersionEntries(
 }
 
 function parseHttpEntries(
-  http: HttpMetrics | null | undefined,
-  context: PlatformChartContext
+  http: HttpMetrics | null | undefined
 ): HttpMetricsEntry[] {
   if (!http) {
     return []
@@ -124,11 +95,9 @@ function parseHttpEntries(
   return Object.values(http)
     .filter((entry) => hasValues(entry.httpRequestsTotal))
     .sort((left, right) => {
-      const leftRate =
-        getLatestValue(counterPerMinute(left.httpRequestsTotal, context)) ?? 0
-      const rightRate =
-        getLatestValue(counterPerMinute(right.httpRequestsTotal, context)) ?? 0
-      return rightRate - leftRate
+      const leftLatest = getLatestValue(left.httpRequestsTotal) ?? 0
+      const rightLatest = getLatestValue(right.httpRequestsTotal) ?? 0
+      return rightLatest - leftLatest
     })
 }
 
@@ -174,10 +143,8 @@ function ingestHasData(ingest: IngestMetrics | null | undefined): boolean {
   return hasAnyValues(
     ingest.ingestsTotal,
     ingest.ingestAuthFailuresTotal,
-    ingest.ingestDurationSecondsCount,
-    ingest.ingestDurationSecondsSum,
-    ingest.ingestPayloadBytesCount,
-    ingest.ingestPayloadBytesSum
+    ingest.ingestDurationSeconds,
+    ingest.ingestPayloadBytes
   )
 }
 
@@ -204,11 +171,9 @@ function vmHasData(vm: VmMetrics | null | undefined): boolean {
 
   return hasAnyValues(
     vm.vmQueriesTotal,
-    vm.vmQueryDurationSecondsCount,
-    vm.vmQueryDurationSecondsSum,
+    vm.vmQueryDurationSeconds,
     vm.vmQueryErrorsTotal,
-    vm.vmWriteDurationSecondsCount,
-    vm.vmWriteDurationSecondsSum,
+    vm.vmWriteDurationSeconds,
     vm.vmWriteErrorsTotal,
     vm.vmWritesTotal
   )
@@ -235,12 +200,15 @@ function overviewCharts(overview: OverviewMetrics): MetricChartConfig[] {
       valueFormatter: formatCount,
     },
     {
-      title: "Sessions and connections",
-      description: "Active user sessions and open WebSocket connections.",
-      series: [
-        chartSeries("Sessions", overview.activeSessions),
-        chartSeries("WebSockets", overview.websocketConnections),
-      ],
+      title: "Active sessions",
+      description: "Signed-in user sessions that have not expired.",
+      series: [chartSeries("Sessions", overview.activeSessions)],
+      valueFormatter: formatCount,
+    },
+    {
+      title: "WebSocket connections",
+      description: "Open real-time connections to the server list feed.",
+      series: [chartSeries("WebSockets", overview.websocketConnections)],
       valueFormatter: formatCount,
     },
     {
@@ -303,50 +271,32 @@ function fleetVersionCharts(
   ]
 }
 
-function ingestCharts(
-  ingest: IngestMetrics,
-  context: PlatformChartContext
-): MetricChartConfig[] {
-  const avgDuration = histogramIntervalAverage(
-    ingest.ingestDurationSecondsSum,
-    ingest.ingestDurationSecondsCount
-  )
-  const avgPayload = histogramIntervalAverage(
-    ingest.ingestPayloadBytesSum,
-    ingest.ingestPayloadBytesCount
-  )
-
+function ingestCharts(ingest: IngestMetrics): MetricChartConfig[] {
   return [
     {
       title: "Ingests per minute",
-      description: "Metric ingest requests received per minute (counter rate).",
-      series: [
-        chartSeries("Ingests", counterPerMinute(ingest.ingestsTotal, context)),
-      ],
+      description:
+        "Metric ingest requests received per minute (Prometheus rate).",
+      series: [chartSeries("Ingests", ingest.ingestsTotal)],
       valueFormatter: formatPerMinute,
     },
     {
       title: "Auth failures per minute",
       description:
         "Ingest requests rejected due to invalid authentication, per minute.",
-      series: [
-        chartSeries(
-          "Failures",
-          counterPerMinute(ingest.ingestAuthFailuresTotal, context)
-        ),
-      ],
+      series: [chartSeries("Failures", ingest.ingestAuthFailuresTotal)],
       valueFormatter: formatPerMinute,
     },
     {
       title: "Ingest duration",
-      description: "Mean time to process an ingest request per interval.",
-      series: [chartSeries("Duration", avgDuration)],
+      description: "Mean time to process an ingest request.",
+      series: [chartSeries("Duration", ingest.ingestDurationSeconds)],
       valueFormatter: (value) => formatMilliseconds(value * 1000),
     },
     {
       title: "Ingest payload size",
-      description: "Mean ingest payload size per interval.",
-      series: [chartSeries("Payload", avgPayload)],
+      description: "Mean ingest payload size.",
+      series: [chartSeries("Payload", ingest.ingestPayloadBytes)],
       valueFormatter: formatMemoryBytes,
     },
   ]
@@ -396,26 +346,14 @@ function jvmCharts(jvm: JvmMetrics): MetricChartConfig[] {
   return charts
 }
 
-function vmCharts(
-  vm: VmMetrics,
-  context: PlatformChartContext
-): MetricChartConfig[] {
-  const avgQueryDuration = histogramIntervalAverage(
-    vm.vmQueryDurationSecondsSum,
-    vm.vmQueryDurationSecondsCount
-  )
-  const avgWriteDuration = histogramIntervalAverage(
-    vm.vmWriteDurationSecondsSum,
-    vm.vmWriteDurationSecondsCount
-  )
-
+function vmCharts(vm: VmMetrics): MetricChartConfig[] {
   return [
     {
       title: "Queries and writes per minute",
       description: "VictoriaMetrics query and write operations per minute.",
       series: [
-        chartSeries("Queries", counterPerMinute(vm.vmQueriesTotal, context)),
-        chartSeries("Writes", counterPerMinute(vm.vmWritesTotal, context)),
+        chartSeries("Queries", vm.vmQueriesTotal),
+        chartSeries("Writes", vm.vmWritesTotal),
       ],
       valueFormatter: formatPerMinute,
     },
@@ -423,45 +361,36 @@ function vmCharts(
       title: "Errors per minute",
       description: "VictoriaMetrics query and write errors per minute.",
       series: [
-        chartSeries(
-          "Query errors",
-          counterPerMinute(vm.vmQueryErrorsTotal, context)
-        ),
-        chartSeries(
-          "Write errors",
-          counterPerMinute(vm.vmWriteErrorsTotal, context)
-        ),
+        chartSeries("Query errors", vm.vmQueryErrorsTotal),
+        chartSeries("Write errors", vm.vmWriteErrorsTotal),
       ],
       valueFormatter: formatPerMinute,
     },
     {
       title: "Query duration",
-      description: "Mean VictoriaMetrics query latency per interval.",
-      series: [chartSeries("Duration", avgQueryDuration)],
+      description: "Mean VictoriaMetrics query latency.",
+      series: [chartSeries("Duration", vm.vmQueryDurationSeconds)],
       valueFormatter: (value) => formatMilliseconds(value * 1000),
     },
     {
       title: "Write duration",
-      description: "Mean VictoriaMetrics write latency per interval.",
-      series: [chartSeries("Duration", avgWriteDuration)],
+      description: "Mean VictoriaMetrics write latency.",
+      series: [chartSeries("Duration", vm.vmWriteDurationSeconds)],
       valueFormatter: (value) => formatMilliseconds(value * 1000),
     },
   ]
 }
 
-function httpCharts(
-  entries: HttpMetricsEntry[],
-  context: PlatformChartContext
-): MetricChartConfig[] {
+function httpCharts(entries: HttpMetricsEntry[]): MetricChartConfig[] {
   return [
     {
       title: "Requests per minute",
       description:
-        "HTTP request rate by method, path, and status (counter rate).",
+        "HTTP request rate by method, path, and status (Prometheus rate).",
       series: entries.map((entry) =>
         chartSeries(
           `${entry.method} ${entry.path} (${entry.status})`,
-          counterPerMinute(entry.httpRequestsTotal, context)
+          entry.httpRequestsTotal
         )
       ),
       valueFormatter: formatPerMinute,
