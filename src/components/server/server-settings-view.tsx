@@ -6,6 +6,7 @@ import { SettingsPageContent } from "@/components/settings/settings-page-content
 import { SettingsSectionHeader } from "@/components/settings/settings-section-header"
 import { DeleteServerButton } from "@/components/user/delete-server-button"
 import { RenameServerForm } from "@/components/user/rename-server-form"
+import { ServerFolderForm } from "@/components/user/server-folder-form"
 import type { ServerAccessListResponse } from "@/lib/api/user/access"
 import type { ServerResponse } from "@/lib/api/user/servers"
 
@@ -29,7 +30,7 @@ function ServerSettingsView({
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
             title="General"
-            description="Display name shown across the dashboard and server pages."
+            description="Display name shown across the servers list and server pages."
           />
           <RenameServerForm
             serverId={serverId}

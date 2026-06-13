@@ -6,10 +6,10 @@ export const SettingType = {
 
 export type SettingTypeName = (typeof SettingType)[keyof typeof SettingType]
 
-type SettingDefinition<T extends SettingTypeName, V> = {
+type SettingDefinition<T extends SettingTypeName, TValue> = {
   key: string
   type: T
-  defaultValue: V
+  defaultValue: TValue
 }
 
 export type BooleanSettingDefinition = SettingDefinition<"BOOLEAN", boolean>

@@ -12,6 +12,11 @@ type ServersState = {
   fetchServers: () => Promise<void>
   ensureServer: (serverId: number) => Promise<ServerResponse>
   upsertServer: (server: ServerResponse) => void
+  setServerFolderName: (serverId: number, folderName: string | null) => void
+  setServersFolderName: (
+    currentFolderName: string,
+    nextFolderName: string | null
+  ) => void
   removeServer: (serverId: number) => void
   reset: () => void
 }
@@ -65,6 +70,39 @@ export const useServersStore = create<ServersState>((set, get) => ({
         ? state.serverIds
         : [...state.serverIds, server.serverId],
     }))
+  },
+
+  setServerFolderName: (serverId, folderName) => {
+    set((state) => {
+      const server = state.servers[serverId]
+      if (!server || server.folderName === folderName) {
+        return state
+      }
+
+      return {
+        servers: {
+          ...state.servers,
+          [serverId]: { ...server, folderName },
+        },
+      }
+    })
+  },
+
+  setServersFolderName: (currentFolderName, nextFolderName) => {
+    set((state) => {
+      let changed = false
+      const servers = { ...state.servers }
+
+      for (const serverId of state.serverIds) {
+        const server = state.servers[serverId]
+        if (server?.folderName === currentFolderName) {
+          servers[serverId] = { ...server, folderName: nextFolderName }
+          changed = true
+        }
+      }
+
+      return changed ? { servers } : state
+    })
   },
 
   removeServer: (serverId) => {

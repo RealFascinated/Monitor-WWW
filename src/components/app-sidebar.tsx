@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router"
 import {
   ChevronLeft,
+  ChevronRight,
   Gauge,
-  LayoutDashboard,
   LogOut,
   Mail,
   Server,
@@ -10,6 +10,8 @@ import {
   X,
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
 import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
 import { MonitorLogo } from "@/components/monitor-logo"
@@ -19,8 +21,10 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import { useSidebarDetailedMode } from "@/hooks/use-sidebar-detailed-mode"
 import { useUserServers } from "@/hooks/use-user-servers"
-import type { ServerStatus } from "@/lib/api/user/servers"
+import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
+import type { ServerResponse, ServerStatus } from "@/lib/api/user/servers"
 import type { User } from "@/lib/auth/types"
+import { groupServersByFolder } from "@/lib/servers/group-by-folder"
 import { SERVER_STATUS_TOOLTIPS, SIDEBAR_TOOLTIPS } from "@/lib/tooltips/copy"
 import { cn } from "@/lib/utils"
 
@@ -29,8 +33,8 @@ const MOBILE_SIDEBAR_WIDTH = 280
 const navItems = [
   {
     to: "/" as const,
-    label: "Dashboard",
-    icon: LayoutDashboard,
+    label: "Servers",
+    icon: Server,
     exact: true,
   },
   {
@@ -159,6 +163,158 @@ function SidebarAdminSection({
   )
 }
 
+const UNGROUPED_SIDEBAR_KEY = "Ungrouped"
+
+function SidebarServerItem({
+  server,
+  compact,
+  detailed,
+  onNavigate,
+  nested = false,
+}: {
+  server: ServerResponse
+  compact: boolean
+  detailed: boolean
+  onNavigate?: () => void
+  nested?: boolean
+}) {
+  const serverTooltip = `${server.serverName} — ${SERVER_STATUS_TOOLTIPS[server.status]}`
+
+  return (
+    <SimpleTooltip content={serverTooltip}>
+      <Link
+        to="/servers/$serverId"
+        params={{ serverId: String(server.serverId) }}
+        search={{ range: "7d" }}
+        onClick={onNavigate}
+        className={cn(
+          "flex w-full shrink-0 cursor-help rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
+          "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
+          nested && !compact && "pl-4",
+          compact
+            ? "min-h-7 items-center justify-center gap-3 px-0 py-1"
+            : detailed
+              ? "items-center gap-2 px-2 py-1"
+              : "min-h-7 items-center gap-3 px-2 py-1"
+        )}
+      >
+        <span className="relative shrink-0">
+          <Server className="size-4" />
+          <SimpleTooltip content={SERVER_STATUS_TOOLTIPS[server.status]}>
+            <span
+              className={cn(
+                "absolute -right-0.5 -bottom-0.5 size-1.5 cursor-help rounded-full ring-2 ring-white dark:ring-base",
+                statusDotStyles[server.status]
+              )}
+            />
+          </SimpleTooltip>
+        </span>
+        {!compact ? (
+          <span
+            className={cn(
+              "flex min-w-0 flex-1 flex-col",
+              detailed ? "gap-0 leading-tight" : "gap-0.5"
+            )}
+          >
+            <span className="truncate leading-tight">{server.serverName}</span>
+            {detailed ? (
+              <span className="truncate text-[11px] leading-tight text-neutral-400">
+                CPU{" "}
+                <CpuPercent
+                  value={server.cpuPercent}
+                  status={server.status}
+                  className="font-medium"
+                />{" "}
+                · RAM{" "}
+                <MemoryPercent
+                  usage={server.memUsage}
+                  max={server.memMax}
+                  status={server.status}
+                  className="font-medium"
+                />
+              </span>
+            ) : null}
+          </span>
+        ) : null}
+      </Link>
+    </SimpleTooltip>
+  )
+}
+
+function SidebarFolderGroup({
+  folderName,
+  servers,
+  compact,
+  detailed,
+  expanded,
+  onToggle,
+  onNavigate,
+}: {
+  folderName: string
+  servers: ServerResponse[]
+  compact: boolean
+  detailed: boolean
+  expanded: boolean
+  onToggle: () => void
+  onNavigate?: () => void
+}) {
+  if (compact) {
+    return (
+      <>
+        {servers.map((server) => (
+          <SidebarServerItem
+            key={server.serverId}
+            server={server}
+            compact={compact}
+            detailed={detailed}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </>
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center gap-0.5 pr-1">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="flex min-w-0 flex-1 items-center gap-1 rounded-sm px-2 py-1 text-left text-xs leading-snug font-medium text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+        >
+          <ChevronRight
+            aria-hidden
+            className={cn(
+              "size-3 shrink-0 opacity-60 transition-transform duration-150",
+              expanded && "rotate-90"
+            )}
+          />
+          <span className="truncate">{folderName}</span>
+          <span className="ml-auto shrink-0 text-[10px] text-muted-foreground tabular-nums">
+            {servers.length}
+          </span>
+        </button>
+      </div>
+
+      {expanded ? (
+        <div className="flex flex-col gap-px pb-0.5">
+          {servers.map((server) => (
+            <SidebarServerItem
+              key={server.serverId}
+              server={server}
+              compact={compact}
+              detailed={detailed}
+              onNavigate={onNavigate}
+              nested
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function SidebarServerList({
   compact,
   onNavigate,
@@ -167,11 +323,68 @@ function SidebarServerList({
   onNavigate?: () => void
 }) {
   const { data: servers } = useUserServers()
+  const { data: folders = [] } = useQuery(userServerFoldersQueryOptions())
   const { detailed, toggleDetailed } = useSidebarDetailedMode()
+  const { ungrouped } = useMemo(() => groupServersByFolder(servers), [servers])
+
+  const serversByFolderName = useMemo(() => {
+    const map = new Map<string, ServerResponse[]>()
+    for (const server of servers) {
+      if (!server.folderName) {
+        continue
+      }
+      const list = map.get(server.folderName) ?? []
+      list.push(server)
+      map.set(server.folderName, list)
+    }
+    for (const [folderName, folderServers] of map) {
+      map.set(
+        folderName,
+        folderServers.sort((a, b) => a.serverName.localeCompare(b.serverName))
+      )
+    }
+    return map
+  }, [servers])
+
+  const folderNamesKey = [
+    ...folders.map((folder) => folder.name),
+    UNGROUPED_SIDEBAR_KEY,
+  ].join("\0")
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
+    const initial = new Set(folders.map((folder) => folder.name))
+    initial.add(UNGROUPED_SIDEBAR_KEY)
+    return initial
+  })
+
+  useEffect(() => {
+    setExpandedFolders((current) => {
+      const next = new Set(current)
+      for (const folder of folders) {
+        next.add(folder.name)
+      }
+      next.add(UNGROUPED_SIDEBAR_KEY)
+      return next
+    })
+  }, [folderNamesKey, folders])
+
+  function toggleFolder(folderName: string) {
+    setExpandedFolders((current) => {
+      const next = new Set(current)
+      if (next.has(folderName)) {
+        next.delete(folderName)
+      } else {
+        next.add(folderName)
+      }
+      return next
+    })
+  }
 
   if (!servers.length) {
     return null
   }
+
+  const hasFolders = folders.length > 0
+  const showGroupedSidebar = hasFolders && !compact
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -192,72 +405,40 @@ function SidebarServerList({
         <div className="my-2 shrink-0 border-t border-sidebar-border" />
       )}
       <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
-        {servers.map((server) => {
-          const serverTooltip = `${server.serverName} — ${SERVER_STATUS_TOOLTIPS[server.status]}`
-
-          return (
-            <SimpleTooltip key={server.serverId} content={serverTooltip}>
-              <Link
-                to="/servers/$serverId"
-                params={{ serverId: String(server.serverId) }}
-                search={{ range: "7d" }}
-                onClick={onNavigate}
-                className={cn(
-                  "flex w-full shrink-0 cursor-help rounded-sm px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
-                  "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
-                  compact
-                    ? "min-h-7 items-center justify-center gap-3 px-0 py-1"
-                    : detailed
-                      ? "items-center gap-2 py-1"
-                      : "min-h-7 items-center gap-3 py-1"
-                )}
-              >
-                <span className="relative shrink-0">
-                  <Server className="size-4" />
-                  <SimpleTooltip
-                    content={SERVER_STATUS_TOOLTIPS[server.status]}
-                  >
-                    <span
-                      className={cn(
-                        "absolute -right-0.5 -bottom-0.5 size-1.5 cursor-help rounded-full ring-2 ring-white dark:ring-base",
-                        statusDotStyles[server.status]
-                      )}
-                    />
-                  </SimpleTooltip>
-                </span>
-                {!compact ? (
-                  <span
-                    className={cn(
-                      "flex min-w-0 flex-1 flex-col",
-                      detailed ? "gap-0 leading-tight" : "gap-0.5"
-                    )}
-                  >
-                    <span className="truncate leading-tight">
-                      {server.serverName}
-                    </span>
-                    {detailed ? (
-                      <span className="truncate text-[11px] leading-tight text-neutral-400">
-                        CPU{" "}
-                        <CpuPercent
-                          value={server.cpuPercent}
-                          status={server.status}
-                          className="font-medium"
-                        />{" "}
-                        · RAM{" "}
-                        <MemoryPercent
-                          usage={server.memUsage}
-                          max={server.memMax}
-                          status={server.status}
-                          className="font-medium"
-                        />
-                      </span>
-                    ) : null}
-                  </span>
-                ) : null}
-              </Link>
-            </SimpleTooltip>
-          )
-        })}
+        {showGroupedSidebar
+          ? folders.map((folder) => (
+              <SidebarFolderGroup
+                key={folder.id}
+                folderName={folder.name}
+                servers={serversByFolderName.get(folder.name) ?? []}
+                compact={compact}
+                detailed={detailed}
+                expanded={expandedFolders.has(folder.name)}
+                onToggle={() => toggleFolder(folder.name)}
+                onNavigate={onNavigate}
+              />
+            ))
+          : null}
+        {showGroupedSidebar ? (
+          <SidebarFolderGroup
+            folderName={UNGROUPED_SIDEBAR_KEY}
+            servers={ungrouped}
+            compact={compact}
+            detailed={detailed}
+            expanded={expandedFolders.has(UNGROUPED_SIDEBAR_KEY)}
+            onToggle={() => toggleFolder(UNGROUPED_SIDEBAR_KEY)}
+            onNavigate={onNavigate}
+          />
+        ) : null}
+        {(compact || !hasFolders ? servers : []).map((server) => (
+          <SidebarServerItem
+            key={server.serverId}
+            server={server}
+            compact={compact}
+            detailed={detailed}
+            onNavigate={onNavigate}
+          />
+        ))}
       </div>
     </div>
   )
@@ -335,7 +516,7 @@ export function AppSidebar({
           <Link
             to="/"
             onClick={handleNavigate}
-            aria-label="Dashboard"
+            aria-label="Servers"
             className="flex items-center gap-2"
           >
             <MonitorLogo />

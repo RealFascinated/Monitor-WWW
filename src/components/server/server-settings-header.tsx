@@ -15,7 +15,7 @@ function ServerSettingsHeader({ server, serverId }: ServerSettingsHeaderProps) {
     <div className="z-30 mb-6 flex flex-col gap-2.5 border-b border-sidebar-border bg-background/95 py-3 backdrop-blur-sm lg:sticky lg:top-0">
       <Breadcrumb
         items={[
-          { label: "Dashboard", to: "/" },
+          { label: "Servers", to: "/" },
           {
             label: server?.serverName ?? `Server ${serverId}`,
             to: "/servers/$serverId",

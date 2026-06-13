@@ -8,12 +8,12 @@ import { USER_ROLE_TOOLTIPS } from "@/lib/tooltips/copy"
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
-    meta: [{ title: pageTitle("Dashboard") }],
+    meta: [{ title: pageTitle("Servers") }],
   }),
-  component: DashboardPage,
+  component: ServersPage,
 })
 
-function DashboardPage() {
+function ServersPage() {
   const { user } = useAuth()
 
   if (!user) {
@@ -23,7 +23,7 @@ function DashboardPage() {
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <h1>Dashboard</h1>
+        <h1>Servers</h1>
         <p className="mt-2 text-muted-foreground">
           Signed in as{" "}
           <span className="font-bold text-monitor dark:text-warning">

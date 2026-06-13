@@ -28,6 +28,7 @@ export type ServerResponse = {
   diskUsage: number | null
   diskMax: number | null
   role: ServerRole
+  folderName: string | null
   inventory: ServerInventory | null
 }
 

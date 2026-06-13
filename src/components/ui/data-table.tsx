@@ -1,6 +1,6 @@
 import { flexRender } from "@tanstack/react-table"
-import type { Table as TanStackTable } from "@tanstack/react-table"
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
+import type { Row, Table as TanStackTable } from "@tanstack/react-table"
+import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from "lucide-react"
 
 import {
   Table,
@@ -10,10 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SERVER_DRAG_MIME } from "@/lib/servers/drag"
 import { cn } from "@/lib/utils"
+
+type RowDragConfig<TData> = {
+  draggingRowId: string | null
+  getServerId: (row: Row<TData>) => number
+  getServerLabel: (row: Row<TData>) => string
+  onDragStart: (rowId: string) => void
+  onDragEnd: () => void
+}
 
 type DataTableProps<TData> = {
   table: TanStackTable<TData>
+  rowDrag?: RowDragConfig<TData>
 }
 
 function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
@@ -28,12 +38,17 @@ function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
   return <ArrowUpDown className="size-3.5 shrink-0 opacity-40" aria-hidden />
 }
 
-function DataTable<TData>({ table }: DataTableProps<TData>) {
+function DataTable<TData>({ table, rowDrag }: DataTableProps<TData>) {
   return (
     <Table>
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
+            {rowDrag ? (
+              <TableHead className="w-0 px-2">
+                <span className="sr-only">Move</span>
+              </TableHead>
+            ) : null}
             {headerGroup.headers.map((header) => {
               const canSort = header.column.getCanSort()
               const sortDirection = header.column.getIsSorted()
@@ -81,7 +96,35 @@ function DataTable<TData>({ table }: DataTableProps<TData>) {
       </TableHeader>
       <TableBody>
         {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
+          <TableRow
+            key={row.id}
+            className={cn(
+              rowDrag?.draggingRowId === row.id && "opacity-40"
+            )}
+          >
+            {rowDrag ? (
+              <TableCell className="w-0 px-2">
+                <button
+                  type="button"
+                  draggable
+                  aria-label={`Move ${rowDrag.getServerLabel(row)}`}
+                  className="flex cursor-grab items-center text-neutral-400 active:cursor-grabbing hover:text-neutral-600 dark:hover:text-neutral-300"
+                  onDragStart={(event) => {
+                    const serverId = rowDrag.getServerId(row)
+                    event.dataTransfer.effectAllowed = "move"
+                    event.dataTransfer.setData(
+                      SERVER_DRAG_MIME,
+                      String(serverId)
+                    )
+                    event.dataTransfer.setData("text/plain", String(serverId))
+                    rowDrag.onDragStart(row.id)
+                  }}
+                  onDragEnd={rowDrag.onDragEnd}
+                >
+                  <GripVertical className="size-4" aria-hidden />
+                </button>
+              </TableCell>
+            ) : null}
             {row.getVisibleCells().map((cell) => (
               <TableCell
                 key={cell.id}

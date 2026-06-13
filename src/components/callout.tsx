@@ -5,7 +5,7 @@ import type { VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const calloutVariants = cva(
-  "relative flex gap-3 rounded-sm border p-3 text-sm",
+  "relative flex flex-col gap-1 rounded-sm border p-3 text-sm",
   {
     variants: {
       type: {
@@ -38,7 +38,7 @@ const titleVariants = cva("text-sm font-bold", {
   },
 })
 
-const bodyVariants = cva("mt-1 text-sm", {
+const bodyVariants = cva("text-sm", {
   variants: {
     type: {
       warning: "text-warning-700 dark:text-warning-200",

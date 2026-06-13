@@ -132,7 +132,7 @@ function AuthenticatedLayout() {
           </Button>
           <Link
             to="/"
-            aria-label="Dashboard"
+            aria-label="Servers"
             className="flex items-center gap-3"
           >
             <MonitorLogo />
