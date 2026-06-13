@@ -1,6 +1,7 @@
 import { flexRender } from "@tanstack/react-table"
 import type { Row, Table as TanStackTable } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from "lucide-react"
+import type { ReactNode } from "react"
 
 import {
   Table,
@@ -24,6 +25,7 @@ type RowDragConfig<TData> = {
 type DataTableProps<TData> = {
   table: TanStackTable<TData>
   rowDrag?: RowDragConfig<TData>
+  renderRowCells?: (row: Row<TData>) => ReactNode
 }
 
 function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
@@ -38,7 +40,11 @@ function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
   return <ArrowUpDown className="size-3.5 shrink-0 opacity-40" aria-hidden />
 }
 
-function DataTable<TData>({ table, rowDrag }: DataTableProps<TData>) {
+function DataTable<TData>({
+  table,
+  rowDrag,
+  renderRowCells,
+}: DataTableProps<TData>) {
   return (
     <Table>
       <TableHeader>
@@ -125,14 +131,16 @@ function DataTable<TData>({ table, rowDrag }: DataTableProps<TData>) {
                 </button>
               </TableCell>
             ) : null}
-            {row.getVisibleCells().map((cell) => (
-              <TableCell
-                key={cell.id}
-                className={cell.column.columnDef.meta?.className}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
+            {renderRowCells
+              ? renderRowCells(row)
+              : row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className={cell.column.columnDef.meta?.className}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
           </TableRow>
         ))}
       </TableBody>

@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import { env } from "@/env/client"
 import { applyWebSocketMessage } from "@/lib/ws/dispatch"
 import type { WebSocketMessage } from "@/lib/ws/messages"
+import { invalidateAllUserServerMetrics } from "@/lib/api/user/metrics.queries"
 import { setWsConnected } from "@/lib/ws/state"
 import { getToken } from "@/lib/auth/token"
 
@@ -66,13 +67,7 @@ export function connectMonitorWebSocket(
     socket.addEventListener("open", () => {
       reconnectAttempt = 0
       setWsConnected(true)
-      void queryClient.invalidateQueries({
-        predicate: (query) =>
-          Array.isArray(query.queryKey) &&
-          query.queryKey[0] === "user" &&
-          query.queryKey[1] === "servers" &&
-          query.queryKey[3] === "metrics",
-      })
+      invalidateAllUserServerMetrics(queryClient)
     })
 
     socket.addEventListener("message", (event) => {

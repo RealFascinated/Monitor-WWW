@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
@@ -20,11 +20,12 @@ import { Spinner } from "@/components/spinner"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import { useSidebarDetailedMode } from "@/hooks/use-sidebar-detailed-mode"
-import { useUserServers } from "@/hooks/use-user-servers"
+import { useServerFolderLayout, useServerIds } from "@/hooks/use-server-folder-layout"
+import { useUserServer } from "@/hooks/use-user-server"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
-import type { ServerResponse, ServerStatus } from "@/lib/api/user/servers"
+import type { ServerFolderResponse } from "@/lib/api/user/folders"
+import type { ServerStatus } from "@/lib/api/user/servers"
 import type { User } from "@/lib/auth/types"
-import { groupServersByFolder } from "@/lib/servers/group-by-folder"
 import { SERVER_STATUS_TOOLTIPS, SIDEBAR_TOOLTIPS } from "@/lib/tooltips/copy"
 import { cn } from "@/lib/utils"
 
@@ -164,20 +165,23 @@ function SidebarAdminSection({
 }
 
 const UNGROUPED_SIDEBAR_KEY = "Ungrouped"
+const EMPTY_FOLDERS: ServerFolderResponse[] = []
 
-function SidebarServerItem({
-  server,
+const SidebarServerItem = memo(function SidebarServerItem({
+  serverId,
   compact,
   detailed,
   onNavigate,
   nested = false,
 }: {
-  server: ServerResponse
+  serverId: number
   compact: boolean
   detailed: boolean
   onNavigate?: () => void
   nested?: boolean
 }) {
+  const { data: server } = useUserServer(serverId)
+
   const serverTooltip = `${server.serverName} — ${SERVER_STATUS_TOOLTIPS[server.status]}`
 
   return (
@@ -239,11 +243,11 @@ function SidebarServerItem({
       </Link>
     </SimpleTooltip>
   )
-}
+})
 
-function SidebarFolderGroup({
+const SidebarFolderGroup = memo(function SidebarFolderGroup({
   folderName,
-  servers,
+  serverIds,
   compact,
   detailed,
   expanded,
@@ -251,7 +255,7 @@ function SidebarFolderGroup({
   onNavigate,
 }: {
   folderName: string
-  servers: ServerResponse[]
+  serverIds: number[]
   compact: boolean
   detailed: boolean
   expanded: boolean
@@ -261,10 +265,10 @@ function SidebarFolderGroup({
   if (compact) {
     return (
       <>
-        {servers.map((server) => (
+        {serverIds.map((serverId) => (
           <SidebarServerItem
-            key={server.serverId}
-            server={server}
+            key={serverId}
+            serverId={serverId}
             compact={compact}
             detailed={detailed}
             onNavigate={onNavigate}
@@ -292,17 +296,17 @@ function SidebarFolderGroup({
           />
           <span className="truncate">{folderName}</span>
           <span className="ml-auto shrink-0 text-[10px] text-muted-foreground tabular-nums">
-            {servers.length}
+            {serverIds.length}
           </span>
         </button>
       </div>
 
       {expanded ? (
         <div className="flex flex-col gap-px pb-0.5">
-          {servers.map((server) => (
+          {serverIds.map((serverId) => (
             <SidebarServerItem
-              key={server.serverId}
-              server={server}
+              key={serverId}
+              serverId={serverId}
               compact={compact}
               detailed={detailed}
               onNavigate={onNavigate}
@@ -313,7 +317,7 @@ function SidebarFolderGroup({
       ) : null}
     </div>
   )
-}
+})
 
 function SidebarServerList({
   compact,
@@ -322,29 +326,12 @@ function SidebarServerList({
   compact: boolean
   onNavigate?: () => void
 }) {
-  const { data: servers } = useUserServers()
-  const { data: folders = [] } = useQuery(userServerFoldersQueryOptions())
+  const serverIds = useServerIds()
+  const { byFolder, ungroupedIds } = useServerFolderLayout()
+  const { data: folders = EMPTY_FOLDERS } = useQuery(
+    userServerFoldersQueryOptions()
+  )
   const { detailed, toggleDetailed } = useSidebarDetailedMode()
-  const { ungrouped } = useMemo(() => groupServersByFolder(servers), [servers])
-
-  const serversByFolderName = useMemo(() => {
-    const map = new Map<string, ServerResponse[]>()
-    for (const server of servers) {
-      if (!server.folderName) {
-        continue
-      }
-      const list = map.get(server.folderName) ?? []
-      list.push(server)
-      map.set(server.folderName, list)
-    }
-    for (const [folderName, folderServers] of map) {
-      map.set(
-        folderName,
-        folderServers.sort((a, b) => a.serverName.localeCompare(b.serverName))
-      )
-    }
-    return map
-  }, [servers])
 
   const folderNamesKey = [
     ...folders.map((folder) => folder.name),
@@ -363,6 +350,14 @@ function SidebarServerList({
         next.add(folder.name)
       }
       next.add(UNGROUPED_SIDEBAR_KEY)
+
+      if (
+        next.size === current.size &&
+        [...next].every((folderName) => current.has(folderName))
+      ) {
+        return current
+      }
+
       return next
     })
   }, [folderNamesKey, folders])
@@ -379,7 +374,7 @@ function SidebarServerList({
     })
   }
 
-  if (!servers.length) {
+  if (!serverIds.length) {
     return null
   }
 
@@ -410,7 +405,7 @@ function SidebarServerList({
               <SidebarFolderGroup
                 key={folder.id}
                 folderName={folder.name}
-                servers={serversByFolderName.get(folder.name) ?? []}
+                serverIds={byFolder.get(folder.name) ?? []}
                 compact={compact}
                 detailed={detailed}
                 expanded={expandedFolders.has(folder.name)}
@@ -422,7 +417,7 @@ function SidebarServerList({
         {showGroupedSidebar ? (
           <SidebarFolderGroup
             folderName={UNGROUPED_SIDEBAR_KEY}
-            servers={ungrouped}
+            serverIds={ungroupedIds}
             compact={compact}
             detailed={detailed}
             expanded={expandedFolders.has(UNGROUPED_SIDEBAR_KEY)}
@@ -430,10 +425,10 @@ function SidebarServerList({
             onNavigate={onNavigate}
           />
         ) : null}
-        {(compact || !hasFolders ? servers : []).map((server) => (
+        {(compact || !hasFolders ? serverIds : []).map((serverId) => (
           <SidebarServerItem
-            key={server.serverId}
-            server={server}
+            key={serverId}
+            serverId={serverId}
             compact={compact}
             detailed={detailed}
             onNavigate={onNavigate}

@@ -8,9 +8,12 @@ import type {
   InviteRevokedOwnerData,
   MemberChangeData,
   ServerIdData,
+  ServerMetricsUpdatedData,
+  ServersUpdateData,
   WebSocketMessage,
 } from "@/lib/ws/messages"
 import type { ServerResponse } from "@/lib/api/user/servers"
+import { invalidateUserServerMetrics } from "@/lib/api/user/metrics.queries"
 import { useAccessStore } from "@/stores/access-store"
 import { useInvitesStore } from "@/stores/invites-store"
 import { useServersStore } from "@/stores/servers-store"
@@ -20,9 +23,15 @@ export function applyWebSocketMessage(
   message: WebSocketMessage
 ): void {
   switch (message.command) {
-    case WebSocketCommand.SERVER_UPDATE:
+    case WebSocketCommand.SERVERS_UPDATE: {
+      const { servers } = message.data as ServersUpdateData
+      useServersStore.getState().upsertServers(servers)
+      break
+    }
     case WebSocketCommand.SERVER_CREATED:
-      useServersStore.getState().upsertServer(message.data as ServerResponse)
+      useServersStore
+        .getState()
+        .upsertServers([message.data as ServerResponse])
       break
     case WebSocketCommand.SERVER_DELETED: {
       const { serverId } = message.data as ServerIdData
@@ -30,11 +39,9 @@ export function applyWebSocketMessage(
       useAccessStore.getState().clearAccess(serverId)
       break
     }
-    case WebSocketCommand.SERVER_METRICS_UPDATE: {
-      const { serverId } = message.data as ServerIdData
-      void queryClient.invalidateQueries({
-        queryKey: ["user", "servers", serverId, "metrics"],
-      })
+    case WebSocketCommand.SERVER_METRICS_UPDATED: {
+      const { serverIds } = message.data as ServerMetricsUpdatedData
+      invalidateUserServerMetrics(queryClient, serverIds)
       break
     }
     case WebSocketCommand.MEMBER_CHANGE: {

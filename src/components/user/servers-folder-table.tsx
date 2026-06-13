@@ -6,16 +6,21 @@ import {
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { GripVertical } from "lucide-react"
 import type { DragEvent } from "react"
-import { memo } from "react"
+import { memo, useMemo } from "react"
 
 import { DeleteFolderButton } from "@/components/user/delete-folder-button"
 import { RenameFolderDialog } from "@/components/user/rename-folder-dialog"
+import type { ServerTableRow } from "@/components/user/server-table-columns"
+import {
+  ServerTableRowCells,
+  ServerTableRowProvider,
+} from "@/components/user/server-table-row"
 import { DataTable } from "@/components/ui/data-table"
 import {
   FOLDER_DRAG_MIME,
   readDraggedServerId,
 } from "@/lib/servers/drag"
-import type { ServerResponse } from "@/lib/api/user/servers"
+import { useServersStore } from "@/stores/servers-store"
 import { cn } from "@/lib/utils"
 
 type ServersFolderTableProps = {
@@ -28,8 +33,8 @@ type ServersFolderTableProps = {
   canAcceptServerDrop: boolean
   draggingServerId: number | null
   draggingFolderId: number | null
-  servers: ServerResponse[]
-  columns: ColumnDef<ServerResponse>[]
+  serverIds: number[]
+  columns: ColumnDef<ServerTableRow>[]
   sorting: SortingState
   onSortingChange: (
     updater: SortingState | ((old: SortingState) => SortingState)
@@ -53,7 +58,7 @@ function ServersFolderTableInner({
   canAcceptServerDrop,
   draggingServerId,
   draggingFolderId,
-  servers,
+  serverIds,
   columns,
   sorting,
   onSortingChange,
@@ -77,8 +82,13 @@ function ServersFolderTableInner({
   const isDraggingFolder =
     editMode && folderId != null && draggingFolderId === folderId
 
+  const tableData = useMemo(
+    () => serverIds.map((serverId) => ({ serverId })),
+    [serverIds]
+  )
+
   const table = useReactTable({
-    data: servers,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -206,11 +216,11 @@ function ServersFolderTableInner({
           </div>
         ) : null}
         <span className="shrink-0 text-xs text-neutral-400 tabular-nums">
-          {servers.length}
+          {serverIds.length}
         </span>
       </div>
 
-      {servers.length > 0 ? (
+      {serverIds.length > 0 ? (
         <div
           {...(editMode
             ? {
@@ -224,6 +234,11 @@ function ServersFolderTableInner({
         >
           <DataTable
             table={table}
+            renderRowCells={(row) => (
+              <ServerTableRowProvider serverId={row.original.serverId}>
+                <ServerTableRowCells row={row} />
+              </ServerTableRowProvider>
+            )}
             rowDrag={
               editMode
                 ? {
@@ -232,7 +247,9 @@ function ServersFolderTableInner({
                         ? String(draggingServerId)
                         : null,
                     getServerId: (row) => row.original.serverId,
-                    getServerLabel: (row) => row.original.serverName,
+                    getServerLabel: (row) =>
+                      useServersStore.getState().servers[row.original.serverId]
+                        .serverName,
                     onDragStart: onServerDragStart,
                     onDragEnd: onServerDragEnd,
                   }

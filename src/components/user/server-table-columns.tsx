@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import type { ColumnDef } from "@tanstack/react-table"
+import type { ReactNode } from "react"
 
 import { DeleteServerButton } from "@/components/user/delete-server-button"
 import { RenameServerDialog } from "@/components/user/rename-server-dialog"
@@ -22,175 +23,203 @@ import {
   pendingOnlyTooltip,
   SERVER_TABLE_COLUMN_TOOLTIPS,
 } from "@/lib/tooltips/copy"
+import { useServersStore } from "@/stores/servers-store"
 import { cn } from "@/lib/utils"
+
+export type ServerTableRow = {
+  serverId: number
+}
 
 const unknownStatClassName = "text-neutral-500"
 
+function getServer(serverId: number): ServerResponse | undefined {
+  return useServersStore.getState().servers[serverId]
+}
+
+function renderUptime(server: ServerResponse): ReactNode {
+  const formatted = formatUptime(server.uptimeSeconds)
+  const detailed = formatUptimeDetailed(server.uptimeSeconds)
+  const tooltip = detailed ?? pendingOnlyTooltip(server.status)
+  const className = cn(server.uptimeSeconds == null && unknownStatClassName)
+
+  if (!tooltip) {
+    return <span className={className}>{formatted}</span>
+  }
+
+  return (
+    <SimpleTooltip content={tooltip}>
+      <span className={cn("cursor-help", className)}>{formatted}</span>
+    </SimpleTooltip>
+  )
+}
+
+function renderUptime30d(server: ServerResponse): ReactNode {
+  const formatted = formatUptimePercent30d(server.uptimePercent30d)
+  const tooltip = pendingOnlyTooltip(server.status)
+  const className = cn(server.uptimePercent30d == null && unknownStatClassName)
+
+  if (server.uptimePercent30d != null || !tooltip) {
+    return <span className={className}>{formatted}</span>
+  }
+
+  return (
+    <SimpleTooltip content={tooltip}>
+      <span className={cn("cursor-help", className)}>{formatted}</span>
+    </SimpleTooltip>
+  )
+}
+
 export function getServerTableColumns(
   hasOwnedServers: boolean
-): ColumnDef<ServerResponse>[] {
-  const baseColumns: ColumnDef<ServerResponse>[] = [
+): ColumnDef<ServerTableRow>[] {
+  const baseColumns: ColumnDef<ServerTableRow>[] = [
     {
       accessorKey: "serverName",
+      accessorFn: (row) => getServer(row.serverId)?.serverName ?? "",
       header: "Name",
-      cell: ({ row }) => (
-        <span className="font-medium">
-          <Link
-            to="/servers/$serverId"
-            params={{ serverId: String(row.original.serverId) }}
-            search={{ range: "7d" }}
-            className="text-monitor hover:underline dark:text-warning"
-          >
-            {row.original.serverName}
-          </Link>
-        </span>
-      ),
+      meta: {
+        renderServer: (server) => (
+          <span className="font-medium">
+            <Link
+              to="/servers/$serverId"
+              params={{ serverId: String(server.serverId) }}
+              search={{ range: "7d" }}
+              className="text-monitor hover:underline dark:text-warning"
+            >
+              {server.serverName}
+            </Link>
+          </span>
+        ),
+      },
     },
     {
       accessorKey: "status",
+      accessorFn: (row) => getServer(row.serverId)?.status ?? "",
       header: () => (
         <TableHeaderTooltip
           label="Status"
           tooltip="Whether the Monitor Agent is reporting metrics for this server."
         />
       ),
-      cell: ({ row }) => <ServerStatusBadge status={row.original.status} />,
+      meta: {
+        renderServer: (server) => <ServerStatusBadge status={server.status} />,
+      },
     },
     {
       accessorKey: "uptimeSeconds",
+      accessorFn: (row) => getServer(row.serverId)?.uptimeSeconds ?? null,
       header: () => (
         <TableHeaderTooltip
           label="Uptime"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.uptime}
         />
       ),
-      cell: ({ row }) => {
-        const formatted = formatUptime(row.original.uptimeSeconds)
-        const detailed = formatUptimeDetailed(row.original.uptimeSeconds)
-        const tooltip = detailed ?? pendingOnlyTooltip(row.original.status)
-        const className = cn(
-          row.original.uptimeSeconds == null && unknownStatClassName
-        )
-
-        if (!tooltip) {
-          return <span className={className}>{formatted}</span>
-        }
-
-        return (
-          <SimpleTooltip content={tooltip}>
-            <span className={cn("cursor-help", className)}>{formatted}</span>
-          </SimpleTooltip>
-        )
-      },
+      meta: { renderServer: renderUptime },
     },
     {
       accessorKey: "uptimePercent30d",
+      accessorFn: (row) => getServer(row.serverId)?.uptimePercent30d ?? null,
       header: () => (
         <TableHeaderTooltip
           label="Uptime (30d)"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.uptime30d}
         />
       ),
-      cell: ({ row }) => {
-        const formatted = formatUptimePercent30d(row.original.uptimePercent30d)
-        const tooltip = pendingOnlyTooltip(row.original.status)
-        const className = cn(
-          row.original.uptimePercent30d == null && unknownStatClassName
-        )
-
-        if (row.original.uptimePercent30d != null || !tooltip) {
-          return <span className={className}>{formatted}</span>
-        }
-
-        return (
-          <SimpleTooltip content={tooltip}>
-            <span className={cn("cursor-help", className)}>{formatted}</span>
-          </SimpleTooltip>
-        )
-      },
+      meta: { renderServer: renderUptime30d },
     },
     {
       id: "cpu",
-      accessorFn: (row) => row.cpuPercent,
+      accessorFn: (row) => getServer(row.serverId)?.cpuPercent ?? null,
       header: () => (
         <TableHeaderTooltip
           label="CPU"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.cpu}
         />
       ),
-      cell: ({ row }) => (
-        <CpuPercent
-          value={row.original.cpuPercent}
-          status={row.original.status}
-        />
-      ),
+      meta: {
+        renderServer: (server) => (
+          <CpuPercent value={server.cpuPercent} status={server.status} />
+        ),
+      },
     },
     {
       id: "memory",
-      accessorFn: (row) =>
-        row.memUsage != null && row.memMax ? row.memUsage / row.memMax : null,
+      accessorFn: (row) => {
+        const server = getServer(row.serverId)
+        return server?.memUsage != null && server.memMax
+          ? server.memUsage / server.memMax
+          : null
+      },
       header: () => (
         <TableHeaderTooltip
           label="Memory"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.memory}
         />
       ),
-      cell: ({ row }) => (
-        <MemoryPercent
-          usage={row.original.memUsage}
-          max={row.original.memMax}
-          status={row.original.status}
-        />
-      ),
+      meta: {
+        renderServer: (server) => (
+          <MemoryPercent
+            usage={server.memUsage}
+            max={server.memMax}
+            status={server.status}
+          />
+        ),
+      },
     },
     {
       id: "disk",
-      accessorFn: (row) =>
-        row.diskUsage != null && row.diskMax
-          ? row.diskUsage / row.diskMax
-          : null,
+      accessorFn: (row) => {
+        const server = getServer(row.serverId)
+        return server?.diskUsage != null && server.diskMax
+          ? server.diskUsage / server.diskMax
+          : null
+      },
       header: () => (
         <TableHeaderTooltip
           label="Root Disk"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.rootDisk}
         />
       ),
-      cell: ({ row }) => (
-        <DiskPercent
-          usage={row.original.diskUsage}
-          max={row.original.diskMax}
-          status={row.original.status}
-        />
-      ),
+      meta: {
+        renderServer: (server) => (
+          <DiskPercent
+            usage={server.diskUsage}
+            max={server.diskMax}
+            status={server.status}
+          />
+        ),
+      },
     },
     {
       accessorKey: "agentVersion",
+      accessorFn: (row) => getServer(row.serverId)?.agentVersion ?? "",
       header: () => (
         <TableHeaderTooltip
           label="Agent"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.agent}
         />
       ),
-      cell: ({ row }) => row.original.agentVersion ?? "—",
+      meta: {
+        renderServer: (server) => server.agentVersion ?? "—",
+      },
     },
     {
       accessorKey: "createdAt",
+      accessorFn: (row) => getServer(row.serverId)?.createdAt ?? "",
       header: () => (
         <TableHeaderTooltip
           label="Created"
           tooltip={SERVER_TABLE_COLUMN_TOOLTIPS.created}
         />
       ),
-      meta: { className: "text-neutral-500" },
-      cell: ({ row }) => (
-        <SimpleTooltip
-          content={formatDateWithRelative(row.original.createdAt)}
-        >
-          <span className="cursor-help">
-            {formatDate(row.original.createdAt)}
-          </span>
-        </SimpleTooltip>
-      ),
+      meta: {
+        className: "text-neutral-500",
+        renderServer: (server) => (
+          <SimpleTooltip content={formatDateWithRelative(server.createdAt)}>
+            <span className="cursor-help">{formatDate(server.createdAt)}</span>
+          </SimpleTooltip>
+        ),
+      },
     },
   ]
 
@@ -204,42 +233,44 @@ export function getServerTableColumns(
       id: "actions",
       enableSorting: false,
       header: () => <span className="sr-only">Actions</span>,
-      meta: { className: "w-0" },
-      cell: ({ row }) => {
-        if (row.original.role !== "OWNER") {
-          return null
-        }
-
-        return (
-          <div className="flex items-center">
-            <RenameServerDialog
-              serverId={row.original.serverId}
-              currentName={row.original.serverName}
-            />
-            <DeleteServerButton
-              serverId={row.original.serverId}
-              serverName={row.original.serverName}
-            />
-          </div>
-        )
+      meta: {
+        className: "w-0",
+        renderServer: (server) =>
+          server.role === "OWNER" ? (
+            <div className="flex items-center">
+              <RenameServerDialog
+                serverId={server.serverId}
+                currentName={server.serverName}
+              />
+              <DeleteServerButton
+                serverId={server.serverId}
+                serverName={server.serverName}
+              />
+            </div>
+          ) : null,
       },
     },
   ]
 }
 
-export function filterServersBySearch(
-  servers: ServerResponse[],
+export function filterServerIdsBySearch(
+  serverIds: number[],
   searchQuery: string
-): ServerResponse[] {
+): number[] {
   const search = searchQuery.trim().toLowerCase()
   if (!search) {
-    return servers
+    return serverIds
   }
 
-  return servers.filter(
-    (server) =>
+  const servers = useServersStore.getState().servers
+
+  return serverIds.filter((serverId) => {
+    const server = servers[serverId]
+
+    return (
       server.serverName.toLowerCase().includes(search) ||
       server.status.toLowerCase().includes(search) ||
       (server.agentVersion?.toLowerCase().includes(search) ?? false)
-  )
+    )
+  })
 }

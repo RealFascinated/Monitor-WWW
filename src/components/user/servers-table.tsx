@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import { CreateFolderDialog } from "@/components/user/create-folder-dialog"
 import { CreateServerDialog } from "@/components/user/create-server-dialog"
 import {
-  filterServersBySearch,
+  filterServerIdsBySearch,
   getServerTableColumns,
 } from "@/components/user/server-table-columns"
 import { ServersFolderTable } from "@/components/user/servers-folder-table"
@@ -14,14 +14,21 @@ import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  useServerFolderLayout,
+  useServerIds,
+  useServerRolesKey,
+  useServerSearchIndexKey,
+} from "@/hooks/use-server-folder-layout"
 import { useMoveServerToFolder } from "@/hooks/use-move-server-to-folder"
 import { useReorderServerFolders } from "@/hooks/use-reorder-server-folders"
-import { useUserServers } from "@/hooks/use-user-servers"
+import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
-import type { ServerResponse } from "@/lib/api/user/servers"
 import { ApiClientError } from "@/lib/auth/api"
 import { computeReorderedFolderIds } from "@/lib/servers/drag"
-import { groupServersByFolder } from "@/lib/servers/group-by-folder"
+import { useServersStore } from "@/stores/servers-store"
+
+const EMPTY_FOLDERS: ServerFolderResponse[] = []
 
 function ServersTable() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -33,75 +40,68 @@ function ServersTable() {
   )
   const [actionError, setActionError] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
-  const { data: servers, isPending, error } = useUserServers()
-  const { data: folders = [], isPending: foldersPending } = useQuery(
+
+  const serverIds = useServerIds()
+  const { byFolder, ungroupedIds } = useServerFolderLayout()
+  const searchIndexKey = useServerSearchIndexKey()
+  const rolesKey = useServerRolesKey()
+  const isPending = useServersStore((state) => state.isLoading)
+  const error = useServersStore((state) => state.error)
+  const { data: folders = EMPTY_FOLDERS, isPending: foldersPending } = useQuery(
     userServerFoldersQueryOptions()
   )
   const moveServer = useMoveServerToFolder()
   const reorderFolders = useReorderServerFolders()
 
-  const hasOwnedServers = servers.some((server) => server.role === "OWNER")
+  const hasOwnedServers = useMemo(() => {
+    const state = useServersStore.getState()
+    return state.serverIds.some(
+      (serverId) => state.servers[serverId].role === "OWNER"
+    )
+  }, [rolesKey])
+
   const columns = useMemo(
     () => getServerTableColumns(hasOwnedServers),
     [hasOwnedServers]
   )
 
-  const serversById = useMemo(
-    () => new Map(servers.map((server) => [server.serverId, server])),
-    [servers]
-  )
-
-  const { ungrouped } = useMemo(() => groupServersByFolder(servers), [servers])
-
-  const serversByFolderName = useMemo(() => {
-    const map = new Map<string, ServerResponse[]>()
-    for (const server of servers) {
-      if (!server.folderName) {
-        continue
-      }
-      const list = map.get(server.folderName) ?? []
-      list.push(server)
-      map.set(server.folderName, list)
-    }
-    return map
-  }, [servers])
-
-  const filteredUngrouped = useMemo(
-    () => filterServersBySearch(ungrouped, searchQuery),
-    [ungrouped, searchQuery]
+  const filteredUngroupedIds = useMemo(
+    () => filterServerIdsBySearch(ungroupedIds, searchQuery),
+    [ungroupedIds, searchQuery, searchIndexKey]
   )
 
   const folderSections = useMemo(
     () =>
       folders.map((folder) => ({
         folder,
-        servers: filterServersBySearch(
-          serversByFolderName.get(folder.name) ?? [],
+        serverIds: filterServerIdsBySearch(
+          byFolder.get(folder.name) ?? [],
           searchQuery
         ),
       })),
-    [folders, serversByFolderName, searchQuery]
+    [folders, byFolder, searchQuery, searchIndexKey]
   )
 
   const visibleSectionCount =
-    folderSections.filter((section) => section.servers.length > 0).length +
-    (filteredUngrouped.length > 0 ? 1 : 0)
+    folderSections.filter((section) => section.serverIds.length > 0).length +
+    (filteredUngroupedIds.length > 0 ? 1 : 0)
   const hasEmptyFolderSections =
     searchQuery.trim() === "" &&
-    folderSections.some((section) => section.servers.length === 0)
+    folderSections.some((section) => section.serverIds.length === 0)
 
   const errorMessage = error ?? null
   const isLoading = (isPending || foldersPending) && !errorMessage
-  const hasContent = servers.length > 0 || folders.length > 0
-  const canOrganize = folders.length > 0 && servers.length > 0
+  const hasContent = serverIds.length > 0 || folders.length > 0
+  const canOrganize = folders.length > 0 && serverIds.length > 0
   const canReorderFolders = folders.length > 1
 
   const draggingServerId =
     draggingRowId != null ? Number(draggingRowId) : null
-  const draggedServerFolderName =
+  const draggedServerFolderName = useServersStore((state) =>
     draggingServerId != null
-      ? (serversById.get(draggingServerId)?.folderName ?? null)
+      ? (state.servers[draggingServerId].folderName ?? null)
       : null
+  )
 
   function canAcceptServerDrop(targetFolderName: string | null) {
     return draggedServerFolderName !== targetFolderName
@@ -142,11 +142,7 @@ function ServersTable() {
 
   const handleMoveServer = useCallback(
     (serverId: number, folderName: string | null) => {
-      const server = serversById.get(serverId)
-      if (!server) {
-        return
-      }
-
+      const server = useServersStore.getState().servers[serverId]
       const currentFolder = server.folderName ?? null
       if (currentFolder === folderName) {
         return
@@ -168,7 +164,7 @@ function ServersTable() {
         }
       )
     },
-    [moveServer, serversById]
+    [moveServer]
   )
 
   const handleReorderFolder = useCallback(
@@ -235,7 +231,7 @@ function ServersTable() {
   )
 
   const showEditMode =
-    !isLoading && (folders.length > 0 || servers.length > 0)
+    !isLoading && (folders.length > 0 || serverIds.length > 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -303,7 +299,7 @@ function ServersTable() {
         </div>
       ) : null}
 
-      {!isLoading && servers.length === 0 && folders.length === 0 ? (
+      {!isLoading && serverIds.length === 0 && folders.length === 0 ? (
         <p className="text-neutral-500">No servers registered yet.</p>
       ) : null}
 
@@ -317,18 +313,18 @@ function ServersTable() {
 
       {!isLoading &&
       (folderSections.some(
-        ({ servers: folderServers }) =>
-          searchQuery.trim() === "" || folderServers.length > 0
+        ({ serverIds: sectionServerIds }) =>
+          searchQuery.trim() === "" || sectionServerIds.length > 0
       ) ||
-        filteredUngrouped.length > 0 ||
+        filteredUngroupedIds.length > 0 ||
         folders.length > 0) ? (
         <div className="flex flex-col">
           {folderSections
             .filter(
-              ({ servers: folderServers }) =>
-                searchQuery.trim() === "" || folderServers.length > 0
+              ({ serverIds: sectionServerIds }) =>
+                searchQuery.trim() === "" || sectionServerIds.length > 0
             )
-            .map(({ folder, servers: folderServers }) => (
+            .map(({ folder, serverIds: sectionServerIds }) => (
               <ServersFolderTable
                 key={folder.id}
                 title={folder.name}
@@ -337,18 +333,18 @@ function ServersTable() {
                 dropTargetKey={`folder:${folder.id}`}
                 isDropTarget={activeDropTargetKey === `folder:${folder.id}`}
                 canAcceptServerDrop={canAcceptServerDrop(folder.name)}
-                servers={folderServers}
+                serverIds={sectionServerIds}
                 {...folderTableProps}
               />
             ))}
-          {filteredUngrouped.length > 0 || folders.length > 0 ? (
+          {filteredUngroupedIds.length > 0 || folders.length > 0 ? (
             <ServersFolderTable
               title="Ungrouped"
               folderName={null}
               dropTargetKey="ungrouped"
               isDropTarget={activeDropTargetKey === "ungrouped"}
               canAcceptServerDrop={canAcceptServerDrop(null)}
-              servers={filteredUngrouped}
+              serverIds={filteredUngroupedIds}
               {...folderTableProps}
             />
           ) : null}
