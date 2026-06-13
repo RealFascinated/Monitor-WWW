@@ -2,10 +2,132 @@ import type uPlot from "uplot"
 
 import type { ResolvedTheme } from "@/lib/theme/context"
 
-const TOOLTIP_OFFSET_X = 12
 const TOOLTIP_PADDING = 8
+const TOOLTIP_OFFSET_X = 20
 const VIEWPORT_PADDING = 8
+const TOOLTIP_MAX_WIDTH = 320
+const MOBILE_BREAKPOINT = 768
 const HIDDEN_CURSOR_POS = -10
+
+function getViewportBounds() {
+  const visualViewport = window.visualViewport
+  const offsetLeft = visualViewport?.offsetLeft ?? 0
+  const offsetTop = visualViewport?.offsetTop ?? 0
+  const width = visualViewport?.width ?? window.innerWidth
+  const height = visualViewport?.height ?? window.innerHeight
+
+  return {
+    left: offsetLeft + VIEWPORT_PADDING,
+    top: offsetTop + VIEWPORT_PADDING,
+    right: offsetLeft + width - VIEWPORT_PADDING,
+    bottom: offsetTop + height - VIEWPORT_PADDING,
+    width,
+    maxWidth: Math.min(TOOLTIP_MAX_WIDTH, width - VIEWPORT_PADDING * 2),
+  }
+}
+
+function isCompactViewport(viewportWidth: number): boolean {
+  return viewportWidth < MOBILE_BREAKPOINT
+}
+
+function clampVerticalPosition(
+  y: number,
+  tooltipHeight: number,
+  viewport: ReturnType<typeof getViewportBounds>
+): number {
+  return Math.max(viewport.top, Math.min(y, viewport.bottom - tooltipHeight))
+}
+
+function positionDesktopTooltip({
+  cursorX,
+  plotCenterX,
+  plotTop,
+  tooltipWidth,
+  tooltipHeight,
+  viewport,
+}: {
+  cursorX: number
+  plotCenterX: number
+  plotTop: number
+  tooltipWidth: number
+  tooltipHeight: number
+  viewport: ReturnType<typeof getViewportBounds>
+}): { x: number; y: number } {
+  const cursorOnLeft = cursorX < plotCenterX
+
+  let x = cursorOnLeft
+    ? cursorX + TOOLTIP_OFFSET_X
+    : cursorX - tooltipWidth - TOOLTIP_OFFSET_X
+
+  if (x + tooltipWidth > viewport.right) {
+    x = cursorX - tooltipWidth - TOOLTIP_OFFSET_X
+  } else if (x < viewport.left) {
+    x = cursorX + TOOLTIP_OFFSET_X
+  }
+
+  x = clampHorizontalPosition(x, tooltipWidth, viewport)
+
+  const y = clampVerticalPosition(plotTop + TOOLTIP_PADDING, tooltipHeight, viewport)
+
+  return { x, y }
+}
+
+function clampHorizontalPosition(
+  x: number,
+  tooltipWidth: number,
+  viewport: ReturnType<typeof getViewportBounds>
+): number {
+  return Math.max(viewport.left, Math.min(x, viewport.right - tooltipWidth))
+}
+
+function positionTooltip({
+  tooltip,
+  tooltipWidth,
+  tooltipHeight,
+  cursorX,
+  chartRect,
+  plotTop,
+  plotCenterX,
+  viewport,
+}: {
+  tooltip: HTMLDivElement
+  tooltipWidth: number
+  tooltipHeight: number
+  cursorX: number
+  chartRect: DOMRect
+  plotTop: number
+  plotCenterX: number
+  viewport: ReturnType<typeof getViewportBounds>
+}) {
+  let x: number
+  let y: number
+
+  if (isCompactViewport(viewport.width)) {
+    x = clampHorizontalPosition(
+      chartRect.left + (chartRect.width - tooltipWidth) / 2,
+      tooltipWidth,
+      viewport
+    )
+
+    y = chartRect.bottom + TOOLTIP_PADDING
+    if (y + tooltipHeight > viewport.bottom) {
+      y = chartRect.top - tooltipHeight - TOOLTIP_PADDING
+    }
+    y = clampVerticalPosition(y, tooltipHeight, viewport)
+  } else {
+    ;({ x, y } = positionDesktopTooltip({
+      cursorX,
+      plotCenterX,
+      plotTop,
+      tooltipWidth,
+      tooltipHeight,
+      viewport,
+    }))
+  }
+
+  tooltip.style.left = `${x}px`
+  tooltip.style.top = `${y}px`
+}
 
 function formatCursorTime(timestamp: number): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -95,36 +217,31 @@ export function createCursorTooltipHandler({
     const chartRect = u.root.getBoundingClientRect()
     const plotLeft = chartRect.left + u.bbox.left
     const plotTop = chartRect.top + u.bbox.top
-    const plotRight = plotLeft + u.bbox.width
-    const cursorX = chartRect.left + left
+    const plotCenterX = plotLeft + u.bbox.width / 2
+    const cursorX = plotLeft + left
+
+    const viewport = getViewportBounds()
 
     tooltip.style.display = "block"
     tooltip.style.transform = "none"
     tooltip.style.maxHeight = ""
+    tooltip.style.maxWidth = `${viewport.maxWidth}px`
 
     tooltip.style.left = "0"
     tooltip.style.top = "0"
     const tooltipWidth = tooltip.offsetWidth
     const tooltipHeight = tooltip.offsetHeight
 
-    let x = cursorX + TOOLTIP_OFFSET_X
-    if (x + tooltipWidth > plotRight - TOOLTIP_PADDING) {
-      x = cursorX - tooltipWidth - TOOLTIP_OFFSET_X
-    }
-    x = Math.max(
-      plotLeft + TOOLTIP_PADDING,
-      Math.min(x, plotRight - tooltipWidth - TOOLTIP_PADDING)
-    )
-
-    // Grafana-style: track crosshair on X, anchor to top of plot on Y.
-    let y = plotTop + TOOLTIP_PADDING
-    y = Math.max(
-      VIEWPORT_PADDING,
-      Math.min(y, window.innerHeight - tooltipHeight - VIEWPORT_PADDING)
-    )
-
-    tooltip.style.left = `${x}px`
-    tooltip.style.top = `${y}px`
+    positionTooltip({
+      tooltip,
+      tooltipWidth,
+      tooltipHeight,
+      cursorX,
+      chartRect,
+      plotTop,
+      plotCenterX,
+      viewport,
+    })
   }
 }
 
