@@ -1,18 +1,8 @@
 import { apiFetch } from "@/lib/auth/api"
+import { metricTimeWindowToEpochWindow } from "@/lib/metrics/time-window"
+import type { MetricTimeWindow } from "@/lib/metrics/time-window"
 
-export type MetricTimeRange =
-  | "1h"
-  | "3h"
-  | "6h"
-  | "12h"
-  | "24h"
-  | "3d"
-  | "7d"
-  | "2w"
-  | "1mo"
-  | "3mo"
-  | "1y"
-  | "2y"
+export type { MetricTimeRange } from "@/lib/metrics/range"
 
 /** Value array aligned to the response-level `timestamps` array. */
 export type MetricValues = (number | null)[] | null | undefined
@@ -139,7 +129,8 @@ export type TcpConnectionMetrics = {
 
 export type ServerMetricsResponse = {
   id: number
-  range: string
+  from: number
+  to: number
   step: number | null
   timestamps: number[] | null
   host?: HostMetrics | null
@@ -156,9 +147,13 @@ export type ServerMetricsResponse = {
 
 export function getUserServerMetrics(
   serverId: number,
-  range: MetricTimeRange
+  window: MetricTimeWindow
 ): Promise<ServerMetricsResponse> {
-  const params = new URLSearchParams({ range })
+  const { from, to } = metricTimeWindowToEpochWindow(window)
+  const params = new URLSearchParams({
+    from: String(from),
+    to: String(to),
+  })
   return apiFetch<ServerMetricsResponse>(
     `/v1/user/servers/${serverId}/metrics?${params}`
   )

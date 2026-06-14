@@ -1,4 +1,16 @@
-import type { MetricTimeRange } from "@/lib/api/user/metrics"
+export type MetricTimeRange =
+  | "1h"
+  | "3h"
+  | "6h"
+  | "12h"
+  | "24h"
+  | "3d"
+  | "7d"
+  | "2w"
+  | "1mo"
+  | "3mo"
+  | "1y"
+  | "2y"
 
 /** Lookback durations in seconds — must match API MetricTimeRange. */
 export const METRIC_RANGE_LOOKBACK_SECONDS: Record<MetricTimeRange, number> = {
@@ -64,14 +76,6 @@ export const METRIC_RANGE_OPTIONS: MetricRangeOption[] = [
   { value: "3mo", label: "Last 3 months", shortLabel: "3mo", group: "months" },
   { value: "1y", label: "Last year", shortLabel: "1y", group: "years" },
   { value: "2y", label: "Last 2 years", shortLabel: "2y", group: "years" },
-]
-
-/** Common ranges surfaced as one-click shortcuts in the metrics header. */
-export const METRIC_RANGE_QUICK_PICKS: MetricTimeRange[] = [
-  "1h",
-  "24h",
-  "7d",
-  "1mo",
 ]
 
 const METRIC_RANGE_BY_VALUE = Object.fromEntries(

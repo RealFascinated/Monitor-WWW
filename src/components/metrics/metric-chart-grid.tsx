@@ -16,7 +16,7 @@ function MetricChartGrid({ timeGrid, charts }: MetricChartGridProps) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="metric-chart-grid">
       {visibleCharts.map((chart) => (
         <MetricChartCard
           key={chart.title}

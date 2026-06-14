@@ -4,16 +4,28 @@ import { Callout } from "@/components/callout"
 import { MetricsView } from "@/components/metrics/metrics-view"
 import { useUserServer } from "@/hooks/use-user-server"
 import type { ServerMetricsResponse } from "@/lib/api/user/metrics"
-import { getMetricRangeOption, parseMetricRange } from "@/lib/metrics/range"
+import type { MetricsDataWindow } from "@/lib/metrics/chart-zoom"
+import { formatMetricTimeWindowDescription } from "@/lib/metrics/time-window"
+import type { MetricTimeWindow } from "@/lib/metrics/time-window"
 import { buildServerMetricSections } from "@/lib/metrics/sections/server/build"
 import { overviewHasData } from "@/lib/metrics/sections/server/overview"
 import { buildMetricsTimeGrid } from "@/lib/metrics/timestamps"
 
 type ServerMetricsViewProps = {
   metrics: ServerMetricsResponse
+  timeWindow: MetricTimeWindow
+  dataWindow: MetricsDataWindow
+  onZoomToRange: (from: number, to: number) => void
+  zoomDisabled?: boolean
 }
 
-function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
+function ServerMetricsView({
+  metrics,
+  timeWindow,
+  dataWindow,
+  onZoomToRange,
+  zoomDisabled = false,
+}: ServerMetricsViewProps) {
   const { data: server } = useUserServer(metrics.id)
   const timeGrid = useMemo(() => buildMetricsTimeGrid(metrics), [metrics])
   const sections = useMemo(
@@ -36,9 +48,7 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
     return null
   }
 
-  const rangeLabel = getMetricRangeOption(
-    parseMetricRange(metrics.range)
-  ).label
+  const rangeLabel = formatMetricTimeWindowDescription(timeWindow)
   const hasCurrentMetrics = overviewHasData(server)
 
   return (
@@ -54,12 +64,19 @@ function ServerMetricsView({ metrics }: ServerMetricsViewProps) {
         >
           <p>
             {hasCurrentMetrics
-              ? `Metrics are being collected, but this server hasn't been monitored long enough to fill the ${rangeLabel.toLowerCase()}. Try a shorter range.`
-              : `No chart data is available for the ${rangeLabel.toLowerCase()}. Try a shorter or more recent time range.`}
+              ? `Metrics are being collected, but this server hasn't been monitored long enough to fill the ${rangeLabel}. Try a shorter range.`
+              : `No chart data is available for the ${rangeLabel}. Try a shorter or more recent time range.`}
           </p>
         </Callout>
       ) : null}
-      {sections.length > 0 ? <MetricsView sections={sections} /> : null}
+      {sections.length > 0 ? (
+        <MetricsView
+          sections={sections}
+          dataWindow={dataWindow}
+          onZoomToRange={onZoomToRange}
+          zoomDisabled={zoomDisabled}
+        />
+      ) : null}
     </div>
   )
 }

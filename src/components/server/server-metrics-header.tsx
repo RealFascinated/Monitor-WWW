@@ -7,13 +7,17 @@ import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
 import type { ServerResponse } from "@/lib/api/user/servers"
-import type { MetricTimeRange } from "@/lib/api/user/metrics"
 import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
+import {
+  metricTimeWindowToSearch
+  
+} from "@/lib/metrics/time-window"
+import type {MetricTimeWindow} from "@/lib/metrics/time-window";
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
 
 type ServerMetricsHeaderProps = {
   server: ServerResponse | undefined
-  range: MetricTimeRange
+  timeWindow: MetricTimeWindow
   serverId: number
   refreshInterval: MetricRefreshInterval
   onRefreshIntervalChange: (value: MetricRefreshInterval) => void
@@ -23,7 +27,7 @@ type ServerMetricsHeaderProps = {
 
 function ServerMetricsHeader({
   server,
-  range,
+  timeWindow,
   serverId,
   refreshInterval,
   onRefreshIntervalChange,
@@ -81,12 +85,12 @@ function ServerMetricsHeader({
             />
 
             <MetricRangeSelector
-              value={range}
-              onChange={(nextRange) => {
+              value={timeWindow}
+              onChange={(nextWindow) => {
                 navigate({
                   to: "/servers/$serverId",
                   params: { serverId: String(serverId) },
-                  search: { range: nextRange },
+                  search: metricTimeWindowToSearch(nextWindow),
                   resetScroll: false,
                 })
               }}

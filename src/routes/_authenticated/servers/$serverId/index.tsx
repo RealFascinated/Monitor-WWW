@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useCallback } from "react"
 
 import { LoadingState } from "@/components/loading-state"
 import { Callout } from "@/components/callout"
@@ -16,11 +17,11 @@ const serverMetricsSearchSchema = metricRangeSearchSchema("7d")
 
 export const Route = createFileRoute("/_authenticated/servers/$serverId/")({
   validateSearch: serverMetricsSearchSchema,
-  loaderDeps: ({ search: { range } }) => ({ range }),
-  loader: ({ context: { queryClient }, params, deps: { range } }) => {
+  loaderDeps: ({ search }) => ({ timeWindow: search }),
+  loader: ({ context: { queryClient }, params, deps: { timeWindow } }) => {
     const serverId = Number(params.serverId)
     return queryClient.ensureQueryData(
-      userServerMetricsQueryOptions(serverId, range)
+      userServerMetricsQueryOptions(serverId, timeWindow)
     )
   },
   component: ServerMetricsPage,
@@ -28,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/servers/$serverId/")({
 
 function ServerMetricsPage() {
   const { serverId } = Route.useParams()
-  const { range } = Route.useSearch()
+  const timeWindow = Route.useSearch()
+  const navigate = useNavigate()
   const numericServerId = Number(serverId)
   const { refreshInterval, setRefreshInterval } = useMetricRefreshInterval()
 
@@ -39,7 +41,7 @@ function ServerMetricsPage() {
     refetch,
     error,
   } = useQuery(
-    userServerMetricsQueryOptions(numericServerId, range, refreshInterval)
+    userServerMetricsQueryOptions(numericServerId, timeWindow, refreshInterval)
   )
 
   const { data: server } = useUserServer(numericServerId)
@@ -51,11 +53,27 @@ function ServerMetricsPage() {
         ? "Failed to load server metrics"
         : null
 
+  const handleZoomToRange = useCallback(
+    (from: number, to: number) => {
+      navigate({
+        to: "/servers/$serverId",
+        params: { serverId: String(numericServerId) },
+        search: { from, to },
+        resetScroll: false,
+      })
+    },
+    [navigate, numericServerId]
+  )
+
+  const dataWindow = metrics
+    ? { from: metrics.from, to: metrics.to }
+    : null
+
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
       <ServerMetricsHeader
         server={server}
-        range={range}
+        timeWindow={timeWindow}
         serverId={numericServerId}
         refreshInterval={refreshInterval}
         onRefreshIntervalChange={setRefreshInterval}
@@ -91,8 +109,14 @@ function ServerMetricsPage() {
           <LoadingState message="Loading metrics…" />
         ) : null}
 
-        {metrics && !errorMessage ? (
-          <ServerMetricsView metrics={metrics} />
+        {metrics && dataWindow && !errorMessage ? (
+          <ServerMetricsView
+            metrics={metrics}
+            timeWindow={timeWindow}
+            dataWindow={dataWindow}
+            onZoomToRange={handleZoomToRange}
+            zoomDisabled={isFetching}
+          />
         ) : null}
       </div>
     </section>

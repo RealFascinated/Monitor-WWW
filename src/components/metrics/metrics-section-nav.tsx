@@ -296,7 +296,7 @@ function MetricsSectionNav({
 
   return (
     <nav
-      className="hidden w-48 shrink-0 lg:block xl:w-52"
+      className="hidden w-48 shrink-0 xl:block 2xl:w-52"
       aria-label="Metric sections"
     >
       <div className="sticky top-[calc(var(--metrics-header-offset)+1rem)] z-20 flex max-h-[calc(100svh-var(--metrics-header-offset)-2rem)] flex-col overflow-hidden rounded-sm border border-sidebar-border bg-sidebar shadow-sm">

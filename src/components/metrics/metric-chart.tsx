@@ -12,12 +12,16 @@ import { createThresholdDrawHook } from "@/lib/metrics/chart-thresholds"
 import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
 import { stackAlignedData } from "@/lib/metrics/series"
 import {
+  bindChartZoomNavigate,
+  useMetricsChartZoom,
+} from "@/lib/metrics/chart-zoom"
+import { buildUPlotOptions, getChartColors } from "@/lib/metrics/uplot-theme"
+import {
   createChartZoomSyncHook,
   registerMetricsChartSync,
   unregisterMetricsChartSync,
   useMetricsChartSyncKey,
 } from "@/lib/metrics/chart-sync"
-import { buildUPlotOptions, getChartColors } from "@/lib/metrics/uplot-theme"
 import type { ChartYRange } from "@/lib/metrics/uplot-theme"
 import { useTheme } from "@/lib/theme"
 
@@ -58,6 +62,8 @@ function MetricChart({
   const dataRef = useRef(data)
   const { resolvedTheme } = useTheme()
   const syncKey = useMetricsChartSyncKey() ?? undefined
+  const chartZoom = useMetricsChartZoom()
+  const chartZoomRef = useRef(chartZoom)
   const yMax = yRange?.max ?? null
   const labelsKey = labels.join("\0")
   const negatedKey = negated.map(String).join("\0")
@@ -77,6 +83,7 @@ function MetricChart({
 
   valueFormatterRef.current = valueFormatter
   dataRef.current = data
+  chartZoomRef.current = chartZoom
 
   useEffect(() => {
     const container = containerRef.current
@@ -88,6 +95,7 @@ function MetricChart({
     let chart: uPlot | null = null
     let resizeObserver: ResizeObserver | null = null
     let unbindInteractionDismiss: (() => void) | null = null
+    let unbindZoomNavigate: (() => void) | null = null
     let tooltip: HTMLDivElement | null = null
 
     const frame = requestAnimationFrame(() => {
@@ -156,12 +164,18 @@ function MetricChart({
       })
       resizeObserver.observe(container)
       unbindInteractionDismiss = bindChartInteractionDismiss(chart, tooltip)
+
+      const zoom = chartZoomRef.current
+      if (zoom) {
+        unbindZoomNavigate = bindChartZoomNavigate(chart, zoom.getZoomContext)
+      }
     })
 
     return () => {
       disposed = true
       cancelAnimationFrame(frame)
       unbindInteractionDismiss?.()
+      unbindZoomNavigate?.()
       resizeObserver?.disconnect()
       if (tooltip) {
         destroyChartTooltipElement(tooltip)

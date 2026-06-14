@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useCallback } from "react"
 
 import { AdminMetricsHeader } from "@/components/admin/admin-metrics-header"
 import { AdminMetricsView } from "@/components/admin/admin-metrics-view"
@@ -16,9 +17,9 @@ const adminMetricsSearchSchema = metricRangeSearchSchema("24h")
 export const Route = createFileRoute("/_authenticated/admin/metrics")({
   ssr: false,
   validateSearch: adminMetricsSearchSchema,
-  loaderDeps: ({ search: { range } }) => ({ range }),
-  loader: ({ context: { queryClient }, deps: { range } }) => {
-    return queryClient.ensureQueryData(adminMetricsQueryOptions(range))
+  loaderDeps: ({ search }) => ({ timeWindow: search }),
+  loader: ({ context: { queryClient }, deps: { timeWindow } }) => {
+    return queryClient.ensureQueryData(adminMetricsQueryOptions(timeWindow))
   },
   head: () => ({
     meta: [{ title: pageTitle("Admin Metrics") }],
@@ -27,7 +28,8 @@ export const Route = createFileRoute("/_authenticated/admin/metrics")({
 })
 
 function AdminMetricsPage() {
-  const { range } = Route.useSearch()
+  const timeWindow = Route.useSearch()
+  const navigate = useNavigate()
   const { refreshInterval, setRefreshInterval } = useMetricRefreshInterval()
 
   const {
@@ -36,7 +38,7 @@ function AdminMetricsPage() {
     isFetching,
     refetch,
     error,
-  } = useQuery(adminMetricsQueryOptions(range, refreshInterval))
+  } = useQuery(adminMetricsQueryOptions(timeWindow, refreshInterval))
 
   const errorMessage =
     error instanceof ApiClientError
@@ -45,10 +47,25 @@ function AdminMetricsPage() {
         ? "Failed to load admin metrics"
         : null
 
+  const handleZoomToRange = useCallback(
+    (from: number, to: number) => {
+      navigate({
+        to: "/admin/metrics",
+        search: { from, to },
+        resetScroll: false,
+      })
+    },
+    [navigate]
+  )
+
+  const dataWindow = metrics
+    ? { from: metrics.from, to: metrics.to }
+    : null
+
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
       <AdminMetricsHeader
-        range={range}
+        timeWindow={timeWindow}
         refreshInterval={refreshInterval}
         onRefreshIntervalChange={setRefreshInterval}
         onRefresh={() => void refetch()}
@@ -65,7 +82,14 @@ function AdminMetricsPage() {
         <LoadingState message="Loading metrics…" />
       ) : null}
 
-      {metrics && !errorMessage ? <AdminMetricsView metrics={metrics} /> : null}
+      {metrics && dataWindow && !errorMessage ? (
+        <AdminMetricsView
+          metrics={metrics}
+          dataWindow={dataWindow}
+          onZoomToRange={handleZoomToRange}
+          zoomDisabled={isFetching}
+        />
+      ) : null}
     </section>
   )
 }

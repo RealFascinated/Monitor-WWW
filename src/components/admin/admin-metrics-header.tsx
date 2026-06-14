@@ -3,11 +3,15 @@ import { Gauge } from "lucide-react"
 
 import { Breadcrumb } from "@/components/breadcrumb"
 import { MetricRangeSelector } from "@/components/server/metric-range-selector"
-import type { MetricTimeRange } from "@/lib/api/admin/metrics"
 import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
+import {
+  metricTimeWindowToSearch
+  
+} from "@/lib/metrics/time-window"
+import type {MetricTimeWindow} from "@/lib/metrics/time-window";
 
 type AdminMetricsHeaderProps = {
-  range: MetricTimeRange
+  timeWindow: MetricTimeWindow
   refreshInterval: MetricRefreshInterval
   onRefreshIntervalChange: (value: MetricRefreshInterval) => void
   onRefresh: () => void
@@ -15,7 +19,7 @@ type AdminMetricsHeaderProps = {
 }
 
 function AdminMetricsHeader({
-  range,
+  timeWindow,
   refreshInterval,
   onRefreshIntervalChange,
   onRefresh,
@@ -45,11 +49,11 @@ function AdminMetricsHeader({
             aria-label="Metrics range"
           >
             <MetricRangeSelector
-              value={range}
-              onChange={(nextRange) => {
+              value={timeWindow}
+              onChange={(nextWindow) => {
                 navigate({
                   to: "/admin/metrics",
-                  search: { range: nextRange },
+                  search: metricTimeWindowToSearch(nextWindow),
                   resetScroll: false,
                 })
               }}

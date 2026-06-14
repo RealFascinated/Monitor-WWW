@@ -1,8 +1,4 @@
 import type { MetricValues } from "@/lib/api/user/metrics"
-import {
-  METRIC_RANGE_LOOKBACK_SECONDS,
-  parseMetricRange,
-} from "@/lib/metrics/range"
 
 export type MetricsTimeGrid = {
   gridTimestamps: number[]
@@ -10,17 +6,16 @@ export type MetricsTimeGrid = {
 }
 
 function buildWindowTimestamps(
-  lookbackSeconds: number,
+  from: number,
+  to: number,
   stepSeconds: number
 ): number[] {
-  const end = Math.floor(Date.now() / 1000)
-  const start = end - lookbackSeconds
-  const alignedStart = start - (start % stepSeconds)
+  const alignedStart = from - (from % stepSeconds)
   const timestamps: number[] = []
 
   for (
     let timestamp = alignedStart;
-    timestamp <= end;
+    timestamp <= to;
     timestamp += stepSeconds
   ) {
     timestamps.push(timestamp)
@@ -46,7 +41,8 @@ function isDenseGrid(apiTimestamps: number[], fullGrid: number[]): boolean {
 }
 
 export type MetricsTimeSeriesEnvelope = {
-  range: string
+  from: number
+  to: number
   step: number | null
   timestamps: number[] | null
 }
@@ -55,9 +51,7 @@ export function buildMetricsTimeGrid(
   metrics: MetricsTimeSeriesEnvelope
 ): MetricsTimeGrid {
   const step = metrics.step && metrics.step > 0 ? metrics.step : 300
-  const range = parseMetricRange(metrics.range)
-  const lookback = METRIC_RANGE_LOOKBACK_SECONDS[range]
-  const fullGrid = buildWindowTimestamps(lookback, step)
+  const fullGrid = buildWindowTimestamps(metrics.from, metrics.to, step)
   const apiTimestamps = metrics.timestamps
 
   if (apiTimestamps && apiTimestamps.length > 0) {

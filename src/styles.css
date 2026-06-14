@@ -312,6 +312,55 @@
       inset 4px 0 0 var(--error),
       inset 0 0 0 2px var(--border);
   }
+
+  .monitor-input[type="datetime-local"] {
+    min-height: 0;
+    min-width: 0;
+    padding-block: 0;
+  }
+
+  .metric-chart-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .metric-chart-grid > * {
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  @media (width >= 80rem) {
+    .metric-chart-grid > * {
+      flex: 1 1 calc((100% - 1rem) / 2);
+    }
+  }
+
+  .metric-stat-grid {
+    container-type: inline-size;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .metric-stat-grid > * {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  @container (min-width: 26rem) {
+    .metric-stat-grid > * {
+      flex: 1 1 calc((100% - 1rem) / 2);
+      min-width: min(100%, 12rem);
+    }
+  }
+
+  @container (min-width: 40rem) {
+    .metric-stat-grid > * {
+      flex: 1 1 calc((100% - 2rem) / 3);
+    }
+  }
 }
 
 .uplot {

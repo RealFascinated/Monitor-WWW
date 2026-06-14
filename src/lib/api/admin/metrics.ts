@@ -1,7 +1,10 @@
-import type { MetricTimeRange, MetricValues } from "@/lib/api/user/metrics"
+import type { MetricValues } from "@/lib/api/user/metrics"
 import { apiFetch } from "@/lib/auth/api"
+import { metricTimeWindowToEpochWindow } from "@/lib/metrics/time-window"
+import type { MetricTimeWindow } from "@/lib/metrics/time-window"
 
-export type { MetricTimeRange, MetricValues }
+export type { MetricTimeRange } from "@/lib/metrics/range"
+export type { MetricValues }
 
 export type FleetOsMetrics = {
   os: string
@@ -65,7 +68,8 @@ export type VmMetrics = {
 }
 
 export type AdminMetricsResponse = {
-  range: string
+  from: number
+  to: number
   step: number | null
   timestamps: number[] | null
   overview?: OverviewMetrics | null
@@ -77,8 +81,12 @@ export type AdminMetricsResponse = {
 }
 
 export function getAdminMetrics(
-  range: MetricTimeRange
+  window: MetricTimeWindow
 ): Promise<AdminMetricsResponse> {
-  const params = new URLSearchParams({ range })
+  const { from, to } = metricTimeWindowToEpochWindow(window)
+  const params = new URLSearchParams({
+    from: String(from),
+    to: String(to),
+  })
   return apiFetch<AdminMetricsResponse>(`/v1/admin/metrics?${params}`)
 }
