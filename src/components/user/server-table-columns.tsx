@@ -24,6 +24,7 @@ import {
   SERVER_TABLE_COLUMN_TOOLTIPS,
 } from "@/lib/tooltips/copy"
 import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
+import { cn } from "@/lib/utils"
 
 export type ServerTableRow = {
   serverId: number
