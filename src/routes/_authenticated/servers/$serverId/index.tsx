@@ -12,6 +12,7 @@ import { useUserServer } from "@/hooks/use-user-server"
 import { useMetricRefreshInterval } from "@/hooks/use-metric-refresh-interval"
 import { userServerMetricsQueryOptions } from "@/lib/api/user/metrics.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { hasPermission, ServerPermission } from "@/lib/api/user/permissions"
 import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
@@ -82,7 +83,8 @@ function ServerMetricsPage() {
       />
 
       <div className="flex flex-col gap-6">
-        {server?.status === "PENDING" && server.role === "OWNER" ? (
+        {server?.status === "PENDING" &&
+        hasPermission(server.permissions, ServerPermission.ROTATE_INGEST_TOKEN) ? (
           <Callout type="info" title="Waiting for the agent">
             <div className="flex flex-col gap-3">
               <p>

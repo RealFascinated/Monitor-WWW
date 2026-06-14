@@ -23,6 +23,7 @@ import { useReorderServerFolders } from "@/hooks/use-reorder-server-folders"
 import { useUserServers } from "@/hooks/use-user-servers"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
+import { hasPermission, ServerPermission } from "@/lib/api/user/permissions"
 import { serversById } from "@/lib/api/user/servers.queries"
 import { computeReorderedFolderIds } from "@/lib/servers/drag"
 import { toastMutationError } from "@/lib/toast"
@@ -48,14 +49,19 @@ function ServersTable() {
   const moveServer = useMoveServerToFolder()
   const reorderFolders = useReorderServerFolders()
 
-  const hasOwnedServers = useMemo(
-    () => servers.some((server) => server.role === "OWNER"),
+  const showActionsColumn = useMemo(
+    () =>
+      servers.some(
+        (server) =>
+          hasPermission(server.permissions, ServerPermission.RENAME_SERVER) ||
+          hasPermission(server.permissions, ServerPermission.DELETE_SERVER)
+      ),
     [servers]
   )
 
   const columns = useMemo(
-    () => getServerTableColumns(hasOwnedServers),
-    [hasOwnedServers]
+    () => getServerTableColumns(showActionsColumn),
+    [showActionsColumn]
   )
 
   const filteredUngroupedIds = useMemo(

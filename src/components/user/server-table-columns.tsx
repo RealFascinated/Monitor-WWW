@@ -19,6 +19,7 @@ import {
   formatUptimePercent30d,
 } from "@/lib/formatter"
 import type { ServerResponse } from "@/lib/api/user/servers"
+import { hasPermission, ServerPermission } from "@/lib/api/user/permissions"
 import {
   pendingOnlyTooltip,
   SERVER_TABLE_COLUMN_TOOLTIPS,
@@ -67,7 +68,7 @@ function renderUptime30d(server: ServerResponse): ReactNode {
 }
 
 export function getServerTableColumns(
-  hasOwnedServers: boolean
+  showActionsColumn: boolean
 ): ColumnDef<ServerTableRow>[] {
   const baseColumns: ColumnDef<ServerTableRow>[] = [
     {
@@ -216,7 +217,7 @@ export function getServerTableColumns(
     },
   ]
 
-  if (!hasOwnedServers) {
+  if (!showActionsColumn) {
     return baseColumns
   }
 
@@ -228,19 +229,37 @@ export function getServerTableColumns(
       header: () => <span className="sr-only">Actions</span>,
       meta: {
         className: "w-0",
-        renderServer: (server) =>
-          server.role === "OWNER" ? (
+        renderServer: (server) => {
+          const canRename = hasPermission(
+            server.permissions,
+            ServerPermission.RENAME_SERVER
+          )
+          const canDelete = hasPermission(
+            server.permissions,
+            ServerPermission.DELETE_SERVER
+          )
+
+          if (!canRename && !canDelete) {
+            return null
+          }
+
+          return (
             <div className="flex items-center">
-              <RenameServerDialog
-                serverId={server.serverId}
-                currentName={server.serverName}
-              />
-              <DeleteServerButton
-                serverId={server.serverId}
-                serverName={server.serverName}
-              />
+              {canRename ? (
+                <RenameServerDialog
+                  serverId={server.serverId}
+                  currentName={server.serverName}
+                />
+              ) : null}
+              {canDelete ? (
+                <DeleteServerButton
+                  serverId={server.serverId}
+                  serverName={server.serverName}
+                />
+              ) : null}
             </div>
-          ) : null,
+          )
+        },
       },
     },
   ]

@@ -8,12 +8,13 @@ import { DeleteServerButton } from "@/components/user/delete-server-button"
 import { LeaveServerButton } from "@/components/user/leave-server-button"
 import { RenameServerForm } from "@/components/user/rename-server-form"
 import type { ServerAccessListResponse } from "@/lib/api/user/access"
+import { hasPermission, ServerPermission } from "@/lib/api/user/permissions"
 import type { ServerResponse } from "@/lib/api/user/servers"
 
 type ServerSettingsViewProps = {
   serverId: number
   server: ServerResponse
-  access: ServerAccessListResponse
+  access: ServerAccessListResponse | undefined
 }
 
 function ServerSettingsView({
@@ -22,11 +23,26 @@ function ServerSettingsView({
   access,
 }: ServerSettingsViewProps) {
   const navigate = useNavigate()
-  const isOwner = server.role === "OWNER"
+  const { permissions } = server
+  const canRename = hasPermission(permissions, ServerPermission.RENAME_SERVER)
+  const canRotateIngestToken = hasPermission(
+    permissions,
+    ServerPermission.ROTATE_INGEST_TOKEN
+  )
+  const canListMembers = hasPermission(
+    permissions,
+    ServerPermission.LIST_MEMBERS
+  )
+  const canManageMembers = hasPermission(
+    permissions,
+    ServerPermission.INVITE_MEMBERS
+  )
+  const canDelete = hasPermission(permissions, ServerPermission.DELETE_SERVER)
+  const canLeave = hasPermission(permissions, ServerPermission.LEAVE_SERVER)
 
   return (
     <SettingsPageContent>
-      {isOwner ? (
+      {canRename ? (
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
             title="General"
@@ -39,7 +55,7 @@ function ServerSettingsView({
         </section>
       ) : null}
 
-      {isOwner ? (
+      {canRotateIngestToken ? (
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
             title="Monitor Agent"
@@ -53,19 +69,21 @@ function ServerSettingsView({
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-3">
-        <SettingsSectionHeader
-          title="Access"
-          description="Manage who can view this server's metrics."
-        />
-        <ServerAccessView
-          serverId={serverId}
-          access={access}
-          canManage={isOwner}
-        />
-      </section>
+      {canListMembers && access ? (
+        <section className="flex flex-col gap-3">
+          <SettingsSectionHeader
+            title="Access"
+            description="Manage who can view this server's metrics."
+          />
+          <ServerAccessView
+            serverId={serverId}
+            access={access}
+            canManage={canManageMembers}
+          />
+        </section>
+      ) : null}
 
-      {isOwner ? (
+      {canDelete ? (
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
             title="Danger zone"
@@ -85,7 +103,9 @@ function ServerSettingsView({
             />
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {canLeave ? (
         <section className="flex flex-col gap-3">
           <SettingsSectionHeader
             title="Leave server"
@@ -104,7 +124,7 @@ function ServerSettingsView({
             />
           </div>
         </section>
-      )}
+      ) : null}
     </SettingsPageContent>
   )
 }

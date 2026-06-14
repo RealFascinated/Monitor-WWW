@@ -7,7 +7,7 @@ import { ServerSettingsHeader } from "@/components/server/server-settings-header
 import { ServerSettingsView } from "@/components/server/server-settings-view"
 import { useServerAccess } from "@/hooks/use-server-access"
 import { useUserServer } from "@/hooks/use-user-server"
-import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
+import { hasPermission, ServerPermission } from "@/lib/api/user/permissions"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { serverPageTitle } from "@/lib/page-title"
@@ -15,12 +15,6 @@ import { serverPageTitle } from "@/lib/page-title"
 export const Route = createFileRoute(
   "/_authenticated/servers/$serverId/settings"
 )({
-  loader: ({ context, params }) => {
-    const serverId = Number(params.serverId)
-    return context.queryClient.ensureQueryData(
-      serverAccessQueryOptions(serverId)
-    )
-  },
   head: ({ matches }) => {
     const servers = matches.find(
       (match) =>
@@ -38,10 +32,20 @@ function ServerSettingsPage() {
   const { serverId } = Route.useParams()
   const numericServerId = Number(serverId)
 
-  const { data: access, isPending, error } = useServerAccess(numericServerId)
-  const { data: server } = useUserServer(numericServerId)
+  const { data: server, isPending: serverPending } =
+    useUserServer(numericServerId)
+  const canListMembers =
+    server !== undefined &&
+    hasPermission(server.permissions, ServerPermission.LIST_MEMBERS)
+
+  const {
+    data: access,
+    isPending: accessPending,
+    error,
+  } = useServerAccess(numericServerId, canListMembers)
 
   const errorMessage = error instanceof Error ? error.message : null
+  const isPending = serverPending || (canListMembers && accessPending)
 
   return (
     <section className={authenticatedPageSectionClassName}>
@@ -57,7 +61,7 @@ function ServerSettingsPage() {
         <LoadingState message="Loading settings…" />
       ) : null}
 
-      {!errorMessage && access && server ? (
+      {!errorMessage && server && (!canListMembers || access) ? (
         <AnimatedContent>
           <ServerSettingsView
             serverId={numericServerId}
