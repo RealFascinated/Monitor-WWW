@@ -423,17 +423,6 @@
     }
   }
 
-  @keyframes motion-row-flash {
-    0%,
-    100% {
-      background-color: transparent;
-    }
-
-    30% {
-      background-color: color-mix(in srgb, var(--color-monitor) 14%, transparent);
-    }
-  }
-
   @keyframes status-pulse {
     0%,
     100% {
@@ -475,25 +464,6 @@
     overflow: hidden;
   }
 
-  .server-row-flash {
-    animation: motion-row-flash 600ms ease-out;
-  }
-
-  .dark .server-row-flash {
-    animation-name: motion-row-flash-dark;
-  }
-
-  @keyframes motion-row-flash-dark {
-    0%,
-    100% {
-      background-color: transparent;
-    }
-
-    30% {
-      background-color: color-mix(in srgb, var(--color-warning) 10%, transparent);
-    }
-  }
-
   .status-pulse-dot {
     animation: status-pulse 2s ease-in-out infinite;
   }
@@ -505,7 +475,6 @@
     .motion-chart-reveal,
     .metric-stat-grid > *,
     .metric-chart-grid > *,
-    .server-row-flash,
     .status-pulse-dot {
       animation: none !important;
       opacity: 1;

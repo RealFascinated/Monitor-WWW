@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react"
+import { createContext, useContext } from "react"
 import type { ReactNode } from "react"
 import type { Row } from "@tanstack/react-table"
 import { GripVertical } from "lucide-react"
@@ -18,35 +18,6 @@ type ServerRowDragConfig = {
   getServerLabel: (row: Row<ServerTableRow>) => string
   onDragStart: (rowId: string) => void
   onDragEnd: () => void
-}
-
-function useRowUpdateFlash(server: ServerResponse) {
-  const previousRef = useRef<{
-    status: ServerResponse["status"]
-    cpu: number | null | undefined
-  } | null>(null)
-  const [flash, setFlash] = useState(false)
-
-  useEffect(() => {
-    const previous = previousRef.current
-    const next = { status: server.status, cpu: server.cpuPercent }
-
-    if (previous == null) {
-      previousRef.current = next
-      return
-    }
-
-    if (previous.status === next.status && previous.cpu === next.cpu) {
-      return
-    }
-
-    previousRef.current = next
-    setFlash(true)
-    const timeout = window.setTimeout(() => setFlash(false), 600)
-    return () => window.clearTimeout(timeout)
-  }, [server.status, server.cpuPercent])
-
-  return flash
 }
 
 export function ServerTableRowProvider({
@@ -86,15 +57,9 @@ export function ServerTableDataRow({
   row: Row<ServerTableRow>
   rowDrag?: ServerRowDragConfig
 }) {
-  const server = useServerTableRow()
-  const flash = useRowUpdateFlash(server)
-
   return (
     <TableRow
-      className={cn(
-        rowDrag?.draggingRowId === row.id && "opacity-40",
-        flash && "server-row-flash"
-      )}
+      className={cn(rowDrag?.draggingRowId === row.id && "opacity-40")}
     >
       {rowDrag ? (
         <TableCell className="w-0 px-2">
