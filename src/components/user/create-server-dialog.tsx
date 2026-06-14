@@ -41,10 +41,19 @@ import { toastMutationError } from "@/lib/toast"
 const NO_FOLDER_VALUE = "__none__"
 const NEW_FOLDER_VALUE = "__new__"
 
-function CreateServerDialog() {
+type CreateServerDialogProps = {
+  defaultFolderName?: string
+  trigger?: React.ReactNode
+}
+
+function CreateServerDialog({
+  defaultFolderName,
+  trigger,
+}: CreateServerDialogProps = {}) {
+  const initialFolderChoice = defaultFolderName ?? NO_FOLDER_VALUE
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
-  const [folderChoice, setFolderChoice] = useState(NO_FOLDER_VALUE)
+  const [folderChoice, setFolderChoice] = useState(initialFolderChoice)
   const [newFolderName, setNewFolderName] = useState("")
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [folderError, setFolderError] = useState<string | null>(null)
@@ -75,7 +84,7 @@ function CreateServerDialog() {
 
   function resetForm() {
     setName("")
-    setFolderChoice(NO_FOLDER_VALUE)
+    setFolderChoice(initialFolderChoice)
     setNewFolderName("")
     setFieldError(null)
     setFolderError(null)
@@ -89,7 +98,14 @@ function CreateServerDialog() {
 
     setOpen(nextOpen)
 
-    if (!nextOpen) {
+    if (nextOpen) {
+      setName("")
+      setFolderChoice(initialFolderChoice)
+      setNewFolderName("")
+      setFieldError(null)
+      setFolderError(null)
+      setCreatedServer(null)
+    } else {
       resetForm()
     }
   }
@@ -131,10 +147,12 @@ function CreateServerDialog() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button type="button" variant="highlighted" size="sm">
-          <Plus />
-          Create server
-        </Button>
+        {trigger ?? (
+          <Button type="button" variant="highlighted" size="sm">
+            <Plus />
+            Create server
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="rounded-sm border border-neutral-200 sm:max-w-2xl dark:border-monitor-gray-300">
         {createdServer ? (

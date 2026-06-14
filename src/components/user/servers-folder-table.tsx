@@ -4,10 +4,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
-import { GripVertical } from "lucide-react"
+import { GripVertical, Plus } from "lucide-react"
 import type { DragEvent } from "react"
 import { memo, useMemo, useState } from "react"
 
+import { CreateServerDialog } from "@/components/user/create-server-dialog"
+import { CountBadge } from "@/components/count-badge"
 import { DeleteFolderButton } from "@/components/user/delete-folder-button"
 import { RenameFolderDialog } from "@/components/user/rename-folder-dialog"
 import type { ServerTableRow } from "@/components/user/server-table-columns"
@@ -171,6 +173,19 @@ function ServersFolderTableInner({
       }
     : undefined
 
+  const rowDrag = editMode
+    ? {
+        draggingRowId:
+          draggingServerId != null ? String(draggingServerId) : null,
+        getServerId: (tableRow: { original: ServerTableRow }) =>
+          tableRow.original.serverId,
+        getServerLabel: (tableRow: { original: ServerTableRow }) =>
+          tableRow.original.server.serverName,
+        onDragStart: onServerDragStart,
+        onDragEnd: onServerDragEnd,
+      }
+    : undefined
+
   return (
     <section
       className={cn(
@@ -198,18 +213,32 @@ function ServersFolderTableInner({
             <GripVertical className="size-4" aria-hidden />
           </button>
         ) : null}
-        <h3 className="min-w-0 flex-1 truncate text-sm font-bold dark:text-white">
-          {title}
-        </h3>
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <h3 className="min-w-0 truncate text-sm font-bold dark:text-white">
+            {title}
+          </h3>
+          {!editMode && folderName != null ? (
+            <CreateServerDialog
+              defaultFolderName={folderName}
+              trigger={
+                <button
+                  type="button"
+                  aria-label={`Create server in ${title}`}
+                  className="flex size-5 shrink-0 items-center justify-center rounded-sm text-neutral-400 transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <Plus className="size-3" />
+                </button>
+              }
+            />
+          ) : null}
+        </div>
         {editMode && folderId != null ? (
           <div className="flex shrink-0 items-center">
             <RenameFolderDialog folderId={folderId} currentName={title} />
             <DeleteFolderButton folderId={folderId} folderName={title} />
           </div>
         ) : null}
-        <span className="shrink-0 text-xs text-neutral-400 tabular-nums">
-          {serverIds.length}
-        </span>
+        <CountBadge count={serverIds.length} hideZero={false} />
       </div>
 
       {serverIds.length > 0 ? (
@@ -226,26 +255,9 @@ function ServersFolderTableInner({
         >
           <DataTable
             table={table}
+            rowDrag={rowDrag}
             renderRow={(row) => (
-              <ServerTableDataRow
-                key={row.id}
-                row={row}
-                rowDrag={
-                  editMode
-                    ? {
-                        draggingRowId:
-                          draggingServerId != null
-                            ? String(draggingServerId)
-                            : null,
-                        getServerId: (tableRow) => tableRow.original.serverId,
-                        getServerLabel: (tableRow) =>
-                          tableRow.original.server.serverName,
-                        onDragStart: onServerDragStart,
-                        onDragEnd: onServerDragEnd,
-                      }
-                    : undefined
-                }
-              />
+              <ServerTableDataRow key={row.id} row={row} rowDrag={rowDrag} />
             )}
           />
         </div>

@@ -110,7 +110,7 @@ function AuthenticatedLayout() {
       <div
         style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}
         className={cn(
-          "lg:pl-[var(--sidebar-width)]",
+          "lg:pl-(--sidebar-width)",
           !sidebarIsResizing && "transition-[padding] duration-200"
         )}
       >

@@ -16,6 +16,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
+import { CountBadge } from "@/components/count-badge"
 import { MonitorLogo } from "@/components/monitor-logo"
 import { CollapsiblePanel } from "@/components/collapsible-panel"
 import { SimpleTooltip } from "@/components/simple-tooltip"
@@ -70,39 +71,6 @@ const statusDotStyles: Record<ServerStatus, string> = {
   PENDING: "bg-amber-500",
 }
 
-function SidebarNavCountBadge({
-  count,
-  compact,
-}: {
-  count: number
-  compact: boolean
-}) {
-  if (count < 1) {
-    return null
-  }
-
-  const label = count > 99 ? "99+" : String(count)
-
-  if (compact) {
-    return (
-      <span
-        aria-hidden
-        className="absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-monitor px-0.5 text-[9px] leading-none font-semibold text-white tabular-nums dark:bg-warning dark:text-black"
-      >
-        {count > 9 ? "9+" : label}
-      </span>
-    )
-  }
-
-  return (
-    <span
-      aria-hidden
-      className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-monitor px-1 text-[10px] leading-none font-semibold text-white tabular-nums dark:bg-warning dark:text-black"
-    >
-      {label}
-    </span>
-  )
-}
 
 function SidebarNavLink({
   compact,
@@ -139,11 +107,11 @@ function SidebarNavLink({
     >
       <span className="relative shrink-0">
         <Icon className="size-4" />
-        {compact ? <SidebarNavCountBadge count={badgeCount} compact /> : null}
+        {compact ? <CountBadge count={badgeCount} variant="accent" compact /> : null}
       </span>
       {!compact ? <span className="truncate">{label}</span> : null}
       {!compact ? (
-        <SidebarNavCountBadge count={badgeCount} compact={false} />
+        <CountBadge count={badgeCount} variant="accent" className="ml-auto" />
       ) : null}
     </Link>
   )
@@ -381,9 +349,7 @@ const SidebarFolderGroup = memo(function SidebarFolderGroup({
             )}
           />
           <span className="truncate">{folderName}</span>
-          <span className="ml-auto shrink-0 text-[10px] text-muted-foreground tabular-nums">
-            {serverIds.length}
-          </span>
+          <CountBadge count={serverIds.length} className="ml-auto" />
         </button>
       </div>
 
