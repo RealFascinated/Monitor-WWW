@@ -92,7 +92,7 @@ function AuthenticatedLayout() {
   }
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="bg-background">
       <AppSidebar
         user={user}
         width={sidebarWidth}
