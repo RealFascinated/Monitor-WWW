@@ -20,6 +20,7 @@ import { MonitorLogo } from "@/components/monitor-logo"
 import { CollapsiblePanel } from "@/components/collapsible-panel"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
+import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { filterServerIdsBySearch } from "@/components/user/server-table-columns"
@@ -747,6 +748,19 @@ export function AppSidebar({
             compact && "items-center px-2"
           )}
         >
+          <div
+            className={cn(
+              "flex w-full items-center gap-3",
+              compact ? "justify-center" : "justify-between"
+            )}
+          >
+            {!compact ? (
+              <span className="text-sm font-medium text-muted-foreground">
+                Theme
+              </span>
+            ) : null}
+            <ThemeSwitcher />
+          </div>
           {compact ? (
             <Button
               type="button"
