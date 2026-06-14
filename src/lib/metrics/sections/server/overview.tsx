@@ -3,7 +3,6 @@ import { useUserServer } from "@/hooks/use-user-server"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import {
   formatMemoryBytes,
-  formatMemoryUsage,
   formatPercentValue,
   memoryUsagePercent,
 } from "@/lib/formatter"
@@ -42,7 +41,8 @@ function OverviewStats({ serverId }: { serverId: number }) {
       <MetricStatCard
         key="cpu"
         title="CPU"
-        value={formatPercentValue(cpuUsage)}
+        value={cpuUsage}
+        formatValue={formatPercentValue}
         detail={cpuModel ?? undefined}
         valueClassName={percentLevelColorClass(cpuUsage)}
       />
@@ -51,7 +51,10 @@ function OverviewStats({ serverId }: { serverId: number }) {
       <MetricStatCard
         key="memory"
         title="Memory"
-        value={formatMemoryUsage(memUsage, memTotal)}
+        value={memPercent ?? 0}
+        formatValue={(value) =>
+          memPercent == null ? "—" : formatPercentValue(value)
+        }
         detail={
           memTotal != null
             ? `${formatMemoryBytes(memUsage)} of ${formatMemoryBytes(memTotal)}`
@@ -64,7 +67,10 @@ function OverviewStats({ serverId }: { serverId: number }) {
       <MetricStatCard
         key="disk"
         title="Root Disk"
-        value={formatMemoryUsage(diskUsage, diskTotal)}
+        value={diskPercent ?? 0}
+        formatValue={(value) =>
+          diskPercent == null ? "—" : formatPercentValue(value)
+        }
         detail={
           diskTotal != null
             ? `${formatMemoryBytes(diskUsage)} of ${formatMemoryBytes(diskTotal)}`

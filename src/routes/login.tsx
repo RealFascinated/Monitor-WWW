@@ -51,7 +51,7 @@ function LoginPage() {
       <div className="absolute top-4 right-4">
         <ThemeSwitcher />
       </div>
-      <Card className="w-full max-w-md">
+      <Card className="motion-auth-card w-full max-w-md">
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
           <CardDescription>

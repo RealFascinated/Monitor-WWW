@@ -44,7 +44,7 @@ export function formatPercent(value: number | null): string {
 function formatDecimal(value: number, maximumFractionDigits: number): string {
   return new Intl.NumberFormat(undefined, {
     maximumFractionDigits,
-    minimumFractionDigits: 0,
+    minimumFractionDigits: maximumFractionDigits,
   }).format(value)
 }
 

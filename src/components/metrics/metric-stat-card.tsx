@@ -1,9 +1,11 @@
+import { CountUp } from "@/components/count-up"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 type MetricStatCardProps = {
   title: string
-  value: string
+  value: number
+  formatValue: (value: number) => string
   detail?: string
   valueClassName?: string
 }
@@ -11,6 +13,7 @@ type MetricStatCardProps = {
 function MetricStatCard({
   title,
   value,
+  formatValue,
   detail,
   valueClassName,
 }: MetricStatCardProps) {
@@ -20,14 +23,14 @@ function MetricStatCard({
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {title}
         </p>
-        <p
+        <CountUp
+          value={value}
+          format={formatValue}
           className={cn(
             "font-mono text-3xl font-semibold text-foreground tabular-nums",
             valueClassName
           )}
-        >
-          {value}
-        </p>
+        />
         {detail ? (
           <p className="text-sm text-muted-foreground">{detail}</p>
         ) : null}

@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
 import { MonitorLogo } from "@/components/monitor-logo"
+import { CollapsiblePanel } from "@/components/collapsible-panel"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
@@ -382,20 +383,18 @@ const SidebarFolderGroup = memo(function SidebarFolderGroup({
         </button>
       </div>
 
-      {expanded ? (
-        <div className="flex flex-col gap-px pb-0.5">
-          {serverIds.map((serverId) => (
-            <SidebarServerItem
-              key={serverId}
-              serverId={serverId}
-              compact={compact}
-              detailed={detailed}
-              onNavigate={onNavigate}
-              nested
-            />
-          ))}
-        </div>
-      ) : null}
+      <CollapsiblePanel open={expanded} className="flex flex-col gap-px pb-0.5">
+        {serverIds.map((serverId) => (
+          <SidebarServerItem
+            key={serverId}
+            serverId={serverId}
+            compact={compact}
+            detailed={detailed}
+            onNavigate={onNavigate}
+            nested
+          />
+        ))}
+      </CollapsiblePanel>
     </div>
   )
 })

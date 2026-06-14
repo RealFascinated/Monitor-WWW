@@ -4,6 +4,7 @@ import { useCallback } from "react"
 
 import { AdminMetricsHeader } from "@/components/admin/admin-metrics-header"
 import { AdminMetricsView } from "@/components/admin/admin-metrics-view"
+import { AnimatedContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { adminMetricsQueryOptions } from "@/lib/api/admin/metrics.queries"
@@ -81,13 +82,15 @@ function AdminMetricsPage() {
       ) : null}
 
       {metrics && dataWindow && !errorMessage ? (
-        <AdminMetricsView
-          metrics={metrics}
-          timeWindow={timeWindow}
-          dataWindow={dataWindow}
-          onZoomToRange={handleZoomToRange}
-          zoomDisabled={isFetching}
-        />
+        <AnimatedContent>
+          <AdminMetricsView
+            metrics={metrics}
+            timeWindow={timeWindow}
+            dataWindow={dataWindow}
+            onZoomToRange={handleZoomToRange}
+            zoomDisabled={isFetching}
+          />
+        </AnimatedContent>
       ) : null}
     </section>
   )

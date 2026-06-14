@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useCallback } from "react"
 
+import { AnimatedContent } from "@/components/animated-content"
 import { LoadingState } from "@/components/loading-state"
 import { Callout } from "@/components/callout"
 import { ServerAgentSetupDialog } from "@/components/server/server-agent-setup-dialog"
@@ -108,13 +109,15 @@ function ServerMetricsPage() {
         ) : null}
 
         {metrics && dataWindow && !errorMessage ? (
-          <ServerMetricsView
-            metrics={metrics}
-            timeWindow={timeWindow}
-            dataWindow={dataWindow}
-            onZoomToRange={handleZoomToRange}
-            zoomDisabled={isFetching}
-          />
+          <AnimatedContent>
+            <ServerMetricsView
+              metrics={metrics}
+              timeWindow={timeWindow}
+              dataWindow={dataWindow}
+              onZoomToRange={handleZoomToRange}
+              zoomDisabled={isFetching}
+            />
+          </AnimatedContent>
         ) : null}
       </div>
     </section>

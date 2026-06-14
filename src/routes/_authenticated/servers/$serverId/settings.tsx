@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 
+import { AnimatedContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { ServerSettingsHeader } from "@/components/server/server-settings-header"
@@ -56,11 +57,13 @@ function ServerSettingsPage() {
       ) : null}
 
       {!errorMessage && access && server ? (
-        <ServerSettingsView
-          serverId={numericServerId}
-          server={server}
-          access={access}
-        />
+        <AnimatedContent>
+          <ServerSettingsView
+            serverId={numericServerId}
+            server={server}
+            access={access}
+          />
+        </AnimatedContent>
       ) : null}
     </section>
   )

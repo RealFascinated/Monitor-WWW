@@ -16,10 +16,16 @@ function ServerStatusBadge({ status }: { status: ServerStatus }) {
     <SimpleTooltip content={SERVER_STATUS_TOOLTIPS[status]}>
       <span
         className={cn(
-          "inline-flex cursor-help rounded-sm px-2 py-0.5 text-xs font-medium",
+          "inline-flex cursor-help items-center gap-1.5 rounded-sm px-2 py-0.5 text-xs font-medium",
           statusStyles[status]
         )}
       >
+        {status === "ONLINE" ? (
+          <span
+            aria-hidden
+            className="size-1.5 shrink-0 rounded-full bg-current status-pulse-dot"
+          />
+        ) : null}
         {status}
       </span>
     </SimpleTooltip>

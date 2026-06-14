@@ -26,6 +26,7 @@ type DataTableProps<TData> = {
   table: TanStackTable<TData>
   rowDrag?: RowDragConfig<TData>
   renderRowCells?: (row: Row<TData>) => ReactNode
+  renderRow?: (row: Row<TData>) => ReactNode
 }
 
 function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
@@ -44,6 +45,7 @@ function DataTable<TData>({
   table,
   rowDrag,
   renderRowCells,
+  renderRow,
 }: DataTableProps<TData>) {
   return (
     <Table>
@@ -101,46 +103,56 @@ function DataTable<TData>({
         ))}
       </TableHeader>
       <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow
-            key={row.id}
-            className={cn(rowDrag?.draggingRowId === row.id && "opacity-40")}
-          >
-            {rowDrag ? (
-              <TableCell className="w-0 px-2">
-                <button
-                  type="button"
-                  draggable
-                  aria-label={`Move ${rowDrag.getServerLabel(row)}`}
-                  className="flex cursor-grab items-center text-neutral-400 hover:text-neutral-600 active:cursor-grabbing dark:hover:text-neutral-300"
-                  onDragStart={(event) => {
-                    const serverId = rowDrag.getServerId(row)
-                    event.dataTransfer.effectAllowed = "move"
-                    event.dataTransfer.setData(
-                      SERVER_DRAG_MIME,
-                      String(serverId)
-                    )
-                    event.dataTransfer.setData("text/plain", String(serverId))
-                    rowDrag.onDragStart(row.id)
-                  }}
-                  onDragEnd={rowDrag.onDragEnd}
-                >
-                  <GripVertical className="size-4" aria-hidden />
-                </button>
-              </TableCell>
-            ) : null}
-            {renderRowCells
-              ? renderRowCells(row)
-              : row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className={cell.column.columnDef.meta?.className}
+        {table.getRowModel().rows.map((row) =>
+          renderRow ? (
+            renderRow(row)
+          ) : (
+            <TableRow
+              key={row.id}
+              className={cn(rowDrag?.draggingRowId === row.id && "opacity-40")}
+            >
+              {rowDrag ? (
+                <TableCell className="w-0 px-2">
+                  <button
+                    type="button"
+                    draggable
+                    aria-label={`Move ${rowDrag.getServerLabel(row)}`}
+                    className="flex cursor-grab items-center text-neutral-400 hover:text-neutral-600 active:cursor-grabbing dark:hover:text-neutral-300"
+                    onDragStart={(event) => {
+                      const serverId = rowDrag.getServerId(row)
+                      event.dataTransfer.effectAllowed = "move"
+                      event.dataTransfer.setData(
+                        SERVER_DRAG_MIME,
+                        String(serverId)
+                      )
+                      event.dataTransfer.setData(
+                        "text/plain",
+                        String(serverId)
+                      )
+                      rowDrag.onDragStart(row.id)
+                    }}
+                    onDragEnd={rowDrag.onDragEnd}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-          </TableRow>
-        ))}
+                    <GripVertical className="size-4" aria-hidden />
+                  </button>
+                </TableCell>
+              ) : null}
+              {renderRowCells
+                ? renderRowCells(row)
+                : row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cell.column.columnDef.meta?.className}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+            </TableRow>
+          )
+        )}
       </TableBody>
     </Table>
   )

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { formatPercent } from "@/lib/formatter"
 import { percentLevelColorClass } from "@/lib/metrics/percent-level"
+import { CollapsiblePanel } from "@/components/collapsible-panel"
 import { cn } from "@/lib/utils"
 import {
   collectGroupIds,
@@ -165,21 +166,19 @@ function NavGroup({
         ) : null}
       </button>
 
-      {expanded ? (
-        <div className="flex flex-col gap-px pb-0.5">
-          {group.children.map((child) => (
-            <NavNode
-              key={child.id}
-              node={child}
-              activeId={activeId}
-              depth={depth + 1}
-              expandedGroups={expandedGroups}
-              onToggle={onToggle}
-              onScrollToSection={onScrollToSection}
-            />
-          ))}
-        </div>
-      ) : null}
+      <CollapsiblePanel open={expanded} className="flex flex-col gap-px pb-0.5">
+        {group.children.map((child) => (
+          <NavNode
+            key={child.id}
+            node={child}
+            activeId={activeId}
+            depth={depth + 1}
+            expandedGroups={expandedGroups}
+            onToggle={onToggle}
+            onScrollToSection={onScrollToSection}
+          />
+        ))}
+      </CollapsiblePanel>
     </div>
   )
 }

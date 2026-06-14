@@ -11,6 +11,7 @@ import {
   getServerTableColumns,
 } from "@/components/user/server-table-columns"
 import { ServersFolderTable } from "@/components/user/servers-folder-table"
+import { AnimatedContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { Button } from "@/components/ui/button"
@@ -267,20 +268,6 @@ function ServersTable() {
         </div>
       </div>
 
-      {!isLoading && servers.length > 0 ? (
-        <FleetSummaryCards servers={servers} />
-      ) : null}
-
-      {editMode && (canOrganize || canReorderFolders) ? (
-        <p className="text-xs text-neutral-500">
-          {canOrganize && canReorderFolders
-            ? "Drag servers into folders, or drag folder headers to reorder."
-            : canOrganize
-              ? "Drag servers by the grip handle into a folder to organize them."
-              : "Drag folder headers to reorder them."}
-        </p>
-      ) : null}
-
       {errorMessage ? (
         <Callout type="danger" title="Could not load servers">
           {errorMessage}
@@ -289,57 +276,73 @@ function ServersTable() {
 
       {isLoading ? <LoadingState message="Loading servers…" /> : null}
 
-      {!isLoading && serverIds.length === 0 && folders.length === 0 ? (
-        <p className="text-neutral-500">No servers registered yet.</p>
-      ) : null}
-
-      {!isLoading &&
-      hasContent &&
-      searchQuery.trim() !== "" &&
-      visibleSectionCount === 0 &&
-      !hasEmptyFolderSections &&
-      !hasEmptyUngroupedSection ? (
-        <p className="text-neutral-500">No servers match your search.</p>
-      ) : null}
-
-      {!isLoading &&
-      (folderSections.some(
-        ({ serverIds: sectionServerIds }) =>
-          searchQuery.trim() === "" || sectionServerIds.length > 0
-      ) ||
-        filteredUngroupedIds.length > 0 ||
-        folders.length > 0) ? (
-        <div className="flex flex-col">
-          {folderSections
-            .filter(
-              ({ serverIds: sectionServerIds }) =>
-                searchQuery.trim() === "" || sectionServerIds.length > 0
-            )
-            .map(({ folder, serverIds: sectionServerIds }) => (
-              <ServersFolderTable
-                key={folder.id}
-                title={folder.name}
-                folderId={folder.id}
-                folderName={folder.name}
-                dropTargetKey={`folder:${folder.id}`}
-                isDropTarget={activeDropTargetKey === `folder:${folder.id}`}
-                canAcceptServerDrop={canAcceptServerDrop(folder.name)}
-                serverIds={sectionServerIds}
-                {...folderTableProps}
-              />
-            ))}
-          {showUngroupedSection ? (
-            <ServersFolderTable
-              title="Ungrouped"
-              folderName={null}
-              dropTargetKey="ungrouped"
-              isDropTarget={activeDropTargetKey === "ungrouped"}
-              canAcceptServerDrop={canAcceptServerDrop(null)}
-              serverIds={filteredUngroupedIds}
-              {...folderTableProps}
-            />
+      {!isLoading ? (
+        <AnimatedContent className="flex flex-col gap-6">
+          {servers.length > 0 ? (
+            <FleetSummaryCards servers={servers} />
           ) : null}
-        </div>
+
+          {editMode && (canOrganize || canReorderFolders) ? (
+            <p className="text-xs text-neutral-500">
+              {canOrganize && canReorderFolders
+                ? "Drag servers into folders, or drag folder headers to reorder."
+                : canOrganize
+                  ? "Drag servers by the grip handle into a folder to organize them."
+                  : "Drag folder headers to reorder them."}
+            </p>
+          ) : null}
+
+          {serverIds.length === 0 && folders.length === 0 ? (
+            <p className="text-neutral-500">No servers registered yet.</p>
+          ) : null}
+
+          {hasContent &&
+          searchQuery.trim() !== "" &&
+          visibleSectionCount === 0 &&
+          !hasEmptyFolderSections &&
+          !hasEmptyUngroupedSection ? (
+            <p className="text-neutral-500">No servers match your search.</p>
+          ) : null}
+
+          {folderSections.some(
+            ({ serverIds: sectionServerIds }) =>
+              searchQuery.trim() === "" || sectionServerIds.length > 0
+          ) ||
+          filteredUngroupedIds.length > 0 ||
+          folders.length > 0 ? (
+            <div className="flex flex-col">
+              {folderSections
+                .filter(
+                  ({ serverIds: sectionServerIds }) =>
+                    searchQuery.trim() === "" || sectionServerIds.length > 0
+                )
+                .map(({ folder, serverIds: sectionServerIds }) => (
+                  <ServersFolderTable
+                    key={folder.id}
+                    title={folder.name}
+                    folderId={folder.id}
+                    folderName={folder.name}
+                    dropTargetKey={`folder:${folder.id}`}
+                    isDropTarget={activeDropTargetKey === `folder:${folder.id}`}
+                    canAcceptServerDrop={canAcceptServerDrop(folder.name)}
+                    serverIds={sectionServerIds}
+                    {...folderTableProps}
+                  />
+                ))}
+              {showUngroupedSection ? (
+                <ServersFolderTable
+                  title="Ungrouped"
+                  folderName={null}
+                  dropTargetKey="ungrouped"
+                  isDropTarget={activeDropTargetKey === "ungrouped"}
+                  canAcceptServerDrop={canAcceptServerDrop(null)}
+                  serverIds={filteredUngroupedIds}
+                  {...folderTableProps}
+                />
+              ) : null}
+            </div>
+          ) : null}
+        </AnimatedContent>
       ) : null}
     </div>
   )

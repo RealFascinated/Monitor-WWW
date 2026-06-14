@@ -7,6 +7,7 @@ import {
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
+import { AnimatedContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
@@ -174,11 +175,15 @@ function UserPendingInvites() {
         <LoadingState message="Loading invites…" />
       ) : null}
 
-      {!isPending && !errorMessage && invites.length === 0 ? (
-        <p className="text-neutral-500">No pending invites.</p>
-      ) : null}
+      {!isPending && !errorMessage ? (
+        <AnimatedContent className="flex flex-col gap-3">
+          {invites.length === 0 ? (
+            <p className="text-neutral-500">No pending invites.</p>
+          ) : null}
 
-      {invites.length > 0 ? <DataTable table={table} /> : null}
+          {invites.length > 0 ? <DataTable table={table} /> : null}
+        </AnimatedContent>
+      ) : null}
     </div>
   )
 }

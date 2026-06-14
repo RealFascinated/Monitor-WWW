@@ -53,7 +53,7 @@ function RegisterPage() {
   if (settingsError) {
     return (
       <AuthPageShell>
-        <Card className="w-full max-w-md">
+        <Card className="motion-auth-card w-full max-w-md">
           <CardContent className="pt-6">
             <Callout type="danger" title="Could not load registration status">
               Try refreshing the page. If the problem continues, contact an
@@ -68,7 +68,7 @@ function RegisterPage() {
   if (!isRegistrationEnabled(settings)) {
     return (
       <AuthPageShell>
-        <Card className="w-full max-w-md">
+        <Card className="motion-auth-card w-full max-w-md">
           <CardHeader className="items-center text-center">
             <div className="mb-1 flex size-12 items-center justify-center rounded-full bg-muted">
               <UserRoundX className="size-6 text-muted-foreground" />
@@ -94,7 +94,7 @@ function RegisterPage() {
 
   return (
     <AuthPageShell>
-      <Card className="w-full max-w-md">
+      <Card className="motion-auth-card w-full max-w-md">
         <CardHeader>
           <CardTitle>Create account</CardTitle>
           <CardDescription>

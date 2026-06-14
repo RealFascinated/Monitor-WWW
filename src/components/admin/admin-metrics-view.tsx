@@ -1,6 +1,10 @@
 import { useMemo } from "react"
 
 import { Callout } from "@/components/callout"
+import {
+  AdminOverviewStats,
+  adminOverviewHasData,
+} from "@/components/admin/admin-overview-stats"
 import { MetricsView } from "@/components/metrics/metrics-view"
 import type { AdminMetricsResponse } from "@/lib/api/admin/metrics"
 import { chartsHaveData } from "@/lib/metrics/chart-config"
@@ -61,6 +65,9 @@ function AdminMetricsView({
               : `No chart data is available for the ${rangeLabel}. Try a shorter or more recent time range.`}
           </p>
         </Callout>
+      ) : null}
+      {adminOverviewHasData(metrics) ? (
+        <AdminOverviewStats metrics={metrics} />
       ) : null}
       {sections.length > 0 ? (
         <MetricsView

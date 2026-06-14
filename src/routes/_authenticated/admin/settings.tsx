@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { AdminSettingsHeader } from "@/components/admin/admin-settings-header"
 import { AdminSettingsView } from "@/components/admin/admin-settings-view"
+import { AnimatedContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { adminSettingsQueryOptions } from "@/lib/api/admin/settings.queries"
@@ -49,7 +50,9 @@ function AdminSettingsPage() {
       ) : null}
 
       {settings && !errorMessage ? (
-        <AdminSettingsView settings={settings} />
+        <AnimatedContent>
+          <AdminSettingsView settings={settings} />
+        </AnimatedContent>
       ) : null}
     </section>
   )

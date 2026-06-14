@@ -333,6 +333,19 @@
 
   .metric-chart-grid > * {
     min-width: 0;
+    animation: motion-fade-in-up 400ms ease-out both;
+  }
+
+  .metric-chart-grid > *:nth-child(2) {
+    animation-delay: 75ms;
+  }
+
+  .metric-chart-grid > *:nth-child(3) {
+    animation-delay: 150ms;
+  }
+
+  .metric-chart-grid > *:nth-child(n + 4) {
+    animation-delay: 225ms;
   }
 
   @container (min-width: 64rem) {
@@ -357,6 +370,151 @@
   .metric-stat-grid > * {
     flex: 1 1 100%;
     min-width: 0;
+    animation: motion-fade-in-up 400ms ease-out both;
+  }
+
+  .metric-stat-grid > *:nth-child(2) {
+    animation-delay: 75ms;
+  }
+
+  .metric-stat-grid > *:nth-child(3) {
+    animation-delay: 150ms;
+  }
+
+  .metric-stat-grid > *:nth-child(4) {
+    animation-delay: 225ms;
+  }
+
+  .metric-stat-grid > *:nth-child(n + 5) {
+    animation-delay: 300ms;
+  }
+
+  @keyframes motion-fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes motion-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes motion-auth-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes motion-row-flash {
+    0%,
+    100% {
+      background-color: transparent;
+    }
+
+    30% {
+      background-color: color-mix(in srgb, var(--color-monitor) 14%, transparent);
+    }
+  }
+
+  @keyframes status-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  .motion-callout {
+    animation: motion-fade-in-up 300ms ease-out both;
+  }
+
+  .motion-enter {
+    animation: motion-fade-in 300ms ease-out both;
+  }
+
+  .motion-auth-card {
+    animation: motion-auth-enter 400ms ease-out both;
+  }
+
+  .motion-chart-reveal {
+    animation: motion-fade-in 400ms ease-out both;
+  }
+
+  .motion-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 200ms ease-out;
+  }
+
+  .motion-collapsible-open {
+    grid-template-rows: 1fr;
+  }
+
+  .motion-collapsible-inner {
+    overflow: hidden;
+  }
+
+  .server-row-flash {
+    animation: motion-row-flash 600ms ease-out;
+  }
+
+  .dark .server-row-flash {
+    animation-name: motion-row-flash-dark;
+  }
+
+  @keyframes motion-row-flash-dark {
+    0%,
+    100% {
+      background-color: transparent;
+    }
+
+    30% {
+      background-color: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    }
+  }
+
+  .status-pulse-dot {
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-enter,
+    .motion-callout,
+    .motion-auth-card,
+    .motion-chart-reveal,
+    .metric-stat-grid > *,
+    .metric-chart-grid > *,
+    .server-row-flash,
+    .status-pulse-dot {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
+
+    .motion-collapsible {
+      transition: none;
+    }
   }
 
   @container (min-width: 26rem) {

@@ -1,6 +1,6 @@
 import { MetricStatCard } from "@/components/metrics/metric-stat-card"
 import type { ServerResponse } from "@/lib/api/user/servers"
-import { formatPercent } from "@/lib/formatter"
+import { formatCount, formatPercentValue } from "@/lib/formatter"
 import { percentLevelColorClass } from "@/lib/metrics/percent-level"
 import { computeFleetSummary } from "@/lib/servers/fleet-summary"
 import { cn } from "@/lib/utils"
@@ -34,7 +34,8 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
     <div className="metric-stat-grid">
       <MetricStatCard
         title="Fleet status"
-        value={`${summary.online} online`}
+        value={summary.online}
+        formatValue={(value) => `${formatCount(Math.round(value))} online`}
         detail={`${summary.offline} offline · ${summary.pending} pending`}
         valueClassName={cn(
           summary.online > 0 && summary.offline === 0
@@ -46,7 +47,10 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
       />
       <MetricStatCard
         title="Avg CPU"
-        value={formatPercent(summary.avgCpuPercent)}
+        value={summary.avgCpuPercent ?? 0}
+        formatValue={(value) =>
+          summary.avgCpuPercent == null ? "—" : formatPercentValue(value)
+        }
         detail={onlineMetricDetail(
           summary.avgCpuPercent,
           summary.onlineWithCpuCount,
@@ -56,7 +60,10 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
       />
       <MetricStatCard
         title="Avg memory"
-        value={formatPercent(summary.avgMemPercent)}
+        value={summary.avgMemPercent ?? 0}
+        formatValue={(value) =>
+          summary.avgMemPercent == null ? "—" : formatPercentValue(value)
+        }
         detail={onlineMetricDetail(
           summary.avgMemPercent,
           summary.onlineWithMemCount,
@@ -66,7 +73,8 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
       />
       <MetricStatCard
         title="Needs attention"
-        value={String(attentionCount)}
+        value={attentionCount}
+        formatValue={(value) => formatCount(Math.round(value))}
         detail={attentionDetail}
         valueClassName={cn(
           attentionCount === 0

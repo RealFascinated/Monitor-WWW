@@ -12,7 +12,7 @@ import { DeleteFolderButton } from "@/components/user/delete-folder-button"
 import { RenameFolderDialog } from "@/components/user/rename-folder-dialog"
 import type { ServerTableRow } from "@/components/user/server-table-columns"
 import {
-  ServerTableRowCells,
+  ServerTableDataRow,
   ServerTableRowProvider,
 } from "@/components/user/server-table-row"
 import { DataTable } from "@/components/ui/data-table"
@@ -230,26 +230,31 @@ function ServersFolderTableInner({
         >
           <DataTable
             table={table}
-            renderRowCells={(row) => (
-              <ServerTableRowProvider serverId={row.original.serverId}>
-                <ServerTableRowCells row={row} />
+            renderRow={(row) => (
+              <ServerTableRowProvider
+                key={row.id}
+                serverId={row.original.serverId}
+              >
+                <ServerTableDataRow
+                  row={row}
+                  rowDrag={
+                    editMode
+                      ? {
+                          draggingRowId:
+                            draggingServerId != null
+                              ? String(draggingServerId)
+                              : null,
+                          getServerId: (tableRow) => tableRow.original.serverId,
+                          getServerLabel: (tableRow) =>
+                            getServerName(tableRow.original.serverId),
+                          onDragStart: onServerDragStart,
+                          onDragEnd: onServerDragEnd,
+                        }
+                      : undefined
+                  }
+                />
               </ServerTableRowProvider>
             )}
-            rowDrag={
-              editMode
-                ? {
-                    draggingRowId:
-                      draggingServerId != null
-                        ? String(draggingServerId)
-                        : null,
-                    getServerId: (row) => row.original.serverId,
-                    getServerLabel: (row) =>
-                      getServerName(row.original.serverId),
-                    onDragStart: onServerDragStart,
-                    onDragEnd: onServerDragEnd,
-                  }
-                : undefined
-            }
           />
         </div>
       ) : (
