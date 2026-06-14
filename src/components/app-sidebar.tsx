@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
-import { memo, useEffect, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
@@ -449,25 +449,32 @@ function SidebarServerList({
     initial.add(UNGROUPED_SIDEBAR_KEY)
     return initial
   })
+  const prevFolderNamesKeyRef = useRef(folderNamesKey)
 
   useEffect(() => {
+    if (prevFolderNamesKeyRef.current === folderNamesKey) {
+      return
+    }
+
+    const prevNames = new Set(prevFolderNamesKeyRef.current.split("\0"))
+    const newNames = folderNamesKey
+      .split("\0")
+      .filter((name) => !prevNames.has(name))
+
+    prevFolderNamesKeyRef.current = folderNamesKey
+
+    if (newNames.length === 0) {
+      return
+    }
+
     setExpandedFolders((current) => {
       const next = new Set(current)
-      for (const folder of folders) {
-        next.add(folder.name)
+      for (const name of newNames) {
+        next.add(name)
       }
-      next.add(UNGROUPED_SIDEBAR_KEY)
-
-      if (
-        next.size === current.size &&
-        [...next].every((folderName) => current.has(folderName))
-      ) {
-        return current
-      }
-
       return next
     })
-  }, [folderNamesKey, folders])
+  }, [folderNamesKey])
 
   useEffect(() => {
     if (!search) {

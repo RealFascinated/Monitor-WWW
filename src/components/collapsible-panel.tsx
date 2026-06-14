@@ -11,9 +11,9 @@ type CollapsiblePanelProps = {
 function CollapsiblePanel({ open, children, className }: CollapsiblePanelProps) {
   return (
     <div
-      className={cn("motion-collapsible", open && "motion-collapsible-open", className)}
+      className={cn("motion-collapsible", open && "motion-collapsible-open")}
     >
-      <div className="motion-collapsible-inner">{children}</div>
+      <div className={cn("motion-collapsible-inner", className)}>{children}</div>
     </div>
   )
 }
