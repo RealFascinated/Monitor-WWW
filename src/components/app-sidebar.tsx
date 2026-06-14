@@ -444,8 +444,7 @@ function SidebarServerList({
     search === ""
       ? filteredFolders
       : filteredFolders.filter(({ serverIds: ids }) => ids.length > 0)
-  const showUngrouped =
-    search === "" || filteredUngroupedIds.length > 0
+  const showUngrouped = filteredUngroupedIds.length > 0
   const hasSearchResults =
     search === "" ||
     (showGroupedSidebar

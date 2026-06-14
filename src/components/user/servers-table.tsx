@@ -78,12 +78,19 @@ function ServersTable() {
     [folders, byFolder, searchQuery, serversMap]
   )
 
+  const showUngroupedSection =
+    filteredUngroupedIds.length > 0 || (editMode && folders.length > 0)
   const visibleSectionCount =
     folderSections.filter((section) => section.serverIds.length > 0).length +
     (filteredUngroupedIds.length > 0 ? 1 : 0)
   const hasEmptyFolderSections =
     searchQuery.trim() === "" &&
     folderSections.some((section) => section.serverIds.length === 0)
+  const hasEmptyUngroupedSection =
+    searchQuery.trim() === "" &&
+    editMode &&
+    folders.length > 0 &&
+    filteredUngroupedIds.length === 0
 
   const errorMessage = error instanceof Error ? error.message : null
   const isLoading = (isPending || foldersPending) && !errorMessage
@@ -297,7 +304,8 @@ function ServersTable() {
       hasContent &&
       searchQuery.trim() !== "" &&
       visibleSectionCount === 0 &&
-      !hasEmptyFolderSections ? (
+      !hasEmptyFolderSections &&
+      !hasEmptyUngroupedSection ? (
         <p className="text-neutral-500">No servers match your search.</p>
       ) : null}
 
@@ -327,7 +335,7 @@ function ServersTable() {
                 {...folderTableProps}
               />
             ))}
-          {filteredUngroupedIds.length > 0 || folders.length > 0 ? (
+          {showUngroupedSection ? (
             <ServersFolderTable
               title="Ungrouped"
               folderName={null}
