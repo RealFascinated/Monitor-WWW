@@ -16,21 +16,23 @@ function MetricChartGrid({ timeGrid, charts }: MetricChartGridProps) {
   }
 
   return (
-    <div className="metric-chart-grid">
-      {visibleCharts.map((chart) => (
-        <MetricChartCard
-          key={chart.title}
-          timeGrid={timeGrid}
-          title={chart.title}
-          description={chart.description}
-          series={chart.series}
-          valueFormatter={chart.valueFormatter}
-          yRange={chart.yRange}
-          thresholds={chart.thresholds}
-          showCurrentValues={chart.showCurrentValues}
-          mode={chart.mode}
-        />
-      ))}
+    <div className="metric-chart-grid-container">
+      <div className="metric-chart-grid">
+        {visibleCharts.map((chart) => (
+          <MetricChartCard
+            key={chart.title}
+            timeGrid={timeGrid}
+            title={chart.title}
+            description={chart.description}
+            series={chart.series}
+            valueFormatter={chart.valueFormatter}
+            yRange={chart.yRange}
+            thresholds={chart.thresholds}
+            showCurrentValues={chart.showCurrentValues}
+            mode={chart.mode}
+          />
+        ))}
+      </div>
     </div>
   )
 }

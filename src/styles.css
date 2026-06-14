@@ -319,23 +319,31 @@
     padding-block: 0;
   }
 
+  .metric-chart-grid-container {
+    container-type: inline-size;
+    width: 100%;
+  }
+
   .metric-chart-grid {
     display: grid;
     gap: 1rem;
     grid-template-columns: minmax(0, 1fr);
+    justify-content: start;
   }
 
   .metric-chart-grid > * {
     min-width: 0;
   }
 
-  @media (width >= 80rem) {
+  @container (min-width: 64rem) {
     .metric-chart-grid {
-      grid-template-columns: repeat(
-        2,
-        minmax(0, calc((100% - 1rem) / 2))
-      );
-      justify-content: start;
+      grid-template-columns: repeat(2, minmax(0, calc((100% - 1rem) / 2)));
+    }
+  }
+
+  @container (min-width: 96rem) {
+    .metric-chart-grid {
+      grid-template-columns: repeat(3, minmax(0, calc((100% - 2rem) / 3)));
     }
   }
 
