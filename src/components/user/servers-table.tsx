@@ -1,4 +1,3 @@
-import type { SortingState } from "@tanstack/react-table"
 import { Search } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
@@ -33,7 +32,6 @@ const EMPTY_FOLDERS: ServerFolderResponse[] = []
 
 function ServersTable() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [sorting, setSorting] = useState<SortingState>([])
   const [draggingRowId, setDraggingRowId] = useState<string | null>(null)
   const [draggingFolderId, setDraggingFolderId] = useState<number | null>(null)
   const [activeDropTargetKey, setActiveDropTargetKey] = useState<string | null>(
@@ -199,8 +197,6 @@ function ServersTable() {
     () => ({
       editMode,
       columns,
-      sorting,
-      onSortingChange: setSorting,
       draggingServerId,
       draggingFolderId,
       onServerDragStart: handleServerDragStart,
@@ -215,7 +211,6 @@ function ServersTable() {
     [
       editMode,
       columns,
-      sorting,
       draggingServerId,
       draggingFolderId,
       handleServerDragStart,

@@ -6,7 +6,7 @@ import {
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { GripVertical } from "lucide-react"
 import type { DragEvent } from "react"
-import { memo, useMemo } from "react"
+import { memo, useMemo, useState } from "react"
 
 import { DeleteFolderButton } from "@/components/user/delete-folder-button"
 import { RenameFolderDialog } from "@/components/user/rename-folder-dialog"
@@ -31,10 +31,6 @@ type ServersFolderTableProps = {
   draggingFolderId: number | null
   serverIds: number[]
   columns: ColumnDef<ServerTableRow>[]
-  sorting: SortingState
-  onSortingChange: (
-    updater: SortingState | ((old: SortingState) => SortingState)
-  ) => void
   onServerDragStart: (rowId: string) => void
   onServerDragEnd: () => void
   onFolderDragStart: (folderId: number) => void
@@ -57,8 +53,6 @@ function ServersFolderTableInner({
   draggingFolderId,
   serverIds,
   columns,
-  sorting,
-  onSortingChange,
   onServerDragStart,
   onServerDragEnd,
   onFolderDragStart,
@@ -78,6 +72,7 @@ function ServersFolderTableInner({
   const showDropTarget = isFolderDropTarget || isServerDropTarget
   const isDraggingFolder =
     editMode && folderId != null && draggingFolderId === folderId
+  const [sorting, setSorting] = useState<SortingState>([])
 
   const tableData = useMemo(
     () => serverIds.map((serverId) => ({ serverId })),
@@ -91,7 +86,7 @@ function ServersFolderTableInner({
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => String(row.serverId),
     state: { sorting },
-    onSortingChange,
+    onSortingChange: setSorting,
   })
 
   function handleDragOver(event: DragEvent<HTMLElement>) {
