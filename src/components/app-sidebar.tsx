@@ -487,10 +487,6 @@ function SidebarServerList({
     })
   }
 
-  if (!serverIds.length) {
-    return null
-  }
-
   const hasFolders = folders.length > 0
   const showGroupedSidebar = hasFolders && !compact
   const visibleFolders =

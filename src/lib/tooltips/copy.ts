@@ -53,6 +53,8 @@ export const SETTINGS_TOOLTIPS = {
     "Issues a new token and revokes the previous one immediately. Update the agent configuration afterward.",
   deleteServer:
     "Permanently deletes this server, all stored metrics, access grants, and pending invites.",
+  leaveServer:
+    "Removes your viewer access to this server. You can rejoin if the owner sends a new invite.",
 } as const
 
 export const INVITE_EXPIRY_TOOLTIP =

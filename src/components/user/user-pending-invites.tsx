@@ -7,9 +7,8 @@ import {
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
-import { AnimatedContent } from "@/components/animated-content"
+import { AsyncContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
-import { LoadingState } from "@/components/loading-state"
 import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
@@ -85,6 +84,12 @@ const columns: ColumnDef<UserPendingInvite>[] = [
     header: "Server",
     meta: { className: "font-medium" },
     cell: ({ row }) => row.original.serverName,
+  },
+  {
+    accessorKey: "invitedByEmail",
+    header: "Invited by",
+    meta: { className: "text-neutral-500" },
+    cell: ({ row }) => row.original.invitedByEmail,
   },
   {
     accessorKey: "role",
@@ -171,18 +176,18 @@ function UserPendingInvites() {
         </Callout>
       ) : null}
 
-      {isPending && !errorMessage ? (
-        <LoadingState message="Loading invites…" />
-      ) : null}
-
-      {!isPending && !errorMessage ? (
-        <AnimatedContent className="flex flex-col gap-3">
+      {!errorMessage ? (
+        <AsyncContent
+          loading={isPending}
+          loadingMessage="Loading invites…"
+          className="flex flex-col gap-3"
+        >
           {invites.length === 0 ? (
             <p className="text-neutral-500">No pending invites.</p>
           ) : null}
 
           {invites.length > 0 ? <DataTable table={table} /> : null}
-        </AnimatedContent>
+        </AsyncContent>
       ) : null}
     </div>
   )

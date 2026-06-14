@@ -19,12 +19,12 @@ export const Route = createFileRoute("/_authenticated/invites/accept")({
 })
 
 function AcceptInvitePage() {
-  const { token, email } = Route.useSearch()
+  const { token } = Route.useSearch()
 
   return (
     <section className="flex flex-col gap-6 py-8">
       {token ? (
-        <AcceptInviteView token={token} email={email} />
+        <AcceptInviteView token={token} />
       ) : (
         <Callout type="danger" title="Invalid invite link">
           This invite link is missing a token. Ask the server owner to send a

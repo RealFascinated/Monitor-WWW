@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router"
 import { Gauge } from "lucide-react"
 
-import { Breadcrumb } from "@/components/breadcrumb"
+import { PageHeader } from "@/components/page-header"
 import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
 import { metricTimeWindowToSearch } from "@/lib/metrics/time-window"
@@ -81,42 +81,29 @@ function AdminMetricsHeader({
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-2.5 pt-3 lg:mb-6">
-        <Breadcrumb
-          items={[
-            { label: "Servers", to: "/" },
-            { label: "Admin Metrics", current: true },
-          ]}
-        />
-
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <Gauge className="size-4 shrink-0 text-monitor dark:text-warning" />
-              <h1 className="text-xl">Admin Metrics</h1>
-            </div>
-
-            <div className="hidden lg:block">
-              <AdminMetricsToolbar {...toolbarProps} />
-            </div>
-          </div>
-
-          <p className="text-sm text-muted-foreground">
-            Platform-wide metrics for fleet health, ingest, JVM, VictoriaMetrics,
-            and HTTP traffic.
-          </p>
+    <PageHeader
+      breadcrumb={[
+        { label: "Servers", to: "/" },
+        { label: "Admin Metrics", current: true },
+      ]}
+      icon={Gauge}
+      title="Admin Metrics"
+      description="Platform-wide metrics for fleet health, ingest, JVM, VictoriaMetrics, and HTTP traffic."
+      actions={
+        <div className="hidden shrink-0 lg:block">
+          <AdminMetricsToolbar {...toolbarProps} />
         </div>
-      </div>
-
-      <div
-        className={cn(
-          "sticky top-14 z-30 mt-2.5 mb-6 w-full self-start border-b border-sidebar-border bg-background/95 py-1.5 backdrop-blur-sm lg:hidden"
-        )}
-      >
-        <AdminMetricsToolbar {...toolbarProps} />
-      </div>
-    </>
+      }
+      footer={
+        <div
+          className={cn(
+            "sticky top-14 z-30 -mx-0 mt-2.5 w-full self-start bg-background/95 py-1.5 backdrop-blur-sm lg:hidden"
+          )}
+        >
+          <AdminMetricsToolbar {...toolbarProps} />
+        </div>
+      }
+    />
   )
 }
 

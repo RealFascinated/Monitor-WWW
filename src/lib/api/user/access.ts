@@ -67,6 +67,12 @@ export function removeServerMember(
   })
 }
 
+export function leaveServer(serverId: number): Promise<void> {
+  return apiFetch<void>(`/v1/servers/${serverId}/leave`, {
+    method: "DELETE",
+  })
+}
+
 export function revokeServerInvite(
   serverId: number,
   inviteId: number

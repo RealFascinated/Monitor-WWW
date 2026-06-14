@@ -7,8 +7,17 @@ export type UserPendingInvite = {
   serverId: number
   serverName: string
   role: ServerRole
+  invitedByEmail: string
   expiresAt: string
   createdAt: string
+}
+
+export type ServerInvitePreview = {
+  serverName: string
+  role: ServerRole
+  email: string
+  invitedByEmail: string
+  expiresAt: string
 }
 
 export type ServerInviteAcceptRequest = {
@@ -24,6 +33,11 @@ export type ServerMemberResponse = {
 
 export function getUserPendingInvites(): Promise<UserPendingInvite[]> {
   return apiFetch<UserPendingInvite[]>("/v1/user/invites")
+}
+
+export function getServerInvitePreview(token: string): Promise<ServerInvitePreview> {
+  const params = new URLSearchParams({ token })
+  return apiFetch<ServerInvitePreview>(`/v1/user/invites/preview?${params}`)
 }
 
 export function acceptServerInvite(

@@ -1,4 +1,5 @@
 import { CountUp } from "@/components/count-up"
+import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -7,6 +8,7 @@ type MetricStatCardProps = {
   value: number
   formatValue: (value: number) => string
   detail?: string
+  detailTooltip?: string
   valueClassName?: string
   animate?: boolean
 }
@@ -16,6 +18,7 @@ function MetricStatCard({
   value,
   formatValue,
   detail,
+  detailTooltip,
   valueClassName,
   animate = true,
 }: MetricStatCardProps) {
@@ -36,7 +39,15 @@ function MetricStatCard({
           <span className={valueClass}>{formatValue(value)}</span>
         )}
         {detail ? (
-          <p className="text-sm text-muted-foreground">{detail}</p>
+          detailTooltip ? (
+            <SimpleTooltip content={detailTooltip}>
+              <p className="cursor-help text-sm text-muted-foreground">
+                {detail}
+              </p>
+            </SimpleTooltip>
+          ) : (
+            <p className="text-sm text-muted-foreground">{detail}</p>
+          )
         ) : null}
       </CardContent>
     </Card>

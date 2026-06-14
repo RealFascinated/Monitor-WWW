@@ -2,6 +2,7 @@ import { MetricStatCard } from "@/components/metrics/metric-stat-card"
 import { useUserServer } from "@/hooks/use-user-server"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import {
+  formatCpuInventoryTooltip,
   formatMemoryBytes,
   formatPercentValue,
   memoryUsagePercent,
@@ -28,6 +29,7 @@ function OverviewStats({ serverId }: { serverId: number }) {
 
   const cpuUsage = server.cpuPercent ?? null
   const cpuModel = server.inventory?.cpuModel ?? null
+  const cpuInventoryTooltip = formatCpuInventoryTooltip(server.inventory)
   const memUsage = server.memUsage ?? null
   const memTotal = server.memMax ?? null
   const memPercent = memoryUsagePercent(memUsage, memTotal)
@@ -44,6 +46,7 @@ function OverviewStats({ serverId }: { serverId: number }) {
         value={cpuUsage}
         formatValue={formatPercentValue}
         detail={cpuModel ?? undefined}
+        detailTooltip={cpuInventoryTooltip ?? undefined}
         valueClassName={percentLevelColorClass(cpuUsage)}
       />
     ) : null,

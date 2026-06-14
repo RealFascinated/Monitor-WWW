@@ -12,6 +12,7 @@ import { useUserServer } from "@/hooks/use-user-server"
 import { useMetricRefreshInterval } from "@/hooks/use-metric-refresh-interval"
 import { userServerMetricsQueryOptions } from "@/lib/api/user/metrics.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
 const serverMetricsSearchSchema = metricRangeSearchSchema()
@@ -69,7 +70,7 @@ function ServerMetricsPage() {
   const dataWindow = metrics ? { from: metrics.from, to: metrics.to } : null
 
   return (
-    <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
+    <section className={authenticatedPageSectionClassName}>
       <ServerMetricsHeader
         server={server}
         timeWindow={timeWindow}

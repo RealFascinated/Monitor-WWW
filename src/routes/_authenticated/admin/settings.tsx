@@ -8,6 +8,7 @@ import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { adminSettingsQueryOptions } from "@/lib/api/admin/settings.queries"
 import { ApiClientError } from "@/lib/auth/api"
+import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { pageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -36,7 +37,7 @@ function AdminSettingsPage() {
         : null
 
   return (
-    <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
+    <section className={authenticatedPageSectionClassName}>
       <AdminSettingsHeader />
 
       {errorMessage ? (

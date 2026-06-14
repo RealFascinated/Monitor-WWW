@@ -5,6 +5,7 @@ import { ServerIngestTokenSection } from "@/components/server/server-ingest-toke
 import { SettingsPageContent } from "@/components/settings/settings-page-content"
 import { SettingsSectionHeader } from "@/components/settings/settings-section-header"
 import { DeleteServerButton } from "@/components/user/delete-server-button"
+import { LeaveServerButton } from "@/components/user/leave-server-button"
 import { RenameServerForm } from "@/components/user/rename-server-form"
 import type { ServerAccessListResponse } from "@/lib/api/user/access"
 import type { ServerResponse } from "@/lib/api/user/servers"
@@ -84,7 +85,26 @@ function ServerSettingsView({
             />
           </div>
         </section>
-      ) : null}
+      ) : (
+        <section className="flex flex-col gap-3">
+          <SettingsSectionHeader
+            title="Leave server"
+            description="Remove your viewer access to this server."
+          />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="text-sm text-neutral-500">
+              You can rejoin if the owner sends a new invite.
+            </p>
+            <LeaveServerButton
+              serverId={serverId}
+              serverName={server.serverName}
+              onLeft={() => {
+                void navigate({ to: "/" })
+              }}
+            />
+          </div>
+        </section>
+      )}
     </SettingsPageContent>
   )
 }

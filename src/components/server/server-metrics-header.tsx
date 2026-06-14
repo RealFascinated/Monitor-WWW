@@ -1,9 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router"
 import { Settings } from "lucide-react"
 
-import { Breadcrumb } from "@/components/breadcrumb"
-import { serverBreadcrumbItems } from "@/components/server/server-breadcrumb-items"
-import { ServerStatusBadge } from "@/components/server/server-status-badge"
+import { ServerDetailHeader } from "@/components/server/server-detail-header"
 import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
@@ -11,8 +9,6 @@ import type { ServerResponse } from "@/lib/api/user/servers"
 import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
 import { metricTimeWindowToSearch } from "@/lib/metrics/time-window"
 import type { MetricTimeWindow } from "@/lib/metrics/time-window"
-import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
-import { cn } from "@/lib/utils"
 
 type ServerMetricsHeaderProps = {
   server: ServerResponse | undefined
@@ -116,55 +112,41 @@ function ServerMetricsHeader({
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-2.5 pt-3 lg:mb-6">
-        <Breadcrumb items={serverBreadcrumbItems(server, serverId)} />
-
-        <div className="flex flex-col gap-2">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <h1 className="text-xl">
-                {server?.serverName ?? `Server ${serverId}`}
-              </h1>
-              {server ? <ServerStatusBadge status={server.status} /> : null}
-            </div>
-
-            <div className="hidden shrink-0 lg:block">
-              <ServerMetricsToolbar {...toolbarProps} />
-            </div>
-
-            <div className="shrink-0 lg:hidden">
-              <SimpleTooltip content="Server settings">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 shrink-0 rounded-sm border border-neutral-200 bg-neutral-100/80 px-2.5 text-xs hover:bg-white/70 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60 dark:hover:bg-monitor-gray-300/60"
-                  asChild
-                >
-                  <Link
-                    to="/servers/$serverId/settings"
-                    params={{ serverId: String(serverId) }}
-                  >
-                    <Settings className="size-3.5" />
-                    <span className="hidden sm:inline">Settings</span>
-                  </Link>
-                </Button>
-              </SimpleTooltip>
-            </div>
+    <ServerDetailHeader
+      server={server}
+      serverId={serverId}
+      actions={
+        <>
+          <div className="hidden shrink-0 lg:block">
+            <ServerMetricsToolbar {...toolbarProps} />
           </div>
 
-          {server ? <ServerMetaSubtitle server={server} /> : null}
+          <div className="shrink-0 lg:hidden">
+            <SimpleTooltip content="Server settings">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 shrink-0 rounded-sm border border-neutral-200 bg-neutral-100/80 px-2.5 text-xs hover:bg-white/70 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60 dark:hover:bg-monitor-gray-300/60"
+                asChild
+              >
+                <Link
+                  to="/servers/$serverId/settings"
+                  params={{ serverId: String(serverId) }}
+                >
+                  <Settings className="size-3.5" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Link>
+              </Button>
+            </SimpleTooltip>
+          </div>
+        </>
+      }
+      footer={
+        <div className="sticky top-14 z-30 mt-2.5 w-full self-start bg-background/95 py-1.5 backdrop-blur-sm lg:hidden">
+          <ServerMetricsToolbar {...toolbarProps} showSettings={false} />
         </div>
-      </div>
-
-      <div
-        className={cn(
-          "sticky top-14 z-30 mt-2.5 mb-6 w-full self-start border-b border-sidebar-border bg-background/95 py-1.5 backdrop-blur-sm lg:hidden"
-        )}
-      >
-        <ServerMetricsToolbar {...toolbarProps} showSettings={false} />
-      </div>
-    </>
+      }
+    />
   )
 }
 

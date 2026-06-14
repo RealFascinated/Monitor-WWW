@@ -9,6 +9,7 @@ import { useServerAccess } from "@/hooks/use-server-access"
 import { useUserServer } from "@/hooks/use-user-server"
 import { serverAccessQueryOptions } from "@/lib/api/user/access.queries"
 import type { ServerResponse } from "@/lib/api/user/servers"
+import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { serverPageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute(
@@ -43,7 +44,7 @@ function ServerSettingsPage() {
   const errorMessage = error instanceof Error ? error.message : null
 
   return (
-    <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
+    <section className={authenticatedPageSectionClassName}>
       <ServerSettingsHeader server={server} serverId={numericServerId} />
 
       {errorMessage ? (

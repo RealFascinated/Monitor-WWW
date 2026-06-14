@@ -64,44 +64,10 @@ function buildMetaItems(server: ServerResponse): MetaItem[] {
         : undefined,
   })
 
-  pushMetaItem(
-    items,
-    server.memMax != null ? formatMemoryBytes(server.memMax) : null,
-    { key: "memory", icon: MemoryStick, label: "Memory" }
-  )
-
-  const diskFormatted =
-    server.diskUsage != null
-      ? formatMemoryUsage(server.diskUsage, server.diskMax)
-      : null
-  pushMetaItem(items, diskFormatted, {
-    key: "root-disk",
-    icon: HardDrive,
-    label: "Root disk",
-    tooltip:
-      server.diskUsage != null && server.diskMax != null
-        ? `${formatMemoryBytes(server.diskUsage)} of ${formatMemoryBytes(server.diskMax)}`
-        : undefined,
-  })
-
   pushMetaItem(items, inventory ? formatOs(inventory) : null, {
     key: "os",
     icon: Box,
     label: "Operating system",
-  })
-
-  const cpuFormatted = inventory?.cpuModel ?? null
-  const cpuTooltip = [
-    inventory?.coreCount != null ? `${inventory.coreCount} cores` : null,
-    inventory?.threadCount != null ? `${inventory.threadCount} threads` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ")
-  pushMetaItem(items, cpuFormatted, {
-    key: "cpu",
-    icon: Cpu,
-    label: "CPU",
-    tooltip: cpuTooltip || undefined,
   })
 
   return items

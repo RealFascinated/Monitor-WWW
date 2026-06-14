@@ -10,6 +10,7 @@ import { LoadingState } from "@/components/loading-state"
 import { adminMetricsQueryOptions } from "@/lib/api/admin/metrics.queries"
 import { useMetricRefreshInterval } from "@/hooks/use-metric-refresh-interval"
 import { ApiClientError } from "@/lib/auth/api"
+import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { pageTitle } from "@/lib/page-title"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
@@ -62,7 +63,7 @@ function AdminMetricsPage() {
   const dataWindow = metrics ? { from: metrics.from, to: metrics.to } : null
 
   return (
-    <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
+    <section className={authenticatedPageSectionClassName}>
       <AdminMetricsHeader
         timeWindow={timeWindow}
         refreshInterval={refreshInterval}

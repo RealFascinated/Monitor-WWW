@@ -10,8 +10,8 @@ import {
   getServerTableColumns,
 } from "@/components/user/server-table-columns"
 import { ServersFolderTable } from "@/components/user/servers-folder-table"
+import { AsyncContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
-import { LoadingState } from "@/components/loading-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -92,7 +92,6 @@ function ServersTable() {
 
   const errorMessage = error instanceof Error ? error.message : null
   const isLoading = (isPending || foldersPending) && !errorMessage
-  const hasContent = serverIds.length > 0 || folders.length > 0
   const canOrganize = folders.length > 0 && serverIds.length > 0
   const canReorderFolders = folders.length > 1
 
@@ -233,24 +232,20 @@ function ServersTable() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        {hasContent ? (
-          <div className="relative w-full min-w-0 sm:max-w-sm sm:flex-1">
-            <Search
-              aria-hidden
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400"
-            />
-            <Input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search servers…"
-              aria-label="Search servers"
-              className="pl-9 text-base sm:text-sm"
-            />
-          </div>
-        ) : (
-          <div className="hidden flex-1 sm:block" />
-        )}
+        <div className="relative w-full min-w-0 sm:max-w-sm sm:flex-1">
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400"
+          />
+          <Input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search servers…"
+            aria-label="Search servers"
+            className="pl-9 text-base sm:text-sm"
+          />
+        </div>
         <div className="flex flex-wrap items-center justify-end gap-2 sm:shrink-0">
           {showEditMode ? (
             <Button
@@ -273,9 +268,7 @@ function ServersTable() {
         </Callout>
       ) : null}
 
-      {isLoading ? <LoadingState message="Loading servers…" /> : null}
-
-      {!isLoading ? (
+      <AsyncContent loading={isLoading} loadingMessage="Loading servers…">
         <div className="flex flex-col gap-6">
           {servers.length > 0 ? (
             <FleetSummaryCards servers={servers} />
@@ -295,8 +288,7 @@ function ServersTable() {
             <p className="text-neutral-500">No servers registered yet.</p>
           ) : null}
 
-          {hasContent &&
-          searchQuery.trim() !== "" &&
+          {searchQuery.trim() !== "" &&
           visibleSectionCount === 0 &&
           !hasEmptyFolderSections &&
           !hasEmptyUngroupedSection ? (
@@ -342,7 +334,7 @@ function ServersTable() {
             </div>
           ) : null}
         </div>
-      ) : null}
+      </AsyncContent>
     </div>
   )
 }

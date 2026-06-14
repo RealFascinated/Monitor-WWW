@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
+import { ServersHeader } from "@/components/user/servers-header"
 import { ServersTable } from "@/components/user/servers-table"
+import { authenticatedPageSectionClassName } from "@/lib/layout"
 import { pageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -12,11 +14,8 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function ServersPage() {
   return (
-    <section className="flex flex-col gap-6">
-      <div>
-        <h1>Servers</h1>
-      </div>
-
+    <section className={authenticatedPageSectionClassName}>
+      <ServersHeader />
       <ServersTable />
     </section>
   )

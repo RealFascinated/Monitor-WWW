@@ -298,6 +298,42 @@ export function formatChartAxisTicks(
   })
 }
 
+export function formatCpuInventoryTooltip(
+  inventory:
+    | {
+        socketCount?: number | null
+        coreCount?: number | null
+        threadCount?: number | null
+      }
+    | null
+    | undefined
+): string | null {
+  if (!inventory) {
+    return null
+  }
+
+  const { socketCount, coreCount, threadCount } = inventory
+  const parts: string[] = []
+
+  if (coreCount != null) {
+    if (
+      socketCount != null &&
+      socketCount > 1 &&
+      coreCount % socketCount === 0
+    ) {
+      parts.push(`${socketCount}×${coreCount / socketCount} cores`)
+    } else {
+      parts.push(`${coreCount} cores`)
+    }
+  }
+
+  if (threadCount != null) {
+    parts.push(`${threadCount} threads`)
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : null
+}
+
 export function formatTooltipTimestamp(
   timestamp: number,
   rangeSeconds: number
