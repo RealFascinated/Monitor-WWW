@@ -34,6 +34,7 @@ export type ServerResponse = {
 
 export type ServerCreateRequest = {
   name: string
+  folderName?: string | null
 }
 
 export type CreatedServerResponse = {
@@ -51,12 +52,26 @@ export type ServerRenameRequest = {
   name: string
 }
 
+export type ServerStatusResponse = {
+  serverId: number
+  status: ServerStatus
+  lastHeartbeat: string | null
+  agentVersion: string | null
+  hasMetrics: boolean
+}
+
 export function getUserServers(): Promise<ServerResponse[]> {
   return apiFetch<ServerResponse[]>("/v1/user/servers")
 }
 
 export function getUserServer(serverId: number): Promise<ServerResponse> {
   return apiFetch<ServerResponse>(`/v1/servers/${serverId}`)
+}
+
+export function getServerStatus(
+  serverId: number
+): Promise<ServerStatusResponse> {
+  return apiFetch<ServerStatusResponse>(`/v1/servers/${serverId}/status`)
 }
 
 export function createServer(

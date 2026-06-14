@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import { Callout } from "@/components/callout"
 import { AgentInstallPanel } from "@/components/server/agent-install-panel"
+import { WaitingForServerData } from "@/components/server/waiting-for-server-data"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -87,6 +88,8 @@ function ServerAgentSetupDialog({
                 with the new ingest token below.
               </DialogDescription>
             </DialogHeader>
+
+            <WaitingForServerData serverId={serverId} />
 
             <AgentInstallPanel ingestToken={ingestToken} />
 

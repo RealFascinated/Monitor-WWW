@@ -1,8 +1,14 @@
 import type { QueryClient } from "@tanstack/react-query"
 import { queryOptions } from "@tanstack/react-query"
 
-import { getUserServer, getUserServers } from "@/lib/api/user/servers"
+import {
+  getServerStatus,
+  getUserServer,
+  getUserServers,
+} from "@/lib/api/user/servers"
 import type { ServerResponse } from "@/lib/api/user/servers"
+
+const SERVER_STATUS_POLL_MS = 3_000
 
 export const userServersQueryKey = ["user", "servers"] as const
 
@@ -21,6 +27,19 @@ export function userServerQueryOptions(serverId: number) {
   return queryOptions({
     queryKey: userServerQueryKey(serverId),
     queryFn: () => getUserServer(serverId),
+  })
+}
+
+export function userServerStatusQueryKey(serverId: number) {
+  return [...userServerQueryKey(serverId), "status"] as const
+}
+
+export function userServerStatusQueryOptions(serverId: number) {
+  return queryOptions({
+    queryKey: userServerStatusQueryKey(serverId),
+    queryFn: () => getServerStatus(serverId),
+    refetchInterval: (query) =>
+      query.state.data?.hasMetrics ? false : SERVER_STATUS_POLL_MS,
   })
 }
 
