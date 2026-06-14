@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react"
+import type { RefObject } from "react"
 import uPlot from "uplot"
 import "uplot/dist/uPlot.min.css"
 
@@ -32,6 +33,7 @@ type MetricChartProps = {
   labels: string[]
   negated?: boolean[]
   height?: number
+  sizeRef?: RefObject<HTMLElement | null>
   valueFormatter?: (value: number) => string
   yRange?: ChartYRange
   thresholds?: ChartThreshold[]
@@ -51,6 +53,7 @@ function MetricChart({
   labels,
   negated = [],
   height = 260,
+  sizeRef,
   valueFormatter,
   yRange,
   thresholds,
@@ -105,10 +108,21 @@ function MetricChart({
 
       tooltip = createChartTooltipElement(resolvedTheme)
 
+      const getSizeElement = () => sizeRef?.current ?? containerRef.current
+
+      const getChartSize = () => {
+        const element = getSizeElement()
+        const width = Math.max(element?.clientWidth ?? 1, 1)
+        const chartHeight = Math.max(element?.clientHeight ?? height, height)
+        return { width, height: chartHeight }
+      }
+
+      const { width: initialWidth, height: initialHeight } = getChartSize()
+
       const options = buildUPlotOptions({
         theme: resolvedTheme,
         labels,
-        height,
+        height: initialHeight,
         valueFormatter: (value) =>
           valueFormatterRef.current?.(value) ?? String(value),
         yRange,
@@ -146,7 +160,7 @@ function MetricChart({
       options.hooks = hooks
 
       chart = new uPlot(
-        { ...options, width: Math.max(container.clientWidth, 1) },
+        { ...options, width: initialWidth },
         prepared.data,
         container
       )
@@ -157,12 +171,15 @@ function MetricChart({
       }
 
       resizeObserver = new ResizeObserver(() => {
-        const width = container.clientWidth
-        if (width > 0) {
-          chart?.setSize({ width, height })
+        const { width, height: chartHeight } = getChartSize()
+        if (width > 0 && chartHeight > 0) {
+          chart?.setSize({ width, height: chartHeight })
         }
       })
-      resizeObserver.observe(container)
+      const sizeElement = getSizeElement()
+      if (sizeElement) {
+        resizeObserver.observe(sizeElement)
+      }
       unbindInteractionDismiss = bindChartInteractionDismiss(chart, tooltip)
 
       const zoom = chartZoomRef.current
@@ -207,8 +224,8 @@ function MetricChart({
   }, [prepared.data])
 
   return (
-    <div className="relative w-full overflow-visible">
-      <div ref={containerRef} className="w-full overflow-visible" />
+    <div className="absolute inset-0 overflow-visible">
+      <div ref={containerRef} className="h-full w-full overflow-visible" />
     </div>
   )
 }

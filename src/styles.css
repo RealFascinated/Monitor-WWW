@@ -320,22 +320,22 @@
   }
 
   .metric-chart-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    display: grid;
     gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .metric-chart-grid > * {
-    flex: 0 1 100%;
-    max-width: 100%;
     min-width: 0;
   }
 
   @media (width >= 80rem) {
-    .metric-chart-grid > * {
-      flex: 0 1 calc((100% - 1rem) / 2);
-      max-width: calc((100% - 1rem) / 2);
+    .metric-chart-grid {
+      grid-template-columns: repeat(
+        2,
+        minmax(0, calc((100% - 1rem) / 2))
+      );
+      justify-content: start;
     }
   }
 

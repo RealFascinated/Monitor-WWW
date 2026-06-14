@@ -85,8 +85,8 @@ function MetricChartCard({
   )
 
   return (
-    <Card className="gap-0 overflow-hidden py-0 dark:border-monitor-gray-300">
-      <CardHeader className="gap-2 border-b border-border bg-neutral-100/90 px-4 py-3 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60">
+    <Card className="flex h-full min-h-0 flex-col gap-0 overflow-hidden py-0 dark:border-monitor-gray-300">
+      <CardHeader className="shrink-0 gap-2 border-b border-border bg-neutral-100/90 px-4 py-3 dark:border-monitor-gray-300 dark:bg-monitor-gray-200/60">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
           <div className="min-w-0">
             {description ? (
@@ -137,14 +137,15 @@ function MetricChartCard({
           ) : null}
         </div>
       </CardHeader>
-      <CardContent className="px-3 pt-2 pb-3">
+      <CardContent className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3">
         <div
           ref={containerRef}
-          className="w-full"
+          className="relative min-h-0 flex-1"
           style={{ minHeight: chartHeight }}
         >
           {built ? (
             <MetricChart
+              sizeRef={containerRef}
               data={built.data}
               labels={built.labels}
               negated={built.negated}
