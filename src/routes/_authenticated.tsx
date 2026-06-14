@@ -11,7 +11,6 @@ import { useEffect, useState } from "react"
 import type { CSSProperties } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import { AnimatedContent } from "@/components/animated-content"
 import { LoadingState } from "@/components/loading-state"
 import { MonitorLogo } from "@/components/monitor-logo"
 import { NotFoundView } from "@/components/not-found-view"
@@ -132,9 +131,7 @@ function AuthenticatedLayout() {
         </header>
 
         <main className="p-4 sm:px-6 lg:px-8 lg:py-6">
-          <AnimatedContent key={pathname}>
-            <Outlet />
-          </AnimatedContent>
+          <Outlet />
         </main>
       </div>
     </div>

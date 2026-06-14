@@ -107,9 +107,9 @@ function MetricChartCard({
 }: MetricChartCardProps) {
   const chartHeight = height ?? 260
   const [fullscreenOpen, setFullscreenOpen] = useState(false)
-  const { hydrated: isHydrated, containerRef } = useChartHydration()
+  const { inView, containerRef } = useChartHydration()
   const fullscreenContainerRef = useRef<HTMLDivElement>(null)
-  const chartReady = isHydrated || fullscreenOpen
+  const chartReady = inView || fullscreenOpen
   const displaySeries = useMemo(
     () => (mode === "stack" ? sortSeriesForStack(series) : series),
     [mode, series]
@@ -226,7 +226,6 @@ function MetricChartCard({
           yRange={yRange}
           thresholds={thresholds}
           mode={mode}
-          className={cn(isHydrated && "motion-chart-reveal")}
         />
       </CardContent>
 

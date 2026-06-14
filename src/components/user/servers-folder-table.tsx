@@ -13,6 +13,7 @@ import { CountBadge } from "@/components/count-badge"
 import { DeleteFolderButton } from "@/components/user/delete-folder-button"
 import { RenameFolderDialog } from "@/components/user/rename-folder-dialog"
 import type { ServerTableRow } from "@/components/user/server-table-columns"
+import { ServerCard } from "@/components/user/server-card"
 import { ServerTableDataRow } from "@/components/user/server-table-row"
 import { DataTable } from "@/components/ui/data-table"
 import { FOLDER_DRAG_MIME, readDraggedServerId } from "@/lib/servers/drag"
@@ -253,13 +254,27 @@ function ServersFolderTableInner({
               }
             : undefined)}
         >
-          <DataTable
-            table={table}
-            rowDrag={rowDrag}
-            renderRow={(row) => (
-              <ServerTableDataRow key={row.id} row={row} rowDrag={rowDrag} />
-            )}
-          />
+          <div className="flex flex-col gap-2 lg:hidden">
+            {serverIds.map((serverId) => (
+              <ServerCard
+                key={serverId}
+                server={getServer(serverId)}
+                editMode={editMode}
+                isDragging={draggingServerId === serverId}
+                onDragStart={() => onServerDragStart(String(serverId))}
+                onDragEnd={onServerDragEnd}
+              />
+            ))}
+          </div>
+          <div className="hidden lg:block">
+            <DataTable
+              table={table}
+              rowDrag={rowDrag}
+              renderRow={(row) => (
+                <ServerTableDataRow key={row.id} row={row} rowDrag={rowDrag} />
+              )}
+            />
+          </div>
         </div>
       ) : (
         <p

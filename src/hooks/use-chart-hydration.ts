@@ -2,25 +2,14 @@ import { useEffect, useRef, useState } from "react"
 
 import { enqueueChartHydration } from "@/lib/metrics/chart-hydration-queue"
 
-const HYDRATION_ROOT_MARGIN = "120px 0px"
-
-function isBoneyardBuildMode() {
-  return (
-    typeof window !== "undefined" &&
-    (window as Window & { __BONEYARD_BUILD?: boolean }).__BONEYARD_BUILD ===
-      true
-  )
-}
+const VIEWPORT_ROOT_MARGIN = "120px 0px"
 
 function useChartHydration() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [hydrated, setHydrated] = useState(isBoneyardBuildMode)
+  const [inView, setInView] = useState(false)
+  const pendingRef = useRef(false)
 
   useEffect(() => {
-    if (hydrated) {
-      return
-    }
-
     const element = containerRef.current
     if (!element) {
       return
@@ -31,18 +20,30 @@ function useChartHydration() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (cancelled || !entries.some((entry) => entry.isIntersecting)) {
+        const intersecting = entries.some((entry) => entry.isIntersecting)
+
+        if (!intersecting) {
+          pendingRef.current = false
+          dequeue?.()
+          dequeue = undefined
+          setInView(false)
           return
         }
 
-        observer.disconnect()
+        if (pendingRef.current) {
+          return
+        }
+
+        pendingRef.current = true
         dequeue = enqueueChartHydration(() => {
+          pendingRef.current = false
+          dequeue = undefined
           if (!cancelled) {
-            setHydrated(true)
+            setInView(true)
           }
         })
       },
-      { rootMargin: HYDRATION_ROOT_MARGIN }
+      { rootMargin: VIEWPORT_ROOT_MARGIN }
     )
 
     observer.observe(element)
@@ -52,9 +53,9 @@ function useChartHydration() {
       observer.disconnect()
       dequeue?.()
     }
-  }, [hydrated])
+  }, [])
 
-  return { hydrated, containerRef }
+  return { inView, containerRef }
 }
 
 export { useChartHydration }
