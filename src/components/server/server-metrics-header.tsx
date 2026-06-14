@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { Settings } from "lucide-react"
 
 import { Breadcrumb } from "@/components/breadcrumb"
+import { serverBreadcrumbItems } from "@/components/server/server-breadcrumb-items"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import { SimpleTooltip } from "@/components/simple-tooltip"
@@ -35,15 +36,7 @@ function ServerMetricsHeader({
 
   return (
     <div className="z-30 mb-6 flex flex-col gap-2.5 border-b border-sidebar-border bg-background/95 py-3 backdrop-blur-sm lg:sticky lg:top-0">
-      <Breadcrumb
-        items={[
-          { label: "Servers", to: "/" },
-          {
-            label: server?.serverName ?? `Server ${serverId}`,
-            current: true,
-          },
-        ]}
-      />
+      <Breadcrumb items={serverBreadcrumbItems(server, serverId)} />
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">

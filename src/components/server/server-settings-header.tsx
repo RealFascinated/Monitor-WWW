@@ -1,11 +1,10 @@
 import { Settings } from "lucide-react"
 
 import { Breadcrumb } from "@/components/breadcrumb"
+import { serverBreadcrumbItems } from "@/components/server/server-breadcrumb-items"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
-import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
-
 type ServerSettingsHeaderProps = {
   server: ServerResponse | undefined
   serverId: number
@@ -15,16 +14,10 @@ function ServerSettingsHeader({ server, serverId }: ServerSettingsHeaderProps) {
   return (
     <div className="z-30 mb-6 flex flex-col gap-2.5 border-b border-sidebar-border bg-background/95 py-3 backdrop-blur-sm lg:sticky lg:top-0">
       <Breadcrumb
-        items={[
-          { label: "Servers", to: "/" },
-          {
-            label: server?.serverName ?? `Server ${serverId}`,
-            to: "/servers/$serverId",
-            params: { serverId: String(serverId) },
-            search: defaultMetricRangeSearch(),
-          },
-          { label: "Settings", current: true },
-        ]}
+        items={serverBreadcrumbItems(server, serverId, {
+          label: "Settings",
+          current: true,
+        })}
       />
 
       <div className="flex flex-col gap-1">
