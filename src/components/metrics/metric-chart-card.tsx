@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/dialog"
 import { MetricChart } from "@/components/metrics/metric-chart"
 import { useChartHydration } from "@/hooks/use-chart-hydration"
-import { formatChartTimestamp } from "@/lib/formatter"
 import { getChartColor } from "@/lib/metrics/chart-colors"
 import {
   buildMultiSeriesData,
+  formatSeriesRangeTooltip,
   getLatestValue,
   hasSeriesData,
   sortSeriesForStack,
@@ -36,6 +36,7 @@ type MetricChartCardProps = {
   series: ChartSeries[]
   height?: number
   valueFormatter?: (value: number) => string
+  seriesFormatters?: ((value: number) => string)[]
   yRange?: ChartYRange
   thresholds?: ChartThreshold[]
   showCurrentValues?: boolean
@@ -49,6 +50,7 @@ type MetricChartPanelProps = {
   height: number
   built: ReturnType<typeof buildMultiSeriesData> | null
   valueFormatter?: (value: number) => string
+  seriesFormatters?: ((value: number) => string)[]
   yRange?: ChartYRange
   thresholds?: ChartThreshold[]
   mode?: MetricChartMode
@@ -60,6 +62,7 @@ function MetricChartPanel({
   height,
   built,
   valueFormatter,
+  seriesFormatters,
   yRange,
   thresholds,
   mode,
@@ -79,6 +82,7 @@ function MetricChartPanel({
           negated={built.negated}
           height={height}
           valueFormatter={valueFormatter}
+          seriesFormatters={seriesFormatters}
           yRange={yRange}
           thresholds={thresholds}
           mode={mode}
@@ -95,6 +99,7 @@ function MetricChartCard({
   series,
   height,
   valueFormatter,
+  seriesFormatters,
   yRange,
   thresholds,
   showCurrentValues,
@@ -122,10 +127,11 @@ function MetricChartCard({
   }, [chartReady, timeGrid, displaySeries])
   const { resolvedTheme } = useTheme()
   const shouldShowCurrentValues = showCurrentValues ?? displaySeries.length <= 4
-  const latestTimestamp = timeGrid.gridTimestamps.at(-1)
-  const latestTimestampLabel = latestTimestamp
-    ? formatChartTimestamp(latestTimestamp)
-    : null
+
+  const formatSeriesValue = (index: number, value: number) => {
+    const formatter = seriesFormatters?.[index] ?? valueFormatter
+    return formatter ? formatter(value) : String(value)
+  }
 
   if (!hasSeriesData(series)) {
     return null
@@ -150,11 +156,12 @@ function MetricChartCard({
           return null
         }
 
-        const formatted = valueFormatter ? valueFormatter(value) : String(value)
+        const formatted = formatSeriesValue(index, value)
 
-        const valueTooltip = latestTimestampLabel
-          ? `Latest value as of ${latestTimestampLabel}`
-          : "Latest value"
+        const valueTooltip =
+          formatSeriesRangeTooltip(entry.values, timeGrid, (nextValue) =>
+            formatSeriesValue(index, nextValue)
+          ) ?? formatted
 
         return (
           <SimpleTooltip key={entry.label} content={valueTooltip}>
@@ -215,6 +222,7 @@ function MetricChartCard({
           height={chartHeight}
           built={built}
           valueFormatter={valueFormatter}
+          seriesFormatters={seriesFormatters}
           yRange={yRange}
           thresholds={thresholds}
           mode={mode}
@@ -251,6 +259,7 @@ function MetricChartCard({
               height={FULLSCREEN_CHART_MIN_HEIGHT}
               built={built}
               valueFormatter={valueFormatter}
+              seriesFormatters={seriesFormatters}
               yRange={yRange}
               thresholds={thresholds}
               mode={mode}

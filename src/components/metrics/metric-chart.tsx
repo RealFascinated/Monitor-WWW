@@ -35,6 +35,7 @@ type MetricChartProps = {
   height?: number
   sizeRef?: RefObject<HTMLElement | null>
   valueFormatter?: (value: number) => string
+  seriesFormatters?: ((value: number) => string)[]
   yRange?: ChartYRange
   thresholds?: ChartThreshold[]
   mode?: MetricChartMode
@@ -55,6 +56,7 @@ function MetricChart({
   height = 260,
   sizeRef,
   valueFormatter,
+  seriesFormatters,
   yRange,
   thresholds,
   mode = "line",
@@ -62,6 +64,7 @@ function MetricChart({
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<uPlot | null>(null)
   const valueFormatterRef = useRef(valueFormatter)
+  const seriesFormattersRef = useRef(seriesFormatters)
   const dataRef = useRef(data)
   const { resolvedTheme } = useTheme()
   const syncKey = useMetricsChartSyncKey() ?? undefined
@@ -85,6 +88,7 @@ function MetricChart({
   }, [data, stacked])
 
   valueFormatterRef.current = valueFormatter
+  seriesFormattersRef.current = seriesFormatters
   dataRef.current = data
   chartZoomRef.current = chartZoom
 
@@ -133,9 +137,14 @@ function MetricChart({
       })
 
       const colors = getChartColors(resolvedTheme)
-      const formatValue = (value: number, seriesIndex: number) => {
-        const display = negated[seriesIndex] ? Math.abs(value) : value
-        return valueFormatterRef.current?.(display) ?? String(display)
+      const formatSeriesValue = (value: number, seriesIndex: number) => {
+        const display =
+          seriesIndex >= 0 && negated[seriesIndex] ? Math.abs(value) : value
+        const formatter =
+          (seriesIndex >= 0
+            ? seriesFormattersRef.current?.[seriesIndex]
+            : undefined) ?? valueFormatterRef.current
+        return formatter?.(display) ?? String(display)
       }
       const hooks: uPlot.Hooks.Arrays = {
         setCursor: [
@@ -144,8 +153,9 @@ function MetricChart({
             labels,
             colors,
             getData: () => dataRef.current,
-            formatValue,
+            formatValue: formatSeriesValue,
             theme: resolvedTheme,
+            stacked,
           }),
         ],
         ...(syncKey ? { setScale: [createChartZoomSyncHook(syncKey)] } : {}),

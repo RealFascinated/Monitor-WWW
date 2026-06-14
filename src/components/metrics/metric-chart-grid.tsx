@@ -26,6 +26,7 @@ function MetricChartGrid({ timeGrid, charts }: MetricChartGridProps) {
             description={chart.description}
             series={chart.series}
             valueFormatter={chart.valueFormatter}
+            seriesFormatters={chart.seriesFormatters}
             yRange={chart.yRange}
             thresholds={chart.thresholds}
             showCurrentValues={chart.showCurrentValues}

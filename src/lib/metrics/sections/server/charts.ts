@@ -85,6 +85,7 @@ function diskCharts(disk: DiskMetrics): MetricChartConfig[] {
         chartSeries("Wait", disk.ioWaitMs),
       ],
       valueFormatter: formatNumber,
+      seriesFormatters: [formatPercentValue, formatMilliseconds],
     },
     {
       title: "Inodes",
@@ -423,6 +424,7 @@ function hostProcessCharts(
         chartSeries("Kills/s", host.oomKillsPerSecond),
       ],
       valueFormatter: formatCount,
+      seriesFormatters: [formatCount, (value) => `${formatCount(value)}/s`],
     },
   ]
 }

@@ -1,5 +1,8 @@
 import type { MetricValues } from "@/lib/api/user/metrics"
-import { alignValuesToTimestamps } from "@/lib/metrics/timestamps"
+import {
+  alignValuesToTimestamps,
+  type MetricsTimeGrid,
+} from "@/lib/metrics/timestamps"
 import type uPlot from "uplot"
 
 export type ChartSeries = {
@@ -43,6 +46,59 @@ export function hasValues(values: MetricValues): boolean {
 
 export function hasSeriesData(series: ChartSeries[]): boolean {
   return series.some((entry) => hasValues(entry.values))
+}
+
+export function getSeriesValueRange(
+  values: MetricValues,
+  timeGrid: MetricsTimeGrid
+): { min: number; max: number } | null {
+  const aligned = alignValuesToTimestamps(
+    timeGrid.gridTimestamps,
+    timeGrid.sourceTimestamps,
+    values
+  )
+  if (!aligned) {
+    return null
+  }
+
+  let min = Number.POSITIVE_INFINITY
+  let max = Number.NEGATIVE_INFINITY
+
+  for (const value of aligned) {
+    if (value == null || !Number.isFinite(value)) {
+      continue
+    }
+
+    min = Math.min(min, value)
+    max = Math.max(max, value)
+  }
+
+  if (!Number.isFinite(min)) {
+    return null
+  }
+
+  return { min, max }
+}
+
+export function formatSeriesRangeTooltip(
+  values: MetricValues,
+  timeGrid: MetricsTimeGrid,
+  formatValue: (value: number) => string
+): string | null {
+  const range = getSeriesValueRange(values, timeGrid)
+  if (!range) {
+    return null
+  }
+
+  const latest = getLatestValue(values)
+  const latestLabel = latest != null ? formatValue(latest) : null
+
+  if (range.min === range.max) {
+    return latestLabel ? `Steady at ${latestLabel}` : formatValue(range.min)
+  }
+
+  const rangeLabel = `${formatValue(range.min)} – ${formatValue(range.max)} in range`
+  return latestLabel ? `${rangeLabel} · now ${latestLabel}` : rangeLabel
 }
 
 export function getLatestValue(values: MetricValues): number | null {

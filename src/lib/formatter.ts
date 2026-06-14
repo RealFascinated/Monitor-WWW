@@ -232,3 +232,22 @@ export function formatChartTimestamp(timestamp: number): string {
     minute: "2-digit",
   }).format(new Date(timestamp * 1000))
 }
+
+export function formatTooltipTimestamp(
+  timestamp: number,
+  rangeSeconds: number
+): string {
+  const date = new Date(timestamp * 1000)
+  const now = new Date()
+  const includeYear =
+    date.getFullYear() !== now.getFullYear() || rangeSeconds > 86_400 * 180
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    ...(includeYear ? { year: "numeric" } : {}),
+    hour: "numeric",
+    minute: "2-digit",
+    ...(rangeSeconds <= 86_400 ? { second: "2-digit" } : {}),
+  }).format(date)
+}

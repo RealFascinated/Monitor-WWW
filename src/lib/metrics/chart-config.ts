@@ -9,6 +9,7 @@ type MetricChartConfig = {
   description?: string
   series: ChartSeries[]
   valueFormatter?: (value: number) => string
+  seriesFormatters?: ((value: number) => string)[]
   yRange?: ChartYRange
   thresholds?: ChartThreshold[]
   showCurrentValues?: boolean

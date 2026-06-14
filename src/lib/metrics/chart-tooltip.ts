@@ -1,5 +1,6 @@
 import type uPlot from "uplot"
 
+import { formatPercentValue, formatTooltipTimestamp } from "@/lib/formatter"
 import type { ResolvedTheme } from "@/lib/theme/context"
 
 const TOOLTIP_PADDING = 8
@@ -133,13 +134,26 @@ function positionTooltip({
   tooltip.style.top = `${y}px`
 }
 
-function formatCursorTime(timestamp: number): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(timestamp * 1000))
+function formatCursorTime(timestamp: number, rangeSeconds: number): string {
+  return formatTooltipTimestamp(timestamp, rangeSeconds)
+}
+
+function getUsedTotalFooter(
+  entries: { label: string; value: number }[],
+  formatValue: (value: number, seriesIndex: number) => string,
+  seriesIndexByLabel: Map<string, number>
+): string | null {
+  const used = entries.find((entry) => entry.label === "Used")
+  const total = entries.find((entry) => entry.label === "Total")
+  if (!used || !total || total.value <= 0) {
+    return null
+  }
+
+  const usedIndex = seriesIndexByLabel.get("Used") ?? 0
+  const totalIndex = seriesIndexByLabel.get("Total") ?? 0
+  const percent = (used.value / total.value) * 100
+
+  return `${formatValue(used.value, usedIndex)} of ${formatValue(total.value, totalIndex)} (${formatPercentValue(percent)})`
 }
 
 type CreateCursorTooltipHandlerParams = {
@@ -149,6 +163,7 @@ type CreateCursorTooltipHandlerParams = {
   getData: () => uPlot.AlignedData
   formatValue: (value: number, seriesIndex: number) => string
   theme: ResolvedTheme
+  stacked?: boolean
 }
 
 export function createCursorTooltipHandler({
@@ -158,6 +173,7 @@ export function createCursorTooltipHandler({
   getData,
   formatValue,
   theme,
+  stacked = false,
 }: CreateCursorTooltipHandlerParams) {
   const isDark = theme === "dark"
   tooltip.className = [
@@ -176,7 +192,12 @@ export function createCursorTooltipHandler({
     }
 
     const data = getData()
-    const timestamp = data[0][idx]
+    const timestamps = data[0] as number[]
+    const timestamp = timestamps[idx]
+    const rangeSeconds =
+      timestamps.length > 1
+        ? timestamps[timestamps.length - 1] - timestamps[0]
+        : 0
 
     const entries: {
       value: number
@@ -200,22 +221,56 @@ export function createCursorTooltipHandler({
 
     entries.sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
 
-    const rows = entries.map(
-      (entry) =>
+    const stackTotal = stacked
+      ? entries.reduce((sum, entry) => sum + Math.abs(entry.value), 0)
+      : 0
+
+    const rows = entries.map((entry) => {
+      const formatted = formatValue(entry.value, entry.seriesIndex)
+      const share =
+        stacked && stackTotal > 0
+          ? ` <span class="text-neutral-400 dark:text-neutral-500">(${formatPercentValue((Math.abs(entry.value) / stackTotal) * 100, 0)})</span>`
+          : ""
+
+      return (
         `<div class="flex items-center gap-2 py-0.5">` +
         `<span class="size-2 shrink-0 rounded-full" style="background:${entry.color}"></span>` +
         `<span class="truncate text-neutral-500 dark:text-neutral-400">${entry.label}</span>` +
-        `<span class="ml-auto pl-3 font-medium whitespace-nowrap">${formatValue(entry.value, entry.seriesIndex)}</span>` +
+        `<span class="ml-auto pl-3 font-medium whitespace-nowrap tabular-nums">${formatted}${share}</span>` +
         `</div>`
-    )
+      )
+    })
 
     if (rows.length === 0) {
       tooltip.style.display = "none"
       return
     }
 
+    const seriesIndexByLabel = new Map(
+      labels.map((label, index) => [label, index])
+    )
+    const usedTotalFooter = getUsedTotalFooter(
+      entries,
+      formatValue,
+      seriesIndexByLabel
+    )
+
+    if (stacked && entries.length > 1 && stackTotal > 0) {
+      const totalFormatted = formatValue(stackTotal, -1)
+      rows.push(
+        `<div class="mt-1 flex items-center justify-between border-t border-neutral-200 pt-1 dark:border-monitor-gray-300">` +
+        `<span class="text-neutral-500 dark:text-neutral-400">Total</span>` +
+        `<span class="font-medium tabular-nums">${totalFormatted}</span>` +
+        `</div>`
+      )
+    } else if (usedTotalFooter) {
+      rows.push(
+        `<div class="mt-1 border-t border-neutral-200 pt-1 text-neutral-500 dark:border-monitor-gray-300 dark:text-neutral-400">${usedTotalFooter}</div>`
+      )
+    }
+
     tooltip.innerHTML =
-      `<div class="mb-1 font-medium">${formatCursorTime(timestamp)}</div>` +
+      `<div class="mb-1 font-medium">${formatCursorTime(timestamp, rangeSeconds)}</div>` +
       rows.join("")
 
     const chartRect = u.root.getBoundingClientRect()
