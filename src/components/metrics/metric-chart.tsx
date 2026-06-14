@@ -50,7 +50,7 @@ function MetricChart({
   data,
   labels,
   negated = [],
-  height = 200,
+  height = 260,
   valueFormatter,
   yRange,
   thresholds,

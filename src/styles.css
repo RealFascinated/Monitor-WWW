@@ -322,18 +322,20 @@
   .metric-chart-grid {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
     gap: 1rem;
   }
 
   .metric-chart-grid > * {
-    flex: 1 1 100%;
+    flex: 0 1 100%;
     max-width: 100%;
     min-width: 0;
   }
 
   @media (width >= 80rem) {
     .metric-chart-grid > * {
-      flex: 1 1 calc((100% - 1rem) / 2);
+      flex: 0 1 calc((100% - 1rem) / 2);
+      max-width: calc((100% - 1rem) / 2);
     }
   }
 

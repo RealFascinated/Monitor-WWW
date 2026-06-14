@@ -45,7 +45,7 @@ function MetricChartCard({
   showCurrentValues,
   mode,
 }: MetricChartCardProps) {
-  const chartHeight = height ?? 200
+  const chartHeight = height ?? 260
   const { hydrated: isHydrated, containerRef } = useChartHydration()
   const displaySeries = useMemo(
     () => (mode === "stack" ? sortSeriesForStack(series) : series),
