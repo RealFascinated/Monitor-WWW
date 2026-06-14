@@ -1,3 +1,4 @@
+import { formatChartAxisTicks } from "@/lib/formatter"
 import { getChartColor, getChartColors } from "@/lib/metrics/chart-colors"
 import type { ResolvedTheme } from "@/lib/theme/context"
 import uPlot from "uplot"
@@ -6,6 +7,7 @@ export { getChartColor, getChartColors }
 
 const AXIS_FONT =
   '12px "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif'
+const X_AXIS_HEIGHT = 24
 
 let textMeasureCtx: CanvasRenderingContext2D | null = null
 
@@ -140,7 +142,14 @@ export function buildUPlotOptions({
     ],
     axes: [
       {
-        show: false,
+        stroke: axisColor,
+        font: AXIS_FONT,
+        gap: 4,
+        size: X_AXIS_HEIGHT,
+        grid: { stroke: gridColor },
+        ticks: { stroke: axisColor, size: 4 },
+        values: (_self, splits, _axisIdx, _foundSpace, foundIncr) =>
+          formatChartAxisTicks(splits, foundIncr),
       },
       {
         stroke: axisColor,

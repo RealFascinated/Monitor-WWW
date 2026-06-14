@@ -224,13 +224,78 @@ export function formatUptimeDetailed(seconds: number | null): string | null {
   return parts.join(", ")
 }
 
-export function formatChartTimestamp(timestamp: number): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(timestamp * 1000))
+const DAY_SECONDS = 86_400
+const MONTH_SECONDS = 86_400 * 28
+const YEAR_SECONDS = 86_400 * 365
+
+export function formatChartAxisTicks(
+  splits: number[],
+  foundIncr: number
+): string[] {
+  let prevYear: number | undefined
+  let prevDay: number | undefined
+
+  const formatYear = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, { year: "numeric" }).format(date)
+
+  const formatMonth = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, { month: "short" }).format(date)
+
+  const formatMonthYear = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      year: "numeric",
+    }).format(date)
+
+  const formatMonthDay = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+    }).format(date)
+
+  const formatMonthDayYear = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date)
+
+  const formatTime = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+      ...(foundIncr < 60 ? { second: "2-digit" } : {}),
+    }).format(date)
+
+  return splits.map((split) => {
+    const date = new Date(split * 1000)
+    const year = date.getFullYear()
+    const day = date.getDate()
+
+    const atYearBoundary = prevYear !== undefined && year !== prevYear
+    const atDayBoundary = prevDay !== undefined && day !== prevDay
+
+    prevYear = year
+    prevDay = day
+
+    if (foundIncr >= YEAR_SECONDS) {
+      return formatYear(date)
+    }
+
+    if (foundIncr >= MONTH_SECONDS) {
+      return atYearBoundary ? formatMonthYear(date) : formatMonth(date)
+    }
+
+    if (foundIncr >= DAY_SECONDS) {
+      return atYearBoundary ? formatMonthDayYear(date) : formatMonthDay(date)
+    }
+
+    if (atDayBoundary) {
+      return formatMonthDay(date)
+    }
+
+    return formatTime(date)
+  })
 }
 
 export function formatTooltipTimestamp(
