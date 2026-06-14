@@ -11,10 +11,7 @@ import { memo, useMemo, useState } from "react"
 import { DeleteFolderButton } from "@/components/user/delete-folder-button"
 import { RenameFolderDialog } from "@/components/user/rename-folder-dialog"
 import type { ServerTableRow } from "@/components/user/server-table-columns"
-import {
-  ServerTableDataRow,
-  ServerTableRowProvider,
-} from "@/components/user/server-table-row"
+import { ServerTableDataRow } from "@/components/user/server-table-row"
 import { DataTable } from "@/components/ui/data-table"
 import { FOLDER_DRAG_MIME, readDraggedServerId } from "@/lib/servers/drag"
 import { cn } from "@/lib/utils"
@@ -38,7 +35,7 @@ type ServersFolderTableProps = {
   onDropTargetChange: (dropTargetKey: string | null) => void
   onMoveServer: (serverId: number, folderName: string | null) => void
   onReorderFolder: (draggedFolderId: number, targetFolderId: number) => void
-  getServerName: (serverId: number) => string
+  getServer: (serverId: number) => ServerTableRow["server"]
 }
 
 function ServersFolderTableInner({
@@ -60,7 +57,7 @@ function ServersFolderTableInner({
   onDropTargetChange,
   onMoveServer,
   onReorderFolder,
-  getServerName,
+  getServer,
 }: ServersFolderTableProps) {
   const isFolderDropTarget =
     editMode &&
@@ -75,8 +72,12 @@ function ServersFolderTableInner({
   const [sorting, setSorting] = useState<SortingState>([])
 
   const tableData = useMemo(
-    () => serverIds.map((serverId) => ({ serverId })),
-    [serverIds]
+    () =>
+      serverIds.map((serverId) => ({
+        serverId,
+        server: getServer(serverId),
+      })),
+    [serverIds, getServer]
   )
 
   const table = useReactTable({
@@ -226,29 +227,25 @@ function ServersFolderTableInner({
           <DataTable
             table={table}
             renderRow={(row) => (
-              <ServerTableRowProvider
+              <ServerTableDataRow
                 key={row.id}
-                serverId={row.original.serverId}
-              >
-                <ServerTableDataRow
-                  row={row}
-                  rowDrag={
-                    editMode
-                      ? {
-                          draggingRowId:
-                            draggingServerId != null
-                              ? String(draggingServerId)
-                              : null,
-                          getServerId: (tableRow) => tableRow.original.serverId,
-                          getServerLabel: (tableRow) =>
-                            getServerName(tableRow.original.serverId),
-                          onDragStart: onServerDragStart,
-                          onDragEnd: onServerDragEnd,
-                        }
-                      : undefined
-                  }
-                />
-              </ServerTableRowProvider>
+                row={row}
+                rowDrag={
+                  editMode
+                    ? {
+                        draggingRowId:
+                          draggingServerId != null
+                            ? String(draggingServerId)
+                            : null,
+                        getServerId: (tableRow) => tableRow.original.serverId,
+                        getServerLabel: (tableRow) =>
+                          tableRow.original.server.serverName,
+                        onDragStart: onServerDragStart,
+                        onDragEnd: onServerDragEnd,
+                      }
+                    : undefined
+                }
+              />
             )}
           />
         </div>

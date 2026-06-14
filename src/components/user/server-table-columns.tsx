@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils"
 
 export type ServerTableRow = {
   serverId: number
+  server: ServerResponse
 }
 
 const unknownStatClassName = "text-neutral-500"
@@ -66,15 +67,12 @@ function renderUptime30d(server: ServerResponse): ReactNode {
 }
 
 export function getServerTableColumns(
-  hasOwnedServers: boolean,
-  servers: Record<number, ServerResponse>
+  hasOwnedServers: boolean
 ): ColumnDef<ServerTableRow>[] {
-  const getServer = (serverId: number) => servers[serverId]
-
   const baseColumns: ColumnDef<ServerTableRow>[] = [
     {
       accessorKey: "serverName",
-      accessorFn: (row) => getServer(row.serverId).serverName,
+      accessorFn: (row) => row.server.serverName,
       header: "Name",
       meta: {
         renderServer: (server) => (
@@ -93,7 +91,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "status",
-      accessorFn: (row) => getServer(row.serverId).status,
+      accessorFn: (row) => row.server.status,
       header: () => (
         <TableHeaderTooltip
           label="Status"
@@ -106,7 +104,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "uptimeSeconds",
-      accessorFn: (row) => getServer(row.serverId).uptimeSeconds ?? null,
+      accessorFn: (row) => row.server.uptimeSeconds ?? null,
       header: () => (
         <TableHeaderTooltip
           label="Uptime"
@@ -117,7 +115,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "uptimePercent30d",
-      accessorFn: (row) => getServer(row.serverId).uptimePercent30d ?? null,
+      accessorFn: (row) => row.server.uptimePercent30d ?? null,
       header: () => (
         <TableHeaderTooltip
           label="Uptime (30d)"
@@ -128,7 +126,7 @@ export function getServerTableColumns(
     },
     {
       id: "cpu",
-      accessorFn: (row) => getServer(row.serverId).cpuPercent ?? null,
+      accessorFn: (row) => row.server.cpuPercent ?? null,
       header: () => (
         <TableHeaderTooltip
           label="CPU"
@@ -144,10 +142,8 @@ export function getServerTableColumns(
     {
       id: "memory",
       accessorFn: (row) => {
-        const server = getServer(row.serverId)
-        return server.memUsage != null && server.memMax
-          ? server.memUsage / server.memMax
-          : null
+        const { memUsage, memMax } = row.server
+        return memUsage != null && memMax ? memUsage / memMax : null
       },
       header: () => (
         <TableHeaderTooltip
@@ -168,10 +164,8 @@ export function getServerTableColumns(
     {
       id: "disk",
       accessorFn: (row) => {
-        const server = getServer(row.serverId)
-        return server.diskUsage != null && server.diskMax
-          ? server.diskUsage / server.diskMax
-          : null
+        const { diskUsage, diskMax } = row.server
+        return diskUsage != null && diskMax ? diskUsage / diskMax : null
       },
       header: () => (
         <TableHeaderTooltip
@@ -191,7 +185,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "agentVersion",
-      accessorFn: (row) => getServer(row.serverId).agentVersion ?? "",
+      accessorFn: (row) => row.server.agentVersion ?? "",
       header: () => (
         <TableHeaderTooltip
           label="Agent"
@@ -204,7 +198,7 @@ export function getServerTableColumns(
     },
     {
       accessorKey: "createdAt",
-      accessorFn: (row) => getServer(row.serverId).createdAt,
+      accessorFn: (row) => row.server.createdAt,
       header: () => (
         <TableHeaderTooltip
           label="Created"

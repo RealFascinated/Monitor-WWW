@@ -8,6 +8,7 @@ type MetricStatCardProps = {
   formatValue: (value: number) => string
   detail?: string
   valueClassName?: string
+  animate?: boolean
 }
 
 function MetricStatCard({
@@ -16,21 +17,24 @@ function MetricStatCard({
   formatValue,
   detail,
   valueClassName,
+  animate = true,
 }: MetricStatCardProps) {
+  const valueClass = cn(
+    "font-mono text-3xl font-semibold text-foreground tabular-nums",
+    valueClassName
+  )
+
   return (
     <Card className="gap-0 overflow-hidden py-0 dark:border-monitor-gray-300">
       <CardContent className="flex flex-col gap-1 px-4 py-3">
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {title}
         </p>
-        <CountUp
-          value={value}
-          format={formatValue}
-          className={cn(
-            "font-mono text-3xl font-semibold text-foreground tabular-nums",
-            valueClassName
-          )}
-        />
+        {animate ? (
+          <CountUp value={value} format={formatValue} className={valueClass} />
+        ) : (
+          <span className={valueClass}>{formatValue(value)}</span>
+        )}
         {detail ? (
           <p className="text-sm text-muted-foreground">{detail}</p>
         ) : null}

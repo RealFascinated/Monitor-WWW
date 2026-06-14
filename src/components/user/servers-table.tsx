@@ -10,7 +10,6 @@ import {
   getServerTableColumns,
 } from "@/components/user/server-table-columns"
 import { ServersFolderTable } from "@/components/user/servers-folder-table"
-import { AnimatedContent } from "@/components/animated-content"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { Button } from "@/components/ui/button"
@@ -55,8 +54,8 @@ function ServersTable() {
   )
 
   const columns = useMemo(
-    () => getServerTableColumns(hasOwnedServers, serversMap),
-    [hasOwnedServers, serversMap]
+    () => getServerTableColumns(hasOwnedServers),
+    [hasOwnedServers]
   )
 
   const filteredUngroupedIds = useMemo(
@@ -193,6 +192,11 @@ function ServersTable() {
     [folders, reorderFolders]
   )
 
+  const getServer = useCallback(
+    (serverId: number) => serversMap[serverId],
+    [serversMap]
+  )
+
   const folderTableProps = useMemo(
     () => ({
       editMode,
@@ -206,7 +210,7 @@ function ServersTable() {
       onDropTargetChange: setActiveDropTargetKey,
       onMoveServer: handleMoveServer,
       onReorderFolder: handleReorderFolder,
-      getServerName: (serverId: number) => serversMap[serverId].serverName,
+      getServer,
     }),
     [
       editMode,
@@ -219,7 +223,7 @@ function ServersTable() {
       handleFolderDragEnd,
       handleMoveServer,
       handleReorderFolder,
-      serversMap,
+      getServer,
     ]
   )
 
@@ -272,7 +276,7 @@ function ServersTable() {
       {isLoading ? <LoadingState message="Loading servers…" /> : null}
 
       {!isLoading ? (
-        <AnimatedContent className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           {servers.length > 0 ? (
             <FleetSummaryCards servers={servers} />
           ) : null}
@@ -337,7 +341,7 @@ function ServersTable() {
               ) : null}
             </div>
           ) : null}
-        </AnimatedContent>
+        </div>
       ) : null}
     </div>
   )

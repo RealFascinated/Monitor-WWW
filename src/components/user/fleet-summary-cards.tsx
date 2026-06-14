@@ -1,3 +1,5 @@
+import { memo } from "react"
+
 import { MetricStatCard } from "@/components/metrics/metric-stat-card"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { formatCount, formatPercentValue } from "@/lib/formatter"
@@ -5,7 +7,7 @@ import { percentLevelColorClass } from "@/lib/metrics/percent-level"
 import { computeFleetSummary } from "@/lib/servers/fleet-summary"
 import { cn } from "@/lib/utils"
 
-function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
+function FleetSummaryCardsInner({ servers }: { servers: ServerResponse[] }) {
   const summary = computeFleetSummary(servers)
 
   function onlineMetricDetail(
@@ -37,6 +39,7 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
         value={summary.online}
         formatValue={(value) => `${formatCount(Math.round(value))} online`}
         detail={`${summary.offline} offline · ${summary.pending} pending`}
+        animate={false}
         valueClassName={cn(
           summary.online > 0 && summary.offline === 0
             ? "text-[#2E9470] dark:text-green-400"
@@ -57,6 +60,7 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
           "No CPU data yet"
         )}
         valueClassName={percentLevelColorClass(summary.avgCpuPercent)}
+        animate={false}
       />
       <MetricStatCard
         title="Avg memory"
@@ -70,6 +74,7 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
           "No memory data yet"
         )}
         valueClassName={percentLevelColorClass(summary.avgMemPercent)}
+        animate={false}
       />
       <MetricStatCard
         title="Needs attention"
@@ -81,9 +86,12 @@ function FleetSummaryCards({ servers }: { servers: ServerResponse[] }) {
             ? "text-[#2E9470] dark:text-green-400"
             : "text-[#B8870A] dark:text-warning"
         )}
+        animate={false}
       />
     </div>
   )
 }
+
+const FleetSummaryCards = memo(FleetSummaryCardsInner)
 
 export { FleetSummaryCards }
