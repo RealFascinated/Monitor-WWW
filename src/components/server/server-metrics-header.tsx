@@ -8,11 +8,8 @@ import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Button } from "@/components/ui/button"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
-import {
-  metricTimeWindowToSearch
-  
-} from "@/lib/metrics/time-window"
-import type {MetricTimeWindow} from "@/lib/metrics/time-window";
+import { metricTimeWindowToSearch } from "@/lib/metrics/time-window"
+import type { MetricTimeWindow } from "@/lib/metrics/time-window"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
 
 type ServerMetricsHeaderProps = {

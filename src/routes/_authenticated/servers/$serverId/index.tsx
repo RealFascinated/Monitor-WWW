@@ -13,7 +13,7 @@ import { userServerMetricsQueryOptions } from "@/lib/api/user/metrics.queries"
 import { ApiClientError } from "@/lib/auth/api"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
-const serverMetricsSearchSchema = metricRangeSearchSchema("7d")
+const serverMetricsSearchSchema = metricRangeSearchSchema()
 
 export const Route = createFileRoute("/_authenticated/servers/$serverId/")({
   validateSearch: serverMetricsSearchSchema,
@@ -65,9 +65,7 @@ function ServerMetricsPage() {
     [navigate, numericServerId]
   )
 
-  const dataWindow = metrics
-    ? { from: metrics.from, to: metrics.to }
-    : null
+  const dataWindow = metrics ? { from: metrics.from, to: metrics.to } : null
 
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">

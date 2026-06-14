@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,8 +18,8 @@ import { Label } from "@/components/ui/label"
 import { renameServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServersQueryKey } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
 import { MAX_FOLDER_NAME_LENGTH, validateFolderName } from "@/lib/folder-name"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type RenameFolderDialogProps = {
   folderId: number
@@ -34,7 +33,6 @@ function RenameFolderDialog({
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -49,13 +47,14 @@ function RenameFolderDialog({
             entry.id === folder.id ? folder : entry
           ) ?? [folder]
       )
+      toastSuccess("Folder renamed")
       setOpen(false)
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to rename folder"
+      toastMutationError(
+        "Could not rename folder",
+        error,
+        "Failed to rename folder"
       )
     },
   })
@@ -70,7 +69,6 @@ function RenameFolderDialog({
     if (nextOpen) {
       setName(currentName)
       setFieldError(null)
-      setApiError(null)
     }
   }
 
@@ -90,7 +88,6 @@ function RenameFolderDialog({
     }
 
     setFieldError(null)
-    setApiError(null)
     mutation.mutate(trimmedName)
   }
 
@@ -115,12 +112,6 @@ function RenameFolderDialog({
             </DialogDescription>
           </DialogHeader>
 
-          {apiError ? (
-            <Callout type="danger" title="Could not rename folder">
-              {apiError}
-            </Callout>
-          ) : null}
-
           <div className="flex flex-col gap-2">
             <Label htmlFor={`rename-folder-${folderId}`}>Name</Label>
             <Input
@@ -130,7 +121,6 @@ function RenameFolderDialog({
               onChange={(event) => {
                 setName(event.target.value)
                 setFieldError(null)
-                setApiError(null)
               }}
               aria-invalid={fieldError ? true : undefined}
               disabled={mutation.isPending}

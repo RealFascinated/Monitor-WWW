@@ -29,7 +29,8 @@ export type FleetMetrics = {
   serversOnline?: MetricValues
   serversPending?: MetricValues
   serversTotal?: MetricValues
-  [key: string]: MetricValues | FleetOsMetrics | FleetVersionMetrics | undefined
+  byOs?: FleetOsMetrics[]
+  byAgentVersion?: FleetVersionMetrics[]
 }
 
 export type HttpMetricsEntry = {

@@ -1,6 +1,5 @@
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import {
   Tooltip,
   TooltipContent,
@@ -32,8 +31,6 @@ type ConfirmDialogProps = {
   confirmLabel?: string
   cancelLabel?: string
   confirmVariant?: ConfirmVariant
-  error?: string | null
-  errorTitle?: string
   onConfirm: () => void | Promise<void>
   onOpenChange?: (open: boolean) => void
 }
@@ -46,8 +43,6 @@ function ConfirmDialog({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   confirmVariant = "highlighted",
-  error = null,
-  errorTitle = "Action failed",
   onConfirm,
   onOpenChange,
 }: ConfirmDialogProps) {
@@ -70,7 +65,7 @@ function ConfirmDialog({
       await onConfirm()
       setOpen(false)
     } catch {
-      // Caller surfaces errors via the error prop.
+      // Caller surfaces errors via toast.
     } finally {
       setIsPending(false)
     }
@@ -95,12 +90,6 @@ function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-
-        {error ? (
-          <Callout type="danger" title={errorTitle}>
-            {error}
-          </Callout>
-        ) : null}
 
         <DialogFooter className="border-t border-neutral-200 pt-3 dark:border-monitor-gray-200">
           <Button

@@ -34,6 +34,11 @@ export const USER_ROLE_TOOLTIPS: Record<UserRole, string> = {
   USER: "Can access servers shared with this account.",
 }
 
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  ADMIN: "Admin",
+  USER: "User",
+}
+
 export const SERVER_ROLE_TOOLTIPS: Record<ServerRole | "OWNER", string> = {
   OWNER: "Full control: rename, delete, rotate tokens, and manage access.",
   VIEWER: "Read-only access to this server's metrics and settings view.",

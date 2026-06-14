@@ -1,4 +1,3 @@
-import { Callout } from "@/components/callout"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { SettingsToggle } from "@/components/ui/settings-toggle"
 import { useAdminSettingUpdate } from "@/hooks/use-admin-setting-update"
@@ -21,7 +20,7 @@ function AdminBooleanSetting({
   description,
   tooltip,
 }: AdminBooleanSettingProps) {
-  const { mutation, errorMessage } = useAdminSettingUpdate(definition)
+  const { mutation } = useAdminSettingUpdate(definition)
   const checked = getAdminSettingValue(settings, definition)
 
   const control = (
@@ -34,26 +33,18 @@ function AdminBooleanSetting({
   )
 
   return (
-    <div className="flex flex-col gap-3">
-      {errorMessage ? (
-        <Callout type="danger" title="Could not update setting">
-          {errorMessage}
-        </Callout>
-      ) : null}
+    <div className="flex max-w-xl items-start justify-between gap-8">
+      <div className="flex flex-col gap-1.5">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs font-bold text-neutral-500">{description}</p>
+      </div>
 
-      <div className="flex max-w-xl items-start justify-between gap-8">
-        <div className="flex flex-col gap-1.5">
-          <p className="text-sm font-medium">{label}</p>
-          <p className="text-xs font-bold text-neutral-500">{description}</p>
-        </div>
-
-        <div className="shrink-0 pt-0.5">
-          {tooltip ? (
-            <SimpleTooltip content={tooltip}>{control}</SimpleTooltip>
-          ) : (
-            control
-          )}
-        </div>
+      <div className="shrink-0 pt-0.5">
+        {tooltip ? (
+          <SimpleTooltip content={tooltip}>{control}</SimpleTooltip>
+        ) : (
+          control
+        )}
       </div>
     </div>
   )

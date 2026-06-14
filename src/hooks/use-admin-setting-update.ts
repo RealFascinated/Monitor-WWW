@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
 
 import type { AdminSettingResponse } from "@/lib/api/admin/settings"
 import {
@@ -7,7 +6,7 @@ import {
   updateAdminSetting,
 } from "@/lib/api/admin/settings"
 import { adminSettingsQueryOptions } from "@/lib/api/admin/settings.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type SettingUpdateDefinition = {
   key: string
@@ -15,7 +14,6 @@ type SettingUpdateDefinition = {
 
 export function useAdminSettingUpdate(definition: SettingUpdateDefinition) {
   const queryClient = useQueryClient()
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: (value: boolean | string | number) =>
@@ -25,16 +23,16 @@ export function useAdminSettingUpdate(definition: SettingUpdateDefinition) {
         adminSettingsQueryOptions().queryKey,
         (current) => mergeAdminSettingsCache(current, updated)
       )
-      setErrorMessage(null)
+      toastSuccess("Setting updated")
     },
     onError: (error) => {
-      setErrorMessage(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to update setting"
+      toastMutationError(
+        "Could not update setting",
+        error,
+        "Failed to update setting"
       )
     },
   })
 
-  return { mutation, errorMessage }
+  return { mutation }
 }

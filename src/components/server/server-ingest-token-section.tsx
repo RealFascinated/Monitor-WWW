@@ -2,7 +2,6 @@ import { useMutation } from "@tanstack/react-query"
 import { AlertTriangle, Terminal } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { AgentInstallPanel } from "@/components/server/agent-install-panel"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import { SimpleTooltip } from "@/components/simple-tooltip"
@@ -10,11 +9,11 @@ import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { rotateIngestToken } from "@/lib/api/user/servers"
 import type { ServerStatus } from "@/lib/api/user/servers"
-import { ApiClientError } from "@/lib/auth/api"
 import {
   SERVER_TABLE_COLUMN_TOOLTIPS,
   SETTINGS_TOOLTIPS,
 } from "@/lib/tooltips/copy"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type ServerIngestTokenSectionProps = {
   serverId: number
@@ -28,25 +27,23 @@ function ServerIngestTokenSection({
   agentVersion,
 }: ServerIngestTokenSectionProps) {
   const [ingestToken, setIngestToken] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: () => rotateIngestToken(serverId),
     onSuccess: (response) => {
       setIngestToken(response.ingestToken)
-      setApiError(null)
+      toastSuccess("Token rotated")
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to rotate ingest token"
+      toastMutationError(
+        "Could not rotate ingest token",
+        error,
+        "Failed to rotate ingest token"
       )
     },
   })
 
   function handleRotate() {
-    setApiError(null)
     mutation.mutate()
   }
 
@@ -71,12 +68,6 @@ function ServerIngestTokenSection({
       </div>
 
       <div className="flex flex-col gap-4 p-4">
-        {apiError ? (
-          <Callout type="danger" title="Could not rotate ingest token">
-            {apiError}
-          </Callout>
-        ) : null}
-
         {ingestToken ? (
           <AgentInstallPanel ingestToken={ingestToken} />
         ) : (

@@ -79,11 +79,7 @@ function OverviewStats({ serverId }: { serverId: number }) {
     return null
   }
 
-  return (
-    <div className="metric-stat-grid">
-      {stats}
-    </div>
-  )
+  return <div className="metric-stat-grid">{stats}</div>
 }
 
 export { OverviewStats, overviewHasData }

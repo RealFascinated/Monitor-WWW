@@ -41,8 +41,7 @@ function ServerMetricsView({
   )
 
   const hasChartData = chartSections.length > 0
-  const showRangeCallout =
-    !hasChartData && server?.status !== "PENDING"
+  const showRangeCallout = !hasChartData && server?.status !== "PENDING"
 
   if (sections.length === 0 && !showRangeCallout) {
     return null

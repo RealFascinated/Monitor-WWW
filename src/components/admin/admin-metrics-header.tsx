@@ -4,11 +4,8 @@ import { Gauge } from "lucide-react"
 import { Breadcrumb } from "@/components/breadcrumb"
 import { MetricRangeSelector } from "@/components/server/metric-range-selector"
 import type { MetricRefreshInterval } from "@/lib/metrics/refresh-interval"
-import {
-  metricTimeWindowToSearch
-  
-} from "@/lib/metrics/time-window"
-import type {MetricTimeWindow} from "@/lib/metrics/time-window";
+import { metricTimeWindowToSearch } from "@/lib/metrics/time-window"
+import type { MetricTimeWindow } from "@/lib/metrics/time-window"
 
 type AdminMetricsHeaderProps = {
   timeWindow: MetricTimeWindow

@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { rotateIngestToken } from "@/lib/api/user/servers"
-import { ApiClientError } from "@/lib/auth/api"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type ServerAgentSetupDialogProps = {
   serverId: number
@@ -29,26 +29,24 @@ function ServerAgentSetupDialog({
 }: ServerAgentSetupDialogProps) {
   const [open, setOpen] = useState(false)
   const [ingestToken, setIngestToken] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: () => rotateIngestToken(serverId),
     onSuccess: (response) => {
       setIngestToken(response.ingestToken)
-      setApiError(null)
+      toastSuccess("Token rotated")
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to issue ingest token"
+      toastMutationError(
+        "Could not issue ingest token",
+        error,
+        "Failed to issue ingest token"
       )
     },
   })
 
   function resetState() {
     setIngestToken(null)
-    setApiError(null)
     mutation.reset()
   }
 
@@ -65,7 +63,6 @@ function ServerAgentSetupDialog({
   }
 
   function handleIssueToken() {
-    setApiError(null)
     mutation.mutate()
   }
 
@@ -113,20 +110,11 @@ function ServerAgentSetupDialog({
               </DialogDescription>
             </DialogHeader>
 
-            {apiError ? (
-              <Callout type="danger" title="Could not issue ingest token">
-                {apiError}
-              </Callout>
-            ) : (
-              <Callout
-                type="warning"
-                title="This invalidates any previous token"
-              >
-                Generating a new ingest token revokes the previous one. Only do
-                this if you have not configured the agent yet, or you need to
-                replace a lost token.
-              </Callout>
-            )}
+            <Callout type="warning" title="This invalidates any previous token">
+              Generating a new ingest token revokes the previous one. Only do
+              this if you have not configured the agent yet, or you need to
+              replace a lost token.
+            </Callout>
 
             <DialogFooter className="border-t border-neutral-200 pt-3 dark:border-monitor-gray-200">
               <Button

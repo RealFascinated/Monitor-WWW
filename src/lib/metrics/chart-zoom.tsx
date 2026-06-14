@@ -1,11 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useMemo,
-  useRef
-  
-} from "react"
-import type {ReactNode} from "react";
+import { createContext, useContext, useMemo, useRef } from "react"
+import type { ReactNode } from "react"
 import type uPlot from "uplot"
 
 export type MetricsDataWindow = {
@@ -46,9 +40,8 @@ type MetricsChartZoomContextValue = {
   } | null
 }
 
-const MetricsChartZoomContext = createContext<MetricsChartZoomContextValue | null>(
-  null
-)
+const MetricsChartZoomContext =
+  createContext<MetricsChartZoomContextValue | null>(null)
 
 type MetricsChartZoomProviderProps = {
   dataWindow: MetricsDataWindow

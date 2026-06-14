@@ -13,6 +13,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedInvitesRouteRouteImport } from './routes/_authenticated/invites/route'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedInvitesIndexRouteImport } from './routes/_authenticated/invites/index'
@@ -40,6 +41,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedInvitesRouteRoute =
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/invites': typeof AuthenticatedInvitesRouteRouteWithChildren
+  '/settings': typeof AuthenticatedSettingsRoute
   '/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/settings': typeof AuthenticatedSettingsRoute
   '/': typeof AuthenticatedIndexRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/invites': typeof AuthenticatedInvitesRouteRouteWithChildren
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/servers/$serverId': typeof AuthenticatedServersServerIdRouteRouteWithChildren
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/admin'
     | '/invites'
+    | '/settings'
     | '/servers/$serverId'
     | '/admin/metrics'
     | '/admin/settings'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin'
+    | '/settings'
     | '/'
     | '/admin/metrics'
     | '/admin/settings'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/_authenticated/admin'
     | '/_authenticated/invites'
+    | '/_authenticated/settings'
     | '/_authenticated/'
     | '/_authenticated/servers/$serverId'
     | '/_authenticated/admin/metrics'
@@ -216,6 +228,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/invites': {
@@ -337,6 +356,7 @@ const AuthenticatedServersServerIdRouteRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedInvitesRouteRoute: typeof AuthenticatedInvitesRouteRouteWithChildren
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedServersServerIdRouteRoute: typeof AuthenticatedServersServerIdRouteRouteWithChildren
 }
@@ -344,6 +364,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedInvitesRouteRoute: AuthenticatedInvitesRouteRouteWithChildren,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedServersServerIdRouteRoute:
     AuthenticatedServersServerIdRouteRouteWithChildren,

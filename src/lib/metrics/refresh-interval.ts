@@ -1,9 +1,4 @@
-export const METRIC_REFRESH_INTERVALS = [
-  "10s",
-  "30s",
-  "1m",
-  "never",
-] as const
+export const METRIC_REFRESH_INTERVALS = ["10s", "30s", "1m", "never"] as const
 
 export type MetricRefreshInterval = (typeof METRIC_REFRESH_INTERVALS)[number]
 

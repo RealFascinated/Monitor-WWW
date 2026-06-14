@@ -8,6 +8,7 @@ import {
   Search,
   Server,
   Settings,
+  User as UserIcon,
   X,
 } from "lucide-react"
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react"
@@ -18,15 +19,16 @@ import { CpuPercent, MemoryPercent } from "@/components/server/usage-percent"
 import { MonitorLogo } from "@/components/monitor-logo"
 import { SimpleTooltip } from "@/components/simple-tooltip"
 import { Spinner } from "@/components/spinner"
-import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { filterServerIdsBySearch } from "@/components/user/server-table-columns"
+import { useSidebarColumnVisibility } from "@/hooks/use-sidebar-column-visibility"
 import { useSidebarDetailedMode } from "@/hooks/use-sidebar-detailed-mode"
 import {
   useServerFolderLayout,
   useServerIds,
 } from "@/hooks/use-server-folder-layout"
+import { useUserInvites } from "@/hooks/use-user-invites"
 import { useUserServer } from "@/hooks/use-user-server"
 import { useUserServers } from "@/hooks/use-user-servers"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
@@ -34,6 +36,7 @@ import { serversById } from "@/lib/api/user/servers.queries"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import type { ServerStatus } from "@/lib/api/user/servers"
 import type { User } from "@/lib/auth/types"
+import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
 import { SERVER_STATUS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { cn } from "@/lib/utils"
 
@@ -52,6 +55,12 @@ const navItems = [
     icon: Mail,
     exact: true,
   },
+  {
+    to: "/settings" as const,
+    label: "Account",
+    icon: UserIcon,
+    exact: true,
+  },
 ] as const
 
 const statusDotStyles: Record<ServerStatus, string> = {
@@ -60,35 +69,89 @@ const statusDotStyles: Record<ServerStatus, string> = {
   PENDING: "bg-amber-500",
 }
 
-function SidebarDetailedToggle({
-  detailed,
-  onToggle,
+function SidebarNavCountBadge({
+  count,
+  compact,
 }: {
-  detailed: boolean
-  onToggle: () => void
+  count: number
+  compact: boolean
 }) {
+  if (count < 1) {
+    return null
+  }
+
+  const label = count > 99 ? "99+" : String(count)
+
+  if (compact) {
+    return (
+      <span
+        aria-hidden
+        className="absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-monitor px-0.5 text-[9px] leading-none font-semibold text-white tabular-nums dark:bg-warning dark:text-black"
+      >
+        {count > 9 ? "9+" : label}
+      </span>
+    )
+  }
+
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={detailed}
-      aria-label="Detailed mode"
-      onClick={onToggle}
+    <span
+      aria-hidden
+      className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-monitor px-1 text-[10px] leading-none font-semibold text-white tabular-nums dark:bg-warning dark:text-black"
+    >
+      {label}
+    </span>
+  )
+}
+
+function SidebarNavLink({
+  compact,
+  onNavigate,
+  to,
+  icon: Icon,
+  label,
+  exact,
+  badgeCount = 0,
+}: {
+  compact: boolean
+  onNavigate?: () => void
+  to: "/" | "/invites" | "/settings"
+  icon: typeof Server
+  label: string
+  exact: boolean
+  badgeCount?: number
+}) {
+  const tooltip = badgeCount > 0 ? `${label} (${badgeCount})` : label
+  const ariaLabel = badgeCount > 0 ? `${label}, ${badgeCount} pending` : label
+
+  const link = (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      activeOptions={{ exact }}
+      aria-label={compact ? ariaLabel : undefined}
       className={cn(
-        "relative h-5 w-9 shrink-0 rounded-full transition-colors",
-        detailed
-          ? "bg-monitor dark:bg-warning"
-          : "bg-neutral-200 dark:bg-monitor-gray-300"
+        "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
+        "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
+        compact && "justify-center px-0",
+        compact && "cursor-pointer"
       )}
     >
-      <span
-        className={cn(
-          "absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow-sm transition-transform",
-          detailed && "translate-x-4"
-        )}
-      />
-    </button>
+      <span className="relative shrink-0">
+        <Icon className="size-4" />
+        {compact ? <SidebarNavCountBadge count={badgeCount} compact /> : null}
+      </span>
+      {!compact ? <span className="truncate">{label}</span> : null}
+      {!compact ? (
+        <SidebarNavCountBadge count={badgeCount} compact={false} />
+      ) : null}
+    </Link>
   )
+
+  if (compact) {
+    return <SimpleTooltip content={tooltip}>{link}</SimpleTooltip>
+  }
+
+  return link
 }
 
 function SidebarAdminLink({
@@ -102,7 +165,7 @@ function SidebarAdminLink({
   compact: boolean
   onNavigate?: () => void
   to: "/admin/metrics" | "/admin/settings"
-  search?: { range: "24h" }
+  search?: ReturnType<typeof defaultMetricRangeSearch>
   icon: typeof Gauge
   label: string
 }) {
@@ -158,7 +221,7 @@ function SidebarAdminSection({
         compact={compact}
         onNavigate={onNavigate}
         to="/admin/metrics"
-        search={{ range: "24h" }}
+        search={defaultMetricRangeSearch()}
         icon={Gauge}
         label="Metrics"
       />
@@ -183,6 +246,7 @@ const SidebarServerItem = memo(function SidebarServerItem({
   nested?: boolean
 }) {
   const { data: server } = useUserServer(serverId)
+  const { visibility } = useSidebarColumnVisibility()
 
   if (!server) {
     return null
@@ -194,7 +258,7 @@ const SidebarServerItem = memo(function SidebarServerItem({
     <Link
       to="/servers/$serverId"
       params={{ serverId: String(server.serverId) }}
-      search={{ range: "7d" }}
+      search={defaultMetricRangeSearch()}
       onClick={onNavigate}
       className={cn(
         "flex w-full shrink-0 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
@@ -224,21 +288,30 @@ const SidebarServerItem = memo(function SidebarServerItem({
           )}
         >
           <span className="truncate leading-tight">{server.serverName}</span>
-          {detailed ? (
+          {detailed && (visibility.cpu || visibility.ram) ? (
             <span className="truncate text-[11px] leading-tight text-neutral-400">
-              CPU{" "}
-              <CpuPercent
-                value={server.cpuPercent}
-                status={server.status}
-                className="font-medium"
-              />{" "}
-              · RAM{" "}
-              <MemoryPercent
-                usage={server.memUsage}
-                max={server.memMax}
-                status={server.status}
-                className="font-medium"
-              />
+              {visibility.cpu ? (
+                <>
+                  CPU{" "}
+                  <CpuPercent
+                    value={server.cpuPercent}
+                    status={server.status}
+                    className="font-medium"
+                  />
+                </>
+              ) : null}
+              {visibility.cpu && visibility.ram ? " · " : null}
+              {visibility.ram ? (
+                <>
+                  RAM{" "}
+                  <MemoryPercent
+                    usage={server.memUsage}
+                    max={server.memMax}
+                    status={server.status}
+                    className="font-medium"
+                  />
+                </>
+              ) : null}
             </span>
           ) : null}
         </span>
@@ -342,7 +415,7 @@ function SidebarServerList({
   )
   const { data: servers = [] } = useUserServers()
   const serversMap = useMemo(() => serversById(servers), [servers])
-  const { detailed, toggleDetailed } = useSidebarDetailedMode()
+  const { detailed } = useSidebarDetailedMode()
   const search = searchQuery.trim()
 
   const filteredServerIds = useMemo(
@@ -456,17 +529,10 @@ function SidebarServerList({
     <div className="flex min-h-0 flex-1 flex-col">
       {!compact ? (
         <>
-          <div className="mt-3 mb-0 flex shrink-0 items-center justify-between gap-2 px-2">
+          <div className="mt-3 mb-0 shrink-0 px-2">
             <p className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
               Servers
             </p>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-neutral-400">Detailed</span>
-              <SidebarDetailedToggle
-                detailed={detailed}
-                onToggle={toggleDetailed}
-              />
-            </div>
           </div>
           <div className="relative my-2 shrink-0 px-2">
             <Search
@@ -558,6 +624,9 @@ export function AppSidebar({
   isLoggingOut,
   onLogout,
 }: AppSidebarProps) {
+  const { data: invites = [] } = useUserInvites()
+  const pendingInviteCount = invites.length
+
   function handleNavigate() {
     onMobileClose()
   }
@@ -637,32 +706,18 @@ export function AppSidebar({
               )}
             />
           </button>
-          {navItems.map(({ to, label, icon: Icon, exact }) => {
-            const link = (
-              <Link
-                to={to}
-                onClick={handleNavigate}
-                activeOptions={{ exact }}
-                className={cn(
-                  "flex min-h-7 w-full items-center gap-3 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted",
-                  "[&.active]:bg-neutral-200 [&.active]:text-black dark:[&.active]:bg-monitor-gray-200 dark:[&.active]:text-warning",
-                  compact && "justify-center px-0",
-                  compact && "cursor-pointer"
-                )}
-              >
-                <Icon className="size-4 shrink-0" />
-                {!compact ? <span className="truncate">{label}</span> : null}
-              </Link>
-            )
-
-            return compact ? (
-              <SimpleTooltip key={to} content={label}>
-                {link}
-              </SimpleTooltip>
-            ) : (
-              <span key={to}>{link}</span>
-            )
-          })}
+          {navItems.map(({ to, label, icon, exact }) => (
+            <SidebarNavLink
+              key={to}
+              compact={compact}
+              onNavigate={handleNavigate}
+              to={to}
+              icon={icon}
+              label={label}
+              exact={exact}
+              badgeCount={to === "/invites" ? pendingInviteCount : 0}
+            />
+          ))}
           {user.role === "ADMIN" ? (
             <SidebarAdminSection
               compact={compact}
@@ -686,17 +741,6 @@ export function AppSidebar({
             compact && "items-center px-2"
           )}
         >
-          {!compact ? (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-neutral-500">Theme</span>
-              <ThemeSwitcher />
-            </div>
-          ) : (
-            <ThemeSwitcher />
-          )}
-          {!compact ? (
-            <p className="truncate text-xs text-neutral-500">{user.email}</p>
-          ) : null}
           {compact ? (
             <Button
               type="button"

@@ -12,7 +12,7 @@ import { ApiClientError } from "@/lib/auth/api"
 import { pageTitle } from "@/lib/page-title"
 import { metricRangeSearchSchema } from "@/lib/schemas/range"
 
-const adminMetricsSearchSchema = metricRangeSearchSchema("24h")
+const adminMetricsSearchSchema = metricRangeSearchSchema()
 
 export const Route = createFileRoute("/_authenticated/admin/metrics")({
   ssr: false,
@@ -58,9 +58,7 @@ function AdminMetricsPage() {
     [navigate]
   )
 
-  const dataWindow = metrics
-    ? { from: metrics.from, to: metrics.to }
-    : null
+  const dataWindow = metrics ? { from: metrics.from, to: metrics.to } : null
 
   return (
     <section className="-mx-4 -mt-4 flex flex-col px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mt-6 lg:px-8">
@@ -85,6 +83,7 @@ function AdminMetricsPage() {
       {metrics && dataWindow && !errorMessage ? (
         <AdminMetricsView
           metrics={metrics}
+          timeWindow={timeWindow}
           dataWindow={dataWindow}
           onZoomToRange={handleZoomToRange}
           zoomDisabled={isFetching}

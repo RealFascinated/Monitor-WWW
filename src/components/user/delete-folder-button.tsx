@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,7 +16,7 @@ import {
 import { deleteServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServersQueryKey } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type DeleteFolderButtonProps = {
   folderId: number
@@ -26,7 +25,6 @@ type DeleteFolderButtonProps = {
 
 function DeleteFolderButton({ folderId, folderName }: DeleteFolderButtonProps) {
   const [open, setOpen] = useState(false)
-  const [apiError, setApiError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -37,13 +35,14 @@ function DeleteFolderButton({ folderId, folderName }: DeleteFolderButtonProps) {
         ["user", "server-folders"],
         (current) => current?.filter((entry) => entry.id !== folderId) ?? []
       )
+      toastSuccess("Folder deleted")
       setOpen(false)
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to delete folder"
+      toastMutationError(
+        "Could not delete folder",
+        error,
+        "Failed to delete folder"
       )
     },
   })
@@ -54,10 +53,6 @@ function DeleteFolderButton({ folderId, folderName }: DeleteFolderButtonProps) {
     }
 
     setOpen(nextOpen)
-
-    if (nextOpen) {
-      setApiError(null)
-    }
   }
 
   return (
@@ -79,12 +74,6 @@ function DeleteFolderButton({ folderId, folderName }: DeleteFolderButtonProps) {
             ungrouped but not deleted.
           </DialogDescription>
         </DialogHeader>
-
-        {apiError ? (
-          <Callout type="danger" title="Could not delete folder">
-            {apiError}
-          </Callout>
-        ) : null}
 
         <DialogFooter className="border-t border-neutral-200 pt-3 dark:border-monitor-gray-200">
           <Button

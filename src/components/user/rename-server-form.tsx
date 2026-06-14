@@ -1,15 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
 import { updateServerInCaches } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
 import { MAX_SERVER_NAME_LENGTH, validateServerName } from "@/lib/server-name"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type RenameServerFormProps = {
   serverId: number
@@ -19,13 +18,11 @@ type RenameServerFormProps = {
 function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const inputId = `rename-server-name-${serverId}`
 
   useEffect(() => {
     setName(currentName)
     setFieldError(null)
-    setApiError(null)
   }, [currentName])
 
   const queryClient = useQueryClient()
@@ -36,13 +33,13 @@ function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
     onSuccess: (server) => {
       updateServerInCaches(queryClient, server)
       setFieldError(null)
-      setApiError(null)
+      toastSuccess("Server renamed")
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to rename server"
+      toastMutationError(
+        "Could not rename server",
+        error,
+        "Failed to rename server"
       )
     },
   })
@@ -67,7 +64,6 @@ function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
     }
 
     setFieldError(null)
-    setApiError(null)
     mutation.mutate(trimmedName)
   }
 
@@ -82,7 +78,6 @@ function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
           onChange={(event) => {
             setName(event.target.value)
             setFieldError(null)
-            setApiError(null)
           }}
           aria-invalid={fieldError ? true : undefined}
           disabled={mutation.isPending}
@@ -102,11 +97,6 @@ function RenameServerForm({ serverId, currentName }: RenameServerFormProps) {
       </div>
       {fieldError ? (
         <p className="text-xs font-bold text-error">{fieldError}</p>
-      ) : null}
-      {apiError ? (
-        <Callout type="danger" title="Could not rename server">
-          {apiError}
-        </Callout>
       ) : null}
     </form>
   )

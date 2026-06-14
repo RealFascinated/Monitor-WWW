@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
-import { useState } from "react"
 
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { Button } from "@/components/ui/button"
@@ -8,7 +7,7 @@ import { SETTINGS_TOOLTIPS } from "@/lib/tooltips/copy"
 import { deleteServer } from "@/lib/api/user/servers"
 import { serverAccessQueryKey } from "@/lib/api/user/access.queries"
 import { removeServerFromCaches } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type DeleteServerButtonProps = {
   serverId: number
@@ -23,8 +22,6 @@ function DeleteServerButton({
   onDeleted,
   variant = "icon",
 }: DeleteServerButtonProps) {
-  const [error, setError] = useState<string | null>(null)
-
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -32,13 +29,14 @@ function DeleteServerButton({
     onSuccess: async () => {
       removeServerFromCaches(queryClient, serverId)
       queryClient.removeQueries({ queryKey: serverAccessQueryKey(serverId) })
+      toastSuccess("Server deleted")
       onDeleted?.()
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof ApiClientError
-          ? mutationError.message
-          : "Failed to delete server"
+      toastMutationError(
+        "Could not delete server",
+        mutationError,
+        "Failed to delete server"
       )
     },
   })
@@ -74,15 +72,7 @@ function DeleteServerButton({
       }
       confirmLabel="Delete"
       confirmVariant="destructive"
-      error={error}
-      errorTitle="Could not delete server"
-      onOpenChange={(open) => {
-        if (!open) {
-          setError(null)
-        }
-      }}
       onConfirm={async () => {
-        setError(null)
         await mutation.mutateAsync()
       }}
     />

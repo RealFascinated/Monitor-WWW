@@ -35,7 +35,9 @@ export function metricTimeWindowToSearch(
   return { range: window.range }
 }
 
-export function metricTimeWindowQueryKey(window: MetricTimeWindow): string | number[] {
+export function metricTimeWindowQueryKey(
+  window: MetricTimeWindow
+): string | number[] {
   if (window.kind === "preset") {
     return window.range
   }
@@ -62,7 +64,9 @@ export function formatMetricTimeWindow(window: MetricTimeWindow): {
   const fromLabel = METRIC_TIME_WINDOW_FORMATTER.format(
     new Date(window.from * 1000)
   )
-  const toLabel = METRIC_TIME_WINDOW_FORMATTER.format(new Date(window.to * 1000))
+  const toLabel = METRIC_TIME_WINDOW_FORMATTER.format(
+    new Date(window.to * 1000)
+  )
   const label = `${fromLabel} – ${toLabel}`
 
   return {
@@ -71,7 +75,9 @@ export function formatMetricTimeWindow(window: MetricTimeWindow): {
   }
 }
 
-export function formatMetricTimeWindowDescription(window: MetricTimeWindow): string {
+export function formatMetricTimeWindowDescription(
+  window: MetricTimeWindow
+): string {
   if (window.kind === "preset") {
     return getMetricRangeOption(window.range).label.toLowerCase()
   }

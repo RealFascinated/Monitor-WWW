@@ -371,6 +371,12 @@
       flex: 1 1 calc((100% - 2rem) / 3);
     }
   }
+
+  @container (min-width: 52rem) {
+    .metric-stat-grid > * {
+      flex: 1 1 calc((100% - 3rem) / 4);
+    }
+  }
 }
 
 .uplot {

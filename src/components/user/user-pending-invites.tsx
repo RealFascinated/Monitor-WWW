@@ -1,17 +1,26 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
+import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { SimpleTooltip, TableHeaderTooltip } from "@/components/simple-tooltip"
+import { Spinner } from "@/components/spinner"
+import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { useUserInvites } from "@/hooks/use-user-invites"
+import { acceptServerInviteById } from "@/lib/api/user/invites"
 import type { UserPendingInvite } from "@/lib/api/user/invites"
+import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
+import { userInvitesQueryKey } from "@/lib/api/user/invites.queries"
+import { userServersQueryKey } from "@/lib/api/user/servers.queries"
 import { formatDate, formatDateWithRelative } from "@/lib/formatter"
+import { toastMutationError } from "@/lib/toast"
 import {
   INVITE_EXPIRY_TOOLTIP,
   SERVER_ROLE_TOOLTIPS,
@@ -19,6 +28,54 @@ import {
 
 function formatRole(role: string): string {
   return role.charAt(0) + role.slice(1).toLowerCase()
+}
+
+function AcceptInviteButton({
+  inviteId,
+  serverName,
+}: {
+  inviteId: number
+  serverName: string
+}) {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: () => acceptServerInviteById(inviteId),
+    onSuccess: async (member) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: userServersQueryKey }),
+        queryClient.invalidateQueries({ queryKey: userInvitesQueryKey }),
+      ])
+      await navigate({
+        to: "/servers/$serverId",
+        params: { serverId: String(member.serverId) },
+        search: defaultMetricRangeSearch(),
+      })
+    },
+    onError: (mutationError) => {
+      toastMutationError(
+        `Could not accept invite to ${serverName}`,
+        mutationError,
+        "Failed to accept invite"
+      )
+    },
+  })
+
+  return (
+    <Button
+      type="button"
+      variant="highlighted"
+      size="sm"
+      disabled={mutation.isPending}
+      onClick={() => {
+        mutation.mutate()
+      }}
+    >
+      {mutation.isPending ? <Spinner /> : null}
+      Accept
+    </Button>
+  )
 }
 
 const columns: ColumnDef<UserPendingInvite>[] = [
@@ -75,6 +132,18 @@ const columns: ColumnDef<UserPendingInvite>[] = [
       </SimpleTooltip>
     ),
   },
+  {
+    id: "actions",
+    enableSorting: false,
+    header: () => <span className="sr-only">Actions</span>,
+    meta: { className: "w-0" },
+    cell: ({ row }) => (
+      <AcceptInviteButton
+        inviteId={row.original.inviteId}
+        serverName={row.original.serverName}
+      />
+    ),
+  },
 ]
 
 function UserPendingInvites() {
@@ -105,7 +174,7 @@ function UserPendingInvites() {
         <LoadingState message="Loading invites…" />
       ) : null}
 
-      {invites.length === 0 ? (
+      {!isPending && !errorMessage && invites.length === 0 ? (
         <p className="text-neutral-500">No pending invites.</p>
       ) : null}
 

@@ -43,6 +43,8 @@ export const METRIC_RANGES = [
   "2y",
 ] as const satisfies readonly MetricTimeRange[]
 
+export const DEFAULT_METRIC_TIME_RANGE: MetricTimeRange = "7d"
+
 export type MetricRangeGroup = "hours" | "days" | "weeks" | "months" | "years"
 
 export type MetricRangeOption = {
@@ -96,5 +98,5 @@ export function parseMetricRange(value: unknown): MetricTimeRange {
     return value as MetricTimeRange
   }
 
-  return "7d"
+  return DEFAULT_METRIC_TIME_RANGE
 }

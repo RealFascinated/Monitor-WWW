@@ -24,17 +24,14 @@ import {
   METRIC_REFRESH_INTERVAL_OPTIONS,
   getMetricRefreshIntervalOption,
 } from "@/lib/metrics/refresh-interval"
-import {
-  METRIC_RANGE_GROUPS,
-  METRIC_RANGE_OPTIONS,
-} from "@/lib/metrics/range"
+import { METRIC_RANGE_GROUPS, METRIC_RANGE_OPTIONS } from "@/lib/metrics/range"
 import {
   datetimeLocalToEpoch,
   defaultCustomMetricTimeWindow,
   epochToDatetimeLocal,
   formatMetricTimeWindow,
-  type MetricTimeWindow,
 } from "@/lib/metrics/time-window"
+import type { MetricTimeWindow } from "@/lib/metrics/time-window"
 import { cn } from "@/lib/utils"
 
 type MetricRangeSelectorProps = {
@@ -122,7 +119,7 @@ function MetricRangeSelector({
           <button
             type="button"
             aria-label={`Time range: ${activeLabel.label}`}
-            className="flex h-7 min-w-0 max-w-56 shrink cursor-pointer items-center gap-1.5 rounded-sm bg-white px-2.5 text-xs font-medium text-monitor shadow-sm transition-colors hover:bg-white/90 dark:bg-monitor-gray-300 dark:text-warning dark:hover:bg-monitor-gray-300/90"
+            className="flex h-7 max-w-56 min-w-0 shrink cursor-pointer items-center gap-1.5 rounded-sm bg-white px-2.5 text-xs font-medium text-monitor shadow-sm transition-colors hover:bg-white/90 dark:bg-monitor-gray-300 dark:text-warning dark:hover:bg-monitor-gray-300/90"
           >
             <Clock className="size-3.5 shrink-0" />
             <span className="truncate">{activeLabel.shortLabel}</span>
@@ -132,7 +129,7 @@ function MetricRangeSelector({
 
         <PopoverContent
           align="end"
-          className="w-[min(100vw-2rem,36rem)] bg-popover p-0 backdrop-blur-none animate-none"
+          className="w-[min(100vw-2rem,36rem)] animate-none bg-popover p-0 backdrop-blur-none"
         >
           <div className="relative">
             <section className="border-b border-border/60 p-2 sm:w-54 sm:border-r sm:border-b-0">

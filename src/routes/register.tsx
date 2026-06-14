@@ -1,9 +1,13 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
+import { LogIn, UserRoundX } from "lucide-react"
 import { useEffect } from "react"
 
+import { Callout } from "@/components/callout"
 import { LoadingState } from "@/components/loading-state"
 import { AuthForm } from "@/components/auth-form"
 import { ThemeSwitcher } from "@/components/theme-switcher"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -11,19 +15,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { isRegistrationEnabled } from "@/lib/api/settings"
+import { publicSettingsQueryOptions } from "@/lib/api/settings.queries"
 import { useAuth } from "@/lib/auth"
 import { pageTitle } from "@/lib/page-title"
 
 export const Route = createFileRoute("/register")({
+  ssr: false,
   head: () => ({
     meta: [{ title: pageTitle("Create account") }],
   }),
+  loader: ({ context: { queryClient } }) => {
+    return queryClient.ensureQueryData(publicSettingsQueryOptions())
+  },
   component: RegisterPage,
 })
 
 function RegisterPage() {
   const { user, isLoading } = useAuth()
   const navigate = useNavigate()
+  const {
+    data: settings,
+    isPending: settingsPending,
+    isError: settingsError,
+  } = useQuery(publicSettingsQueryOptions())
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -31,15 +46,54 @@ function RegisterPage() {
     }
   }, [isLoading, user, navigate])
 
-  if (isLoading) {
+  if (isLoading || settingsPending) {
     return <LoadingState message="Checking session…" centered />
   }
 
+  if (settingsError) {
+    return (
+      <AuthPageShell>
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <Callout type="danger" title="Could not load registration status">
+              Try refreshing the page. If the problem continues, contact an
+              administrator.
+            </Callout>
+          </CardContent>
+        </Card>
+      </AuthPageShell>
+    )
+  }
+
+  if (!isRegistrationEnabled(settings)) {
+    return (
+      <AuthPageShell>
+        <Card className="w-full max-w-md">
+          <CardHeader className="items-center text-center">
+            <div className="mb-1 flex size-12 items-center justify-center rounded-full bg-muted">
+              <UserRoundX className="size-6 text-muted-foreground" />
+            </div>
+            <CardTitle>Registration is closed</CardTitle>
+            <CardDescription className="text-balance">
+              This instance isn&apos;t accepting new accounts. Sign in if you
+              already have one, or contact an administrator for access.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="highlighted" className="w-full">
+              <Link to="/login">
+                <LogIn />
+                Sign in
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </AuthPageShell>
+    )
+  }
+
   return (
-    <main className="relative flex min-h-svh items-center justify-center bg-background px-6 py-8">
-      <div className="absolute top-4 right-4">
-        <ThemeSwitcher />
-      </div>
+    <AuthPageShell>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Create account</CardTitle>
@@ -60,6 +114,17 @@ function RegisterPage() {
           </p>
         </CardContent>
       </Card>
+    </AuthPageShell>
+  )
+}
+
+function AuthPageShell({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="relative flex min-h-svh items-center justify-center bg-background px-6 py-8">
+      <div className="absolute top-4 right-4">
+        <ThemeSwitcher />
+      </div>
+      {children}
     </main>
   )
 }

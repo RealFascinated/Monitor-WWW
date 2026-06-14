@@ -18,71 +18,7 @@ import {
   formatPercentValue,
 } from "@/lib/formatter"
 import type { MetricChartConfig } from "@/lib/metrics/chart-config"
-import {
-  chartSeries,
-  getLatestValue,
-  hasAnyValues,
-  hasValues,
-} from "@/lib/metrics/series"
-
-function isFleetOsMetrics(value: unknown): value is FleetOsMetrics {
-  return (
-    typeof value === "object" &&
-    value != null &&
-    "os" in value &&
-    "serversByOs" in value
-  )
-}
-
-function isFleetVersionMetrics(value: unknown): value is FleetVersionMetrics {
-  return (
-    typeof value === "object" &&
-    value != null &&
-    "version" in value &&
-    "serversByAgentVersion" in value
-  )
-}
-
-function parseFleetOsEntries(
-  fleet: FleetMetrics | null | undefined
-): FleetOsMetrics[] {
-  if (!fleet) {
-    return []
-  }
-
-  const entries: FleetOsMetrics[] = []
-
-  for (const value of Object.values(fleet)) {
-    if (isFleetOsMetrics(value) && hasValues(value.serversByOs)) {
-      entries.push(value)
-    }
-  }
-
-  return entries.sort((left, right) => left.os.localeCompare(right.os))
-}
-
-function parseFleetVersionEntries(
-  fleet: FleetMetrics | null | undefined
-): FleetVersionMetrics[] {
-  if (!fleet) {
-    return []
-  }
-
-  const entries: FleetVersionMetrics[] = []
-
-  for (const value of Object.values(fleet)) {
-    if (
-      isFleetVersionMetrics(value) &&
-      hasValues(value.serversByAgentVersion)
-    ) {
-      entries.push(value)
-    }
-  }
-
-  return entries.sort((left, right) =>
-    left.version.localeCompare(right.version)
-  )
-}
+import { chartSeries, getLatestValue, hasValues } from "@/lib/metrics/series"
 
 function parseHttpEntries(
   http: HttpMetrics | null | undefined
@@ -98,91 +34,6 @@ function parseHttpEntries(
       const rightLatest = getLatestValue(right.httpRequestsTotal) ?? 0
       return rightLatest - leftLatest
     })
-}
-
-function overviewHasData(
-  overview: OverviewMetrics | null | undefined
-): boolean {
-  if (!overview) {
-    return false
-  }
-
-  return hasAnyValues(
-    overview.activeSessions,
-    overview.databaseSizeBytes,
-    overview.users,
-    overview.usersNew24h
-  )
-}
-
-function fleetHasData(fleet: FleetMetrics | null | undefined): boolean {
-  if (!fleet) {
-    return false
-  }
-
-  return (
-    hasAnyValues(
-      fleet.serversNew24h,
-      fleet.serversOffline,
-      fleet.serversOnline,
-      fleet.serversPending,
-      fleet.serversTotal
-    ) ||
-    parseFleetOsEntries(fleet).length > 0 ||
-    parseFleetVersionEntries(fleet).length > 0
-  )
-}
-
-function ingestHasData(ingest: IngestMetrics | null | undefined): boolean {
-  if (!ingest) {
-    return false
-  }
-
-  return hasAnyValues(
-    ingest.ingestsTotal,
-    ingest.ingestAuthFailuresTotal,
-    ingest.ingestDurationSeconds,
-    ingest.ingestPayloadBytes
-  )
-}
-
-function jvmHasData(jvm: JvmMetrics | null | undefined): boolean {
-  if (!jvm) {
-    return false
-  }
-
-  return hasAnyValues(
-    jvm.jvmHeapMaxBytes,
-    jvm.jvmHeapUsedBytes,
-    jvm.jvmNonheapUsedBytes,
-    jvm.jvmProcessCpuLoad,
-    jvm.jvmProcessRssBytes,
-    jvm.jvmThreadCount,
-    jvm.jvmUptimeSeconds
-  )
-}
-
-function vmHasData(vm: VmMetrics | null | undefined): boolean {
-  if (!vm) {
-    return false
-  }
-
-  return hasAnyValues(
-    vm.vmQueriesTotal,
-    vm.vmQueryDurationSeconds,
-    vm.vmQueryErrorsTotal,
-    vm.vmWriteDurationSeconds,
-    vm.vmWriteErrorsTotal,
-    vm.vmWritesTotal
-  )
-}
-
-function httpHasData(http: HttpMetrics | null | undefined): boolean {
-  if (!http) {
-    return false
-  }
-
-  return Object.values(http).some((entry) => hasValues(entry.httpRequestsTotal))
 }
 
 function overviewCharts(overview: OverviewMetrics): MetricChartConfig[] {
@@ -236,11 +87,15 @@ function fleetCharts(fleet: FleetMetrics): MetricChartConfig[] {
 }
 
 function fleetOsCharts(entries: FleetOsMetrics[]): MetricChartConfig[] {
+  const sorted = [...entries].sort((left, right) =>
+    left.os.localeCompare(right.os)
+  )
+
   return [
     {
       title: "Servers by OS",
       description: "Registered servers grouped by operating system.",
-      series: entries.map((entry) => chartSeries(entry.os, entry.serversByOs)),
+      series: sorted.map((entry) => chartSeries(entry.os, entry.serversByOs)),
       valueFormatter: formatCount,
       showCurrentValues: false,
     },
@@ -250,11 +105,15 @@ function fleetOsCharts(entries: FleetOsMetrics[]): MetricChartConfig[] {
 function fleetVersionCharts(
   entries: FleetVersionMetrics[]
 ): MetricChartConfig[] {
+  const sorted = [...entries].sort((left, right) =>
+    left.version.localeCompare(right.version)
+  )
+
   return [
     {
       title: "Servers by agent version",
       description: "Registered servers grouped by Monitor Agent version.",
-      series: entries.map((entry) =>
+      series: sorted.map((entry) =>
         chartSeries(entry.version, entry.serversByAgentVersion)
       ),
       valueFormatter: formatCount,
@@ -394,20 +253,12 @@ function httpCharts(entries: HttpMetricsEntry[]): MetricChartConfig[] {
 export type { MetricChartConfig } from "@/lib/metrics/chart-config"
 export {
   fleetCharts,
-  fleetHasData,
   fleetOsCharts,
   fleetVersionCharts,
   httpCharts,
-  httpHasData,
   ingestCharts,
-  ingestHasData,
   jvmCharts,
-  jvmHasData,
   overviewCharts,
-  overviewHasData,
-  parseFleetOsEntries,
-  parseFleetVersionEntries,
   parseHttpEntries,
   vmCharts,
-  vmHasData,
 }

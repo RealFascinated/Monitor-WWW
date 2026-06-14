@@ -20,12 +20,12 @@ import type {
   ServerAccessListResponse,
 } from "@/lib/api/user/access"
 import type { ServerRole } from "@/lib/api/user/servers"
-import { ApiClientError } from "@/lib/auth/api"
 import { formatDate, formatDateWithRelative } from "@/lib/formatter"
 import {
   INVITE_EXPIRY_TOOLTIP,
   SERVER_ROLE_TOOLTIPS,
 } from "@/lib/tooltips/copy"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type ServerAccessViewProps = {
   serverId: number
@@ -66,8 +66,6 @@ function RemoveMemberButton({
   memberUserId: number
   memberEmail: string
 }) {
-  const [error, setError] = useState<string | null>(null)
-
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -76,12 +74,13 @@ function RemoveMemberButton({
       await queryClient.invalidateQueries({
         queryKey: serverAccessQueryKey(serverId),
       })
+      toastSuccess("Member removed")
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof ApiClientError
-          ? mutationError.message
-          : "Failed to remove member"
+      toastMutationError(
+        "Could not remove member",
+        mutationError,
+        "Failed to remove member"
       )
     },
   })
@@ -109,15 +108,7 @@ function RemoveMemberButton({
       }
       confirmLabel="Remove"
       confirmVariant="destructive"
-      error={error}
-      errorTitle="Could not remove member"
-      onOpenChange={(open) => {
-        if (!open) {
-          setError(null)
-        }
-      }}
       onConfirm={async () => {
-        setError(null)
         await mutation.mutateAsync()
       }}
     />
@@ -133,8 +124,6 @@ function RevokeInviteButton({
   inviteId: number
   inviteEmail: string
 }) {
-  const [error, setError] = useState<string | null>(null)
-
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -143,12 +132,13 @@ function RevokeInviteButton({
       await queryClient.invalidateQueries({
         queryKey: serverAccessQueryKey(serverId),
       })
+      toastSuccess("Invite revoked")
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof ApiClientError
-          ? mutationError.message
-          : "Failed to revoke invite"
+      toastMutationError(
+        "Could not revoke invite",
+        mutationError,
+        "Failed to revoke invite"
       )
     },
   })
@@ -176,15 +166,7 @@ function RevokeInviteButton({
       }
       confirmLabel="Revoke"
       confirmVariant="destructive"
-      error={error}
-      errorTitle="Could not revoke invite"
-      onOpenChange={(open) => {
-        if (!open) {
-          setError(null)
-        }
-      }}
       onConfirm={async () => {
-        setError(null)
         await mutation.mutateAsync()
       }}
     />

@@ -23,7 +23,7 @@ import {
   pendingOnlyTooltip,
   SERVER_TABLE_COLUMN_TOOLTIPS,
 } from "@/lib/tooltips/copy"
-import { cn } from "@/lib/utils"
+import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
 
 export type ServerTableRow = {
   serverId: number
@@ -81,7 +81,7 @@ export function getServerTableColumns(
             <Link
               to="/servers/$serverId"
               params={{ serverId: String(server.serverId) }}
-              search={{ range: "7d" }}
+              search={defaultMetricRangeSearch()}
               className="text-monitor hover:underline dark:text-warning"
             >
               {server.serverName}

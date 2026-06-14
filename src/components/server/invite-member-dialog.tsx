@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Check, Copy, Plus } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { inviteServerMember } from "@/lib/api/user/access"
 import type { ServerInviteCreatedResponse } from "@/lib/api/user/access"
 import { serverAccessQueryKey } from "@/lib/api/user/access.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { copyWithToast, toastMutationError, toastSuccess } from "@/lib/toast"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -54,7 +53,6 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const [createdInvite, setCreatedInvite] =
     useState<ServerInviteCreatedResponse | null>(null)
   const [copied, setCopied] = useState(false)
@@ -70,12 +68,13 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
       })
       setCreatedInvite(invite)
       setCopied(false)
+      toastSuccess("Invite sent")
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to send invite"
+      toastMutationError(
+        "Could not send invite",
+        error,
+        "Failed to send invite"
       )
     },
   })
@@ -83,7 +82,6 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
   function resetForm() {
     setEmail("")
     setFieldError(null)
-    setApiError(null)
     setCreatedInvite(null)
     setCopied(false)
   }
@@ -110,7 +108,6 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
     }
 
     setFieldError(null)
-    setApiError(null)
     mutation.mutate({ email: email.trim() })
   }
 
@@ -119,8 +116,10 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
       return
     }
 
-    await navigator.clipboard.writeText(buildInviteUrl(createdInvite))
-    setCopied(true)
+    const didCopy = await copyWithToast(buildInviteUrl(createdInvite))
+    if (didCopy) {
+      setCopied(true)
+    }
   }
 
   const inviteUrl = createdInvite ? buildInviteUrl(createdInvite) : null
@@ -185,12 +184,6 @@ function InviteMemberDialog({ serverId }: InviteMemberDialogProps) {
                 they accept.
               </DialogDescription>
             </DialogHeader>
-
-            {apiError ? (
-              <Callout type="danger" title="Could not send invite">
-                {apiError}
-              </Callout>
-            ) : null}
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="invite-email">Email</Label>

@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FolderPlus } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,14 +17,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createServerFolder } from "@/lib/api/user/folders"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
-import { ApiClientError } from "@/lib/auth/api"
 import { MAX_FOLDER_NAME_LENGTH, validateFolderName } from "@/lib/folder-name"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 function CreateFolderDialog() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -36,14 +34,15 @@ function CreateFolderDialog() {
         ["user", "server-folders"],
         (current) => [...(current ?? []), folder]
       )
+      toastSuccess("Folder created")
       setOpen(false)
       resetForm()
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to create folder"
+      toastMutationError(
+        "Could not create folder",
+        error,
+        "Failed to create folder"
       )
     },
   })
@@ -51,7 +50,6 @@ function CreateFolderDialog() {
   function resetForm() {
     setName("")
     setFieldError(null)
-    setApiError(null)
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -76,7 +74,6 @@ function CreateFolderDialog() {
     }
 
     setFieldError(null)
-    setApiError(null)
     mutation.mutate(name.trim())
   }
 
@@ -98,12 +95,6 @@ function CreateFolderDialog() {
             </DialogDescription>
           </DialogHeader>
 
-          {apiError ? (
-            <Callout type="danger" title="Could not create folder">
-              {apiError}
-            </Callout>
-          ) : null}
-
           <div className="flex flex-col gap-2">
             <Label htmlFor="folder-name">Name</Label>
             <Input
@@ -113,7 +104,6 @@ function CreateFolderDialog() {
               onChange={(event) => {
                 setName(event.target.value)
                 setFieldError(null)
-                setApiError(null)
               }}
               aria-invalid={fieldError ? true : undefined}
               disabled={mutation.isPending}

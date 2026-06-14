@@ -34,3 +34,11 @@ export function acceptServerInvite(
     body: JSON.stringify(request),
   })
 }
+
+export function acceptServerInviteById(
+  inviteId: number
+): Promise<ServerMemberResponse> {
+  return apiFetch<ServerMemberResponse>(`/v1/user/invites/${inviteId}/accept`, {
+    method: "POST",
+  })
+}

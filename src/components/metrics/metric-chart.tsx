@@ -148,9 +148,7 @@ function MetricChart({
             theme: resolvedTheme,
           }),
         ],
-        ...(syncKey
-          ? { setScale: [createChartZoomSyncHook(syncKey)] }
-          : {}),
+        ...(syncKey ? { setScale: [createChartZoomSyncHook(syncKey)] } : {}),
       }
 
       if (thresholds && thresholds.length > 0) {

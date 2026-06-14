@@ -1,15 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useId, useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useMoveServerToFolder } from "@/hooks/use-move-server-to-folder"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
-import { ApiClientError } from "@/lib/auth/api"
 import { MAX_FOLDER_NAME_LENGTH, validateFolderName } from "@/lib/folder-name"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type ServerFolderFormProps = {
   serverId: number
@@ -22,7 +21,6 @@ function ServerFolderForm({
 }: ServerFolderFormProps) {
   const [folderName, setFolderName] = useState(currentFolderName ?? "")
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const inputId = useId()
   const listId = useId()
 
@@ -32,7 +30,6 @@ function ServerFolderForm({
   useEffect(() => {
     setFolderName(currentFolderName ?? "")
     setFieldError(null)
-    setApiError(null)
   }, [currentFolderName])
 
   const trimmedName = folderName.trim()
@@ -50,13 +47,13 @@ function ServerFolderForm({
       {
         onSuccess: () => {
           setFieldError(null)
-          setApiError(null)
+          toastSuccess("Folder updated")
         },
         onError: (error) => {
-          setApiError(
-            error instanceof ApiClientError
-              ? error.message
-              : "Failed to update folder"
+          toastMutationError(
+            "Could not update folder",
+            error,
+            "Failed to update folder"
           )
         },
       }
@@ -72,7 +69,6 @@ function ServerFolderForm({
       }
 
       setFieldError(null)
-      setApiError(null)
       mutateFolder(null)
       return
     }
@@ -88,7 +84,6 @@ function ServerFolderForm({
     }
 
     setFieldError(null)
-    setApiError(null)
     mutateFolder(trimmedName)
   }
 
@@ -99,7 +94,6 @@ function ServerFolderForm({
     }
 
     setFieldError(null)
-    setApiError(null)
     mutateFolder(null)
   }
 
@@ -115,7 +109,6 @@ function ServerFolderForm({
           onChange={(event) => {
             setFolderName(event.target.value)
             setFieldError(null)
-            setApiError(null)
           }}
           placeholder="No folder"
           aria-invalid={fieldError ? true : undefined}
@@ -152,11 +145,6 @@ function ServerFolderForm({
       ) : null}
       {fieldError ? (
         <p className="text-xs font-bold text-error">{fieldError}</p>
-      ) : null}
-      {apiError ? (
-        <Callout type="danger" title="Could not update folder">
-          {apiError}
-        </Callout>
       ) : null}
     </form>
   )

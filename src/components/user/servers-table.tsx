@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { CreateFolderDialog } from "@/components/user/create-folder-dialog"
 import { CreateServerDialog } from "@/components/user/create-server-dialog"
+import { FleetSummaryCards } from "@/components/user/fleet-summary-cards"
 import {
   filterServerIdsBySearch,
   getServerTableColumns,
@@ -24,8 +25,8 @@ import { useUserServers } from "@/hooks/use-user-servers"
 import type { ServerFolderResponse } from "@/lib/api/user/folders"
 import { userServerFoldersQueryOptions } from "@/lib/api/user/folders.queries"
 import { serversById } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
 import { computeReorderedFolderIds } from "@/lib/servers/drag"
+import { toastMutationError } from "@/lib/toast"
 
 const EMPTY_FOLDERS: ServerFolderResponse[] = []
 
@@ -37,7 +38,6 @@ function ServersTable() {
   const [activeDropTargetKey, setActiveDropTargetKey] = useState<string | null>(
     null
   )
-  const [actionError, setActionError] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
 
   const serverIds = useServerIds()
@@ -118,12 +118,10 @@ function ServersTable() {
 
   function handleEditModeToggle() {
     setEditMode((current) => !current)
-    setActionError(null)
   }
 
   const handleServerDragStart = useCallback((rowId: string) => {
     setDraggingRowId(rowId)
-    setActionError(null)
   }, [])
 
   const handleServerDragEnd = useCallback(() => {
@@ -133,7 +131,6 @@ function ServersTable() {
 
   const handleFolderDragStart = useCallback((folderId: number) => {
     setDraggingFolderId(folderId)
-    setActionError(null)
   }, [])
 
   const handleFolderDragEnd = useCallback(() => {
@@ -148,17 +145,16 @@ function ServersTable() {
         return
       }
 
-      setActionError(null)
       setDraggingRowId(null)
       setActiveDropTargetKey(null)
       moveServer.mutate(
         { serverId, folderName },
         {
           onError: (moveErr) => {
-            setActionError(
-              moveErr instanceof ApiClientError
-                ? moveErr.message
-                : "Failed to move server"
+            toastMutationError(
+              "Could not update folders",
+              moveErr,
+              "Failed to move server"
             )
           },
         }
@@ -180,17 +176,16 @@ function ServersTable() {
         return
       }
 
-      setActionError(null)
       setDraggingFolderId(null)
       setActiveDropTargetKey(null)
       reorderFolders.mutate(
         { folderIds: nextFolderIds },
         {
           onError: (reorderErr) => {
-            setActionError(
-              reorderErr instanceof ApiClientError
-                ? reorderErr.message
-                : "Failed to reorder folders"
+            toastMutationError(
+              "Could not update folders",
+              reorderErr,
+              "Failed to reorder folders"
             )
           },
         }
@@ -272,6 +267,10 @@ function ServersTable() {
         </div>
       </div>
 
+      {!isLoading && servers.length > 0 ? (
+        <FleetSummaryCards servers={servers} />
+      ) : null}
+
       {editMode && (canOrganize || canReorderFolders) ? (
         <p className="text-xs text-neutral-500">
           {canOrganize && canReorderFolders
@@ -280,12 +279,6 @@ function ServersTable() {
               ? "Drag servers by the grip handle into a folder to organize them."
               : "Drag folder headers to reorder them."}
         </p>
-      ) : null}
-
-      {actionError ? (
-        <Callout type="danger" title="Could not update folders">
-          {actionError}
-        </Callout>
       ) : null}
 
       {errorMessage ? (

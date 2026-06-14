@@ -11,7 +11,13 @@ export const userServerMetricsQueryKey = {
   server: (serverId: number) =>
     ["user", "servers", serverId, "metrics"] as const,
   detail: (serverId: number, window: MetricTimeWindow) =>
-    ["user", "servers", serverId, "metrics", metricTimeWindowQueryKey(window)] as const,
+    [
+      "user",
+      "servers",
+      serverId,
+      "metrics",
+      metricTimeWindowQueryKey(window),
+    ] as const,
 }
 
 export function userServerMetricsQueryOptions(

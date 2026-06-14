@@ -1,14 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import { acceptServerInvite } from "@/lib/api/user/invites"
+import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
 import { userInvitesQueryKey } from "@/lib/api/user/invites.queries"
 import { userServersQueryKey } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { toastMutationError } from "@/lib/toast"
 
 type AcceptInviteViewProps = {
   token: string
@@ -17,7 +16,6 @@ type AcceptInviteViewProps = {
 
 function AcceptInviteView({ token, email }: AcceptInviteViewProps) {
   const navigate = useNavigate()
-  const [error, setError] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -31,14 +29,14 @@ function AcceptInviteView({ token, email }: AcceptInviteViewProps) {
       await navigate({
         to: "/servers/$serverId",
         params: { serverId: String(member.serverId) },
-        search: { range: "7d" },
+        search: defaultMetricRangeSearch(),
       })
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof ApiClientError
-          ? mutationError.message
-          : "Failed to accept invite"
+      toastMutationError(
+        "Could not accept invite",
+        mutationError,
+        "Failed to accept invite"
       )
     },
   })
@@ -54,19 +52,12 @@ function AcceptInviteView({ token, email }: AcceptInviteViewProps) {
         </p>
       </div>
 
-      {error ? (
-        <Callout type="danger" title="Could not accept invite">
-          {error}
-        </Callout>
-      ) : null}
-
       <Button
         type="button"
         variant="highlighted"
         className="w-full"
         disabled={acceptMutation.isPending}
         onClick={() => {
-          setError(null)
           acceptMutation.mutate()
         }}
       >

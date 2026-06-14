@@ -46,10 +46,7 @@ function Breadcrumb({ items, className }: BreadcrumbProps) {
             ) : null}
             <li className="inline-flex items-center gap-1.5">
               {item.current ? (
-                <span
-                  aria-current="page"
-                  className="shrink-0 text-foreground"
-                >
+                <span aria-current="page" className="shrink-0 text-foreground">
                   {item.label}
                 </span>
               ) : (

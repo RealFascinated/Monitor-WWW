@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,8 +22,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { renameServer } from "@/lib/api/user/servers"
 import { updateServerInCaches } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
 import { MAX_SERVER_NAME_LENGTH, validateServerName } from "@/lib/server-name"
+import { toastMutationError, toastSuccess } from "@/lib/toast"
 
 type RenameServerDialogProps = {
   serverId: number
@@ -38,7 +37,6 @@ function RenameServerDialog({
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(currentName)
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const inputId = `rename-server-name-${serverId}`
 
   const queryClient = useQueryClient()
@@ -48,14 +46,15 @@ function RenameServerDialog({
       renameServer(serverId, { name: nextName }),
     onSuccess: (server) => {
       updateServerInCaches(queryClient, server)
+      toastSuccess("Server renamed")
       setOpen(false)
       resetForm()
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to rename server"
+      toastMutationError(
+        "Could not rename server",
+        error,
+        "Failed to rename server"
       )
     },
   })
@@ -63,7 +62,6 @@ function RenameServerDialog({
   function resetForm() {
     setName(currentName)
     setFieldError(null)
-    setApiError(null)
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -76,7 +74,6 @@ function RenameServerDialog({
     if (nextOpen) {
       setName(currentName)
       setFieldError(null)
-      setApiError(null)
     } else {
       resetForm()
     }
@@ -98,7 +95,6 @@ function RenameServerDialog({
     }
 
     setFieldError(null)
-    setApiError(null)
     mutation.mutate(trimmed)
   }
 
@@ -129,12 +125,6 @@ function RenameServerDialog({
               {MAX_SERVER_NAME_LENGTH} characters.
             </DialogDescription>
           </DialogHeader>
-
-          {apiError ? (
-            <Callout type="danger" title="Could not rename server">
-              {apiError}
-            </Callout>
-          ) : null}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor={inputId}>Name</Label>

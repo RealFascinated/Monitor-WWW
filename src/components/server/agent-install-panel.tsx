@@ -12,7 +12,7 @@ import {
   isCommandInstallMethod,
 } from "@/lib/agent/install"
 import type { AgentInstallMethod } from "@/lib/agent/install"
-import { copyToClipboard } from "@/lib/clipboard"
+import { copyWithToast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 
 const INSTALL_METHODS: {
@@ -52,19 +52,13 @@ function CopyableField({
   value: string
 }) {
   const [copied, setCopied] = useState(false)
-  const [copyError, setCopyError] = useState<string | null>(null)
 
   async function handleCopy() {
-    setCopyError(null)
-    const didCopy = await copyToClipboard(value)
-
-    if (!didCopy) {
-      setCopyError("Could not copy to clipboard. Check browser permissions or use HTTPS.")
-      return
+    const didCopy = await copyWithToast(value)
+    if (didCopy) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
-
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   const labelNode = <Label htmlFor={id}>{label}</Label>
@@ -95,11 +89,6 @@ function CopyableField({
           {copied ? "Copied" : "Copy"}
         </Button>
       </div>
-      {copyError ? (
-        <Callout type="danger" title="Copy failed">
-          {copyError}
-        </Callout>
-      ) : null}
     </div>
   )
 }
@@ -107,7 +96,6 @@ function CopyableField({
 function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
   const [method, setMethod] = useState<AgentInstallMethod>("linux")
   const [copiedCommand, setCopiedCommand] = useState(false)
-  const [copyCommandError, setCopyCommandError] = useState<string | null>(null)
 
   const isCommandMethod = isCommandInstallMethod(method)
   const installContent = isCommandMethod
@@ -126,18 +114,11 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
       return
     }
 
-    setCopyCommandError(null)
-    const didCopy = await copyToClipboard(installContent)
-
-    if (!didCopy) {
-      setCopyCommandError(
-        "Could not copy to clipboard. Check browser permissions or use HTTPS."
-      )
-      return
+    const didCopy = await copyWithToast(installContent)
+    if (didCopy) {
+      setCopiedCommand(true)
+      setTimeout(() => setCopiedCommand(false), 2000)
     }
-
-    setCopiedCommand(true)
-    setTimeout(() => setCopiedCommand(false), 2000)
   }
 
   return (
@@ -219,11 +200,6 @@ function AgentInstallPanel({ ingestToken }: AgentInstallPanelProps) {
               {copiedCommand ? "Copied" : "Copy"}
             </Button>
           </div>
-          {copyCommandError ? (
-            <Callout type="danger" title="Copy failed">
-              {copyCommandError}
-            </Callout>
-          ) : null}
           <pre
             id="install-command"
             className="max-h-64 overflow-auto rounded-sm border border-border bg-muted p-3 font-mono text-xs whitespace-pre-wrap"

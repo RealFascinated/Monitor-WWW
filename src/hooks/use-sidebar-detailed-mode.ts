@@ -1,26 +1,32 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
+
+import {
+  useLocalStorageSync,
+  writeLocalStorage,
+} from "@/lib/local-storage-sync"
 
 const SIDEBAR_DETAILED_MODE_STORAGE_KEY = "sidebar-detailed-mode"
 
-export function useSidebarDetailedMode() {
-  const [detailed, setDetailed] = useState(false)
+function readDetailedMode(): boolean {
+  return localStorage.getItem(SIDEBAR_DETAILED_MODE_STORAGE_KEY) === "true"
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem(SIDEBAR_DETAILED_MODE_STORAGE_KEY)
-    if (stored === "true") {
-      setDetailed(true)
-    }
-  }, [])
+export function useSidebarDetailedMode() {
+  const [detailed, setDetailed] = useState(readDetailedMode)
+
+  useLocalStorageSync(SIDEBAR_DETAILED_MODE_STORAGE_KEY, () => {
+    setDetailed(readDetailedMode())
+  })
 
   const setDetailedPersisted = useCallback((value: boolean) => {
     setDetailed(value)
-    localStorage.setItem(SIDEBAR_DETAILED_MODE_STORAGE_KEY, String(value))
+    writeLocalStorage(SIDEBAR_DETAILED_MODE_STORAGE_KEY, String(value))
   }, [])
 
   const toggleDetailed = useCallback(() => {
     setDetailed((current) => {
       const next = !current
-      localStorage.setItem(SIDEBAR_DETAILED_MODE_STORAGE_KEY, String(next))
+      writeLocalStorage(SIDEBAR_DETAILED_MODE_STORAGE_KEY, String(next))
       return next
     })
   }, [])

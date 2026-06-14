@@ -4,6 +4,7 @@ import { Breadcrumb } from "@/components/breadcrumb"
 import { ServerStatusBadge } from "@/components/server/server-status-badge"
 import type { ServerResponse } from "@/lib/api/user/servers"
 import { ServerMetaSubtitle } from "@/components/server/server-meta-subtitle"
+import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
 
 type ServerSettingsHeaderProps = {
   server: ServerResponse | undefined
@@ -20,7 +21,7 @@ function ServerSettingsHeader({ server, serverId }: ServerSettingsHeaderProps) {
             label: server?.serverName ?? `Server ${serverId}`,
             to: "/servers/$serverId",
             params: { serverId: String(serverId) },
-            search: { range: "7d" },
+            search: defaultMetricRangeSearch(),
           },
           { label: "Settings", current: true },
         ]}

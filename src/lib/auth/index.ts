@@ -35,7 +35,7 @@ async function authenticate(
   } catch (error) {
     if (
       error instanceof ApiClientError &&
-      (error.status === 401 || error.status === 409)
+      (error.status === 401 || error.status === 403 || error.status === 409)
     ) {
       return { error: error.message }
     }

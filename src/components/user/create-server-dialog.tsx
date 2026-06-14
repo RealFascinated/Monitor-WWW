@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 
-import { Callout } from "@/components/callout"
 import { AgentInstallPanel } from "@/components/server/agent-install-panel"
 import { Spinner } from "@/components/spinner"
 import { Button } from "@/components/ui/button"
@@ -20,15 +19,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createServer } from "@/lib/api/user/servers"
 import type { CreatedServerResponse } from "@/lib/api/user/servers"
-import { userServersQueryKey } from "@/lib/api/user/servers.queries"
-import { ApiClientError } from "@/lib/auth/api"
+import { defaultMetricRangeSearch } from "@/lib/metrics/default-range"
 import { MAX_SERVER_NAME_LENGTH, validateServerName } from "@/lib/server-name"
+import { toastMutationError } from "@/lib/toast"
 
 function CreateServerDialog() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [fieldError, setFieldError] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
   const [createdServer, setCreatedServer] =
     useState<CreatedServerResponse | null>(null)
 
@@ -39,13 +37,12 @@ function CreateServerDialog() {
     onSuccess: async (server) => {
       await queryClient.invalidateQueries({ queryKey: userServersQueryKey })
       setCreatedServer(server)
-      setApiError(null)
     },
     onError: (error) => {
-      setApiError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Failed to create server"
+      toastMutationError(
+        "Could not create server",
+        error,
+        "Failed to create server"
       )
     },
   })
@@ -53,7 +50,6 @@ function CreateServerDialog() {
   function resetForm() {
     setName("")
     setFieldError(null)
-    setApiError(null)
     setCreatedServer(null)
   }
 
@@ -79,7 +75,6 @@ function CreateServerDialog() {
     }
 
     setFieldError(null)
-    setApiError(null)
     mutation.mutate({ name: name.trim() })
   }
 
@@ -120,7 +115,7 @@ function CreateServerDialog() {
                 <Link
                   to="/servers/$serverId"
                   params={{ serverId: String(createdServer.serverId) }}
-                  search={{ range: "7d" }}
+                  search={defaultMetricRangeSearch()}
                   onClick={() => handleOpenChange(false)}
                 >
                   View server
@@ -138,12 +133,6 @@ function CreateServerDialog() {
                 Agent.
               </DialogDescription>
             </DialogHeader>
-
-            {apiError ? (
-              <Callout type="danger" title="Could not create server">
-                {apiError}
-              </Callout>
-            ) : null}
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="server-name">Name</Label>

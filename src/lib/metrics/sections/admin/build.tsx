@@ -15,22 +15,14 @@ import { addChartSection } from "@/lib/metrics/sections/chart-section"
 import type { MetricsSectionNode } from "@/lib/metrics/sections/types"
 import {
   fleetCharts,
-  fleetHasData,
   fleetOsCharts,
   fleetVersionCharts,
   httpCharts,
-  httpHasData,
   ingestCharts,
-  ingestHasData,
   jvmCharts,
-  jvmHasData,
   overviewCharts,
-  overviewHasData,
-  parseFleetOsEntries,
-  parseFleetVersionEntries,
   parseHttpEntries,
   vmCharts,
-  vmHasData,
 } from "@/lib/metrics/sections/admin/charts"
 import type { MetricsTimeGrid } from "@/lib/metrics/timestamps"
 
@@ -39,86 +31,62 @@ function buildAdminMetricSections(
   timeGrid: MetricsTimeGrid
 ): MetricsSectionNode[] {
   const builder = createMetricsSectionBuilder()
-  const overview = metrics.overview
-  const fleet = metrics.fleet
 
-  if (overview && overviewHasData(overview)) {
-    addChartSection(builder, {
-      title: "Overview",
-      icon: LayoutDashboard,
-      charts: overviewCharts(overview),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "Overview",
+    icon: LayoutDashboard,
+    charts: overviewCharts(metrics.overview ?? {}),
+    timeGrid,
+  })
 
-  if (fleet && fleetHasData(fleet)) {
-    addChartSection(builder, {
-      title: "Fleet",
-      icon: Server,
-      charts: fleetCharts(fleet),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "Fleet",
+    icon: Server,
+    charts: fleetCharts(metrics.fleet ?? {}),
+    timeGrid,
+  })
 
-  const osEntries = parseFleetOsEntries(fleet)
-  if (osEntries.length > 0) {
-    addChartSection(builder, {
-      title: "OS breakdown",
-      icon: Monitor,
-      charts: fleetOsCharts(osEntries),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "OS breakdown",
+    icon: Monitor,
+    charts: fleetOsCharts(metrics.fleet?.byOs ?? []),
+    timeGrid,
+  })
 
-  const versionEntries = parseFleetVersionEntries(fleet)
-  if (versionEntries.length > 0) {
-    addChartSection(builder, {
-      title: "Agent versions",
-      icon: Package,
-      charts: fleetVersionCharts(versionEntries),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "Agent versions",
+    icon: Package,
+    charts: fleetVersionCharts(metrics.fleet?.byAgentVersion ?? []),
+    timeGrid,
+  })
 
-  const ingest = metrics.ingest
-  if (ingest && ingestHasData(ingest)) {
-    addChartSection(builder, {
-      title: "Ingest",
-      icon: Upload,
-      charts: ingestCharts(ingest),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "Ingest",
+    icon: Upload,
+    charts: ingestCharts(metrics.ingest ?? {}),
+    timeGrid,
+  })
 
-  const jvm = metrics.jvm
-  if (jvm && jvmHasData(jvm)) {
-    addChartSection(builder, {
-      title: "JVM",
-      icon: Coffee,
-      charts: jvmCharts(jvm),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "JVM",
+    icon: Coffee,
+    charts: jvmCharts(metrics.jvm ?? {}),
+    timeGrid,
+  })
 
-  const vm = metrics.vm
-  if (vm && vmHasData(vm)) {
-    addChartSection(builder, {
-      title: "VictoriaMetrics",
-      icon: Database,
-      charts: vmCharts(vm),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "VictoriaMetrics",
+    icon: Database,
+    charts: vmCharts(metrics.vm ?? {}),
+    timeGrid,
+  })
 
-  const httpEntries = parseHttpEntries(metrics.http)
-  if (httpHasData(metrics.http)) {
-    addChartSection(builder, {
-      title: "HTTP",
-      icon: Globe,
-      charts: httpCharts(httpEntries),
-      timeGrid,
-    })
-  }
+  addChartSection(builder, {
+    title: "HTTP",
+    icon: Globe,
+    charts: httpCharts(parseHttpEntries(metrics.http)),
+    timeGrid,
+  })
 
   return builder.build()
 }

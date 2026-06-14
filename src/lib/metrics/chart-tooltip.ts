@@ -67,7 +67,11 @@ function positionDesktopTooltip({
 
   x = clampHorizontalPosition(x, tooltipWidth, viewport)
 
-  const y = clampVerticalPosition(plotTop + TOOLTIP_PADDING, tooltipHeight, viewport)
+  const y = clampVerticalPosition(
+    plotTop + TOOLTIP_PADDING,
+    tooltipHeight,
+    viewport
+  )
 
   return { x, y }
 }
