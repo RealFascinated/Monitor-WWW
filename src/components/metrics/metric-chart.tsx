@@ -11,6 +11,12 @@ import {
 import { createThresholdDrawHook } from "@/lib/metrics/chart-thresholds"
 import type { ChartThreshold } from "@/lib/metrics/chart-thresholds"
 import { stackAlignedData } from "@/lib/metrics/series"
+import {
+  createChartZoomSyncHook,
+  registerMetricsChartSync,
+  unregisterMetricsChartSync,
+  useMetricsChartSyncKey,
+} from "@/lib/metrics/chart-sync"
 import { buildUPlotOptions, getChartColors } from "@/lib/metrics/uplot-theme"
 import type { ChartYRange } from "@/lib/metrics/uplot-theme"
 import { useTheme } from "@/lib/theme"
@@ -51,6 +57,7 @@ function MetricChart({
   const valueFormatterRef = useRef(valueFormatter)
   const dataRef = useRef(data)
   const { resolvedTheme } = useTheme()
+  const syncKey = useMetricsChartSyncKey() ?? undefined
   const yMax = yRange?.max ?? null
   const labelsKey = labels.join("\0")
   const negatedKey = negated.map(String).join("\0")
@@ -119,6 +126,9 @@ function MetricChart({
             theme: resolvedTheme,
           }),
         ],
+        ...(syncKey
+          ? { setScale: [createChartZoomSyncHook(syncKey)] }
+          : {}),
       }
 
       if (thresholds && thresholds.length > 0) {
@@ -133,6 +143,10 @@ function MetricChart({
         container
       )
       chartRef.current = chart
+
+      if (syncKey) {
+        registerMetricsChartSync(syncKey, chart)
+      }
 
       resizeObserver = new ResizeObserver(() => {
         const width = container.clientWidth
@@ -153,6 +167,9 @@ function MetricChart({
         destroyChartTooltipElement(tooltip)
       }
       if (chart) {
+        if (syncKey) {
+          unregisterMetricsChartSync(syncKey, chart)
+        }
         destroyChart(chart)
       }
       chartRef.current = null
@@ -168,6 +185,7 @@ function MetricChart({
     negatedKey,
     prepared.bands,
     thresholds,
+    syncKey,
   ])
 
   useLayoutEffect(() => {

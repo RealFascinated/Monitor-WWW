@@ -3,6 +3,7 @@ import { memo, useMemo } from "react"
 import { MetricSection } from "@/components/metrics/metric-section"
 import { MetricsSectionNav } from "@/components/metrics/metrics-section-nav"
 import { useMetricsActiveSection } from "@/hooks/use-metrics-active-section"
+import { MetricsChartSyncProvider } from "@/lib/metrics/chart-sync"
 import {
   flattenMetricSectionLeaves,
   metricsSectionIdsKey,
@@ -28,26 +29,28 @@ function MetricsView({ sections }: MetricsViewProps) {
   )
 
   return (
-    <div className="flex gap-4 lg:gap-6">
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
-        {leaves.map((section) => (
-          <MemoizedMetricSection
-            key={section.id}
-            id={section.id}
-            title={section.title}
-            icon={section.icon}
-            description={section.description}
-            render={section.render}
-          />
-        ))}
-      </div>
+    <MetricsChartSyncProvider>
+      <div className="flex gap-4 lg:gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {leaves.map((section) => (
+            <MemoizedMetricSection
+              key={section.id}
+              id={section.id}
+              title={section.title}
+              icon={section.icon}
+              description={section.description}
+              render={section.render}
+            />
+          ))}
+        </div>
 
-      <MemoizedMetricsSectionNav
-        sections={sections}
-        activeId={activeId}
-        onScrollToSection={scrollToSection}
-      />
-    </div>
+        <MemoizedMetricsSectionNav
+          sections={sections}
+          activeId={activeId}
+          onScrollToSection={scrollToSection}
+        />
+      </div>
+    </MetricsChartSyncProvider>
   )
 }
 

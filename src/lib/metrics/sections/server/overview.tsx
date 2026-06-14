@@ -28,6 +28,7 @@ function OverviewStats({ serverId }: { serverId: number }) {
   }
 
   const cpuUsage = server.cpuPercent ?? null
+  const cpuModel = server.inventory?.cpuModel ?? null
   const memUsage = server.memUsage ?? null
   const memTotal = server.memMax ?? null
   const memPercent = memoryUsagePercent(memUsage, memTotal)
@@ -42,6 +43,7 @@ function OverviewStats({ serverId }: { serverId: number }) {
         key="cpu"
         title="CPU"
         value={formatPercentValue(cpuUsage)}
+        detail={cpuModel ?? undefined}
         valueClassName={percentLevelColorClass(cpuUsage)}
       />
     ) : null,
