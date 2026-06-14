@@ -43,15 +43,21 @@ import {
   formatNumber,
 } from "@/lib/formatter"
 
+type BuildServerMetricSectionsOptions = {
+  includeOverview?: boolean
+}
+
 function buildServerMetricSections(
   metrics: ServerMetricsResponse,
   timeGrid: MetricsTimeGrid,
-  server?: ServerResponse
+  server?: ServerResponse,
+  options: BuildServerMetricSectionsOptions = {}
 ): MetricsSectionNode[] {
+  const { includeOverview = true } = options
   const host = metrics.host ?? {}
   const builder = createMetricsSectionBuilder()
 
-  if (overviewHasData(server)) {
+  if (includeOverview && overviewHasData(server)) {
     builder.leaf({
       title: "Overview",
       icon: LayoutDashboard,
@@ -248,3 +254,4 @@ function buildServerMetricSections(
 }
 
 export { buildServerMetricSections }
+export type { BuildServerMetricSectionsOptions }

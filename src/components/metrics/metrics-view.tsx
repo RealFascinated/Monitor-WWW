@@ -29,7 +29,7 @@ function MetricsView({ sections }: MetricsViewProps) {
 
   return (
     <div className="flex gap-4 lg:gap-6">
-      <div className="flex min-w-0 flex-1 flex-col gap-16">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         {leaves.map((section) => (
           <MemoizedMetricSection
             key={section.id}
